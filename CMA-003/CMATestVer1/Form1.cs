@@ -301,6 +301,7 @@ namespace CMATestVer1
                 DrawLedBulb(picHotFan, false, Color.Red);
                 DrawLedBulb(picCoolFan, false, Color.Red);
                 //DrawLedBulb(picRelay, false, Color.Red);
+
                 ResetAllSteps();
 
                 _runStopwatch.Reset();
@@ -870,7 +871,7 @@ namespace CMATestVer1
                 _form4Instance = null;
             }
 
-            _form4Instance = new Form4(_DisPort, this);
+            _form4Instance = new Form4(_DisPort!, this);
             _form4Instance.Owner = this;
             _form4Instance.Show();
         }
@@ -2341,11 +2342,11 @@ namespace CMATestVer1
             LoadLotHistory();
         }
 
+
+
         //-- ส่วนของการเก็บผลการ test ลง Excel
         private string? _customResultFolder = null;
         public string? ResultFolder => _customResultFolder;
-
-
         private bool EnsureFolderSelected()
         {
             if (string.IsNullOrEmpty(_customResultFolder) || !Directory.Exists(_customResultFolder))
@@ -2361,12 +2362,10 @@ namespace CMATestVer1
             }
             return true;
         }
-
-
         private void btnBrowse_Click(object sender, EventArgs e)
         {
-            Directory.CreateDirectory(ResultFolder);
-            System.Diagnostics.Process.Start("explorer.exe", ResultFolder);
+            Directory.CreateDirectory(ResultFolder!);
+            System.Diagnostics.Process.Start("explorer.exe", ResultFolder!);
         }
         private void btnDelLot_Click(object sender, EventArgs e)
         {
@@ -2461,7 +2460,7 @@ namespace CMATestVer1
 
                 // 🟢 2. กำหนด Path โดยอิงจาก ResultFolder ที่เลือกเท่านั้น
                 string safeFileName = lotNumber.Replace("/", "-");
-                string lotFilePath = Path.Combine(ResultFolder, safeFileName + ".xlsx");
+                string lotFilePath = Path.Combine(ResultFolder!, safeFileName + ".xlsx");
 
                 if (!File.Exists(lotFilePath))
                 {
@@ -2471,7 +2470,7 @@ namespace CMATestVer1
                         MessageBox.Show("ไม่พบไฟล์ template.xlsx!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-                    Directory.CreateDirectory(ResultFolder);
+                    Directory.CreateDirectory(ResultFolder!);
                     File.Copy(templatePath, lotFilePath);
                 }
 
@@ -2485,6 +2484,8 @@ namespace CMATestVer1
                     sheet.Cell("P3").Value = lotNumber;
                     sheet.Cell("AA3").Value = DateTime.Now.ToString("yyyy-MM-dd");
 
+                    int[] pageBreakRows = new int[] { 30, 49, 68, 87, 106 };
+
                     int nextRow = 12;
                     int duplicateRow = -1;
                     bool nextRowFound = false;
@@ -2493,6 +2494,8 @@ namespace CMATestVer1
 
                     for (int r = 12; r <= Math.Max(lastRow, 12); r++)
                     {
+                        if (pageBreakRows.Contains(r)) continue;
+
                         string existingSN = sheet.Cell(r, 27).GetString().Trim();
 
                         if (!string.IsNullOrEmpty(existingSN) && existingSN.Equals(serialNumber, StringComparison.OrdinalIgnoreCase))
@@ -2517,7 +2520,14 @@ namespace CMATestVer1
                         nextRow = lastRow + 1;
                     }
 
-                    int no = nextRow - 11;
+                    if (pageBreakRows.Contains(nextRow))
+                    {
+                        nextRow++;
+                    }
+
+                    int pageBreaksBefore = pageBreakRows.Count(b => b < nextRow);
+                    int no = (nextRow - 11) - pageBreaksBefore;
+
                     SetCellWithFont(sheet, nextRow, 1, no);
                     SetCellWithFont(sheet, nextRow, 3, _RelayResult);
                     SetCellWithFont(sheet, nextRow, 5, _wlResult);
@@ -2551,19 +2561,29 @@ namespace CMATestVer1
                     SetCellWithFont(sheet, nextRow, 26, testStatus);
                     SetCellWithFont(sheet, nextRow, 27, serialNumber);
 
-                    // ✅ แบบใหม่: วนลูปนับเฉพาะแถวที่มี S/N (คอลัมน์ AA / Col 27) หรือ No. (Col 1) อยู่จริง
                     int actualCount = 0;
-                    int checkRow = 12; // จุดเริ่มต้นข้อมูลแถวแรก
+                    int checkRow = 12;
 
-                    // วนลูปตรวจสอบ คอลัมน์ S/N (Col 27) หรือคอลัมน์ ลำดับ (Col 1)
-                    while (!string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 27).GetString()) ||
-                           !string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 1).GetString()))
+                    while (true)
                     {
+                        // ถ้าเจอแถวคั่นหน้า ให้ข้ามไปแถวถัดไป
+                        if (pageBreakRows.Contains(checkRow))
+                        {
+                            checkRow++;
+                            continue;
+                        }
+
+                        // ถ้าไม่มีข้อมูล S/N (Col 27) และ ลำดับ (Col 1) แสดงว่าหมดแถวที่มีข้อมูลแล้ว
+                        if (string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 27).GetString()) &&
+                            string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 1).GetString()))
+                        {
+                            break;
+                        }
+
                         actualCount++;
                         checkRow++;
                     }
 
-                    // อัปเดตค่า Lot Size ในช่อง U3 ตามจำนวนที่นับได้จริง
                     sheet.Cell("U3").Value = actualCount;
 
                     workbook.Save();
@@ -2635,7 +2655,7 @@ namespace CMATestVer1
             }
 
             string safeFileName = lotNumber.Replace("/", "-");
-            _excelFilePath = Path.Combine(ResultFolder, safeFileName + ".xlsx");
+            _excelFilePath = Path.Combine(ResultFolder!, safeFileName + ".xlsx");
             txtExcelPath.Text = _excelFilePath;
 
             if (IsSerialNumberDuplicate(sn, lotNumber))
@@ -2720,7 +2740,7 @@ namespace CMATestVer1
         {
             if (cmbLot.SelectedItem == null || string.IsNullOrEmpty(ResultFolder)) return;
 
-            string selectedLot = cmbLot.SelectedItem.ToString();
+            string selectedLot = cmbLot.SelectedItem.ToString() ??"";
 
             // 🟡 แก้ไข: บังคับให้อ่านไฟล์จาก ResultFolder (โฟลเดอร์ที่เราเลือก) เท่านั้น
             string filePath = Path.Combine(ResultFolder, selectedLot + ".xlsx");
@@ -2730,7 +2750,7 @@ namespace CMATestVer1
                 LoadExcelToDataGrid(filePath);
             }
         }
-        private void LoadExcelToDataGrid(string filePath = null)
+        private void LoadExcelToDataGrid(string? filePath = null)
         {
             
             if (!string.IsNullOrEmpty(filePath))
@@ -3157,7 +3177,6 @@ namespace CMATestVer1
                 RxBox.AppendText($"\r\n[NETWORK EXCEPTION] {ex.Message}\r\n");
             }
         }
-
         private async void btnPost_Click(object sender, EventArgs e)
         {
             string serialNumber = txtSerialNumber.Text.Trim();
@@ -3289,7 +3308,6 @@ namespace CMATestVer1
             pb.Image?.Dispose();
             pb.Image = bmp;
         }
-
         private enum StepState { Waiting, Running, Pass, Fail }
         private PictureBox[] _stepLeds = Array.Empty<PictureBox>();
         private void InitStepLeds()
@@ -3569,8 +3587,6 @@ namespace CMATestVer1
             }
 
         }
-
-
 
 
 
