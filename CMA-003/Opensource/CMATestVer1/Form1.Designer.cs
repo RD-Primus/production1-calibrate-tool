@@ -680,9 +680,9 @@
             label54.ForeColor = Color.FromArgb(65, 67, 27);
             label54.Location = new Point(71, 27);
             label54.Name = "label54";
-            label54.Size = new Size(99, 22);
+            label54.Size = new Size(108, 22);
             label54.TabIndex = 115;
-            label54.Text = "Relay Out";
+            label54.Text = "COOL FAN";
             // 
             // myRoundedPanel13
             // 
@@ -711,9 +711,9 @@
             label27.ForeColor = Color.FromArgb(65, 67, 27);
             label27.Location = new Point(71, 26);
             label27.Name = "label27";
-            label27.Size = new Size(46, 22);
+            label27.Size = new Size(93, 22);
             label27.TabIndex = 115;
-            label27.Text = "FAn";
+            label27.Text = "HOT FAN";
             // 
             // myRoundedPanel9
             // 

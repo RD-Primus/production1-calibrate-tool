@@ -2444,7 +2444,10 @@ namespace CMATestVer1
                     var sheet = workbook.Worksheet(1);
 
                     sheet.Cell("P3").Value = lotNumber;
-                    sheet.Cell("AA3").Value = DateTime.Now.ToString("yyyy-MM-dd");
+                    DateTime now = DateTime.Now;
+                    int buddhistYear2Digit = (now.Year + 543) % 100;
+                    string thaiDateStr = $"{now.Day}/{now.Month}/{buddhistYear2Digit:00}";
+                    sheet.Cell("AB3").Value = thaiDateStr;
 
                     int[] pageBreakRows = new int[] { 30, 49, 68, 87, 106 };
 
@@ -2552,6 +2555,13 @@ namespace CMATestVer1
                             string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 1).GetString()))
                         {
                             break;
+                        }
+
+                        // ถ้า No. มีเลข (pre-print จากเทมเพลต) แต่ S/N ว่าง = ยังไม่เคย test แถวนี้จริง ข้ามไป ไม่นับ
+                        if (string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 28).GetString()))
+                        {
+                            checkRow++;
+                            continue;
                         }
 
                         actualCount++;
