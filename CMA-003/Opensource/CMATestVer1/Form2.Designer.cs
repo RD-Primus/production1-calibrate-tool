@@ -57,11 +57,16 @@
             myRoundedPanel5 = new CMA003AVer2.MyRoundedPanel();
             PreCal = new Button();
             label5 = new Label();
+            myRoundedPanel6 = new CMA003AVer2.MyRoundedPanel();
+            btnTestCompressorHotFan = new Button();
+            chkCoolfan = new Button();
+            label6 = new Label();
             myRoundedPanel1.SuspendLayout();
             myRoundedPanel2.SuspendLayout();
             myRoundedPanel3.SuspendLayout();
             myRoundedPanel4.SuspendLayout();
             myRoundedPanel5.SuspendLayout();
+            myRoundedPanel6.SuspendLayout();
             SuspendLayout();
             // 
             // label10
@@ -392,17 +397,17 @@
             myRoundedPanel5.BorderRadius = 15;
             myRoundedPanel5.Controls.Add(PreCal);
             myRoundedPanel5.Controls.Add(label5);
-            myRoundedPanel5.Location = new Point(522, 281);
+            myRoundedPanel5.Location = new Point(522, 404);
             myRoundedPanel5.Name = "myRoundedPanel5";
-            myRoundedPanel5.Size = new Size(146, 197);
+            myRoundedPanel5.Size = new Size(146, 74);
             myRoundedPanel5.TabIndex = 128;
             // 
             // PreCal
             // 
-            PreCal.Font = new Font("Arial Narrow", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            PreCal.Location = new Point(15, 46);
+            PreCal.Font = new Font("Arial Narrow", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            PreCal.Location = new Point(14, 39);
             PreCal.Name = "PreCal";
-            PreCal.Size = new Size(118, 136);
+            PreCal.Size = new Size(118, 28);
             PreCal.TabIndex = 131;
             PreCal.Text = "Send Cal";
             PreCal.UseVisualStyleBackColor = true;
@@ -419,12 +424,58 @@
             label5.TabIndex = 131;
             label5.Text = "Pre CAL";
             // 
+            // myRoundedPanel6
+            // 
+            myRoundedPanel6.BackColor = Color.FromArgb(162, 203, 139);
+            myRoundedPanel6.BorderRadius = 15;
+            myRoundedPanel6.Controls.Add(btnTestCompressorHotFan);
+            myRoundedPanel6.Controls.Add(chkCoolfan);
+            myRoundedPanel6.Controls.Add(label6);
+            myRoundedPanel6.Location = new Point(522, 281);
+            myRoundedPanel6.Name = "myRoundedPanel6";
+            myRoundedPanel6.Size = new Size(146, 107);
+            myRoundedPanel6.TabIndex = 132;
+            // 
+            // btnTestCompressorHotFan
+            // 
+            btnTestCompressorHotFan.Font = new Font("Arial Narrow", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnTestCompressorHotFan.Location = new Point(11, 70);
+            btnTestCompressorHotFan.Name = "btnTestCompressorHotFan";
+            btnTestCompressorHotFan.Size = new Size(125, 28);
+            btnTestCompressorHotFan.TabIndex = 132;
+            btnTestCompressorHotFan.Text = "HotFan, Compressor";
+            btnTestCompressorHotFan.UseVisualStyleBackColor = true;
+            btnTestCompressorHotFan.Click += btnTestCompressorHotFan_Click;
+            // 
+            // chkCoolfan
+            // 
+            chkCoolfan.Font = new Font("Arial Narrow", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkCoolfan.Location = new Point(11, 39);
+            chkCoolfan.Name = "chkCoolfan";
+            chkCoolfan.Size = new Size(125, 28);
+            chkCoolfan.TabIndex = 131;
+            chkCoolfan.Text = "CoolFan";
+            chkCoolfan.UseVisualStyleBackColor = true;
+            chkCoolfan.Click += chkCoolfan_Click;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            label6.ForeColor = Color.FromArgb(98, 43, 20);
+            label6.Location = new Point(13, 10);
+            label6.Name = "label6";
+            label6.Size = new Size(119, 26);
+            label6.TabIndex = 131;
+            label6.Text = "Relay Out";
+            // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 245, 189);
             ClientSize = new Size(691, 496);
+            Controls.Add(myRoundedPanel6);
             Controls.Add(myRoundedPanel5);
             Controls.Add(myRoundedPanel3);
             Controls.Add(myRoundedPanel2);
@@ -444,6 +495,8 @@
             myRoundedPanel4.PerformLayout();
             myRoundedPanel5.ResumeLayout(false);
             myRoundedPanel5.PerformLayout();
+            myRoundedPanel6.ResumeLayout(false);
+            myRoundedPanel6.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -477,5 +530,9 @@
         private CMA003AVer2.MyRoundedPanel myRoundedPanel5;
         private Button PreCal;
         private Label label5;
+        private CMA003AVer2.MyRoundedPanel myRoundedPanel6;
+        private Button chkCoolfan;
+        private Label label6;
+        private Button btnTestCompressorHotFan;
     }
 }

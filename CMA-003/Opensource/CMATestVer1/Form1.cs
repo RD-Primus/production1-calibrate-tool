@@ -97,7 +97,7 @@ namespace CMATestVer1
         private bool _forceDisplay120 = false; // เพื่อควบคุมการส่ง 120
         private string _register0FinalResult = "-";
 
-        
+
 
 
         public Form1(string token)
@@ -692,7 +692,7 @@ namespace CMATestVer1
                                 _currentPv = value / 10.0;
                                 lblRegis0.Text = _currentPv.ToString("F1") + " °C";
                                 break;
-                             case 20:
+                            case 20:
                                 Led_Relay = (value != 0);
                                 //DrawLedBulb(picRelay, Led_Relay, Color.Red);
                                 break;
@@ -896,7 +896,7 @@ namespace CMATestVer1
             if (idToSend == 3)
             {
                 startAddress = 0;
-                quantity = 5;
+                quantity = 6;
                 currentPollingID = 1;
             }
 
@@ -976,7 +976,7 @@ namespace CMATestVer1
         }
         private void CommonRegis_Leave(object sender, EventArgs e)
         {
-           
+
         }
 
         // เขียน Register
@@ -1045,11 +1045,17 @@ namespace CMATestVer1
 
                     if (TryGetLastRegister(targetID, address, out short actualRaw))
                     {
-                        LogToRx($"[DEBUG] Manual Write addr={address} actualRaw={actualRaw} expected={valueToWrite} (ลองครั้งที่ {attempt + 1}/{maxRetry})");
+                        //LogToRx($"[DEBUG] Manual Write addr={address} actualRaw={actualRaw} expected={valueToWrite} (ลองครั้งที่ {attempt + 1}/{maxRetry})");
 
                         if (Math.Abs((int)actualRaw - valueToWrite) <= 1)
                         {
-                            return; // สำเร็จ — สีจะถูกเปลี่ยนเป็นน้ำเงินโดย UpdateMainBoardUI ตอนได้ ack
+                            // เปลี่ยนสีทันทีตรงนี้เลย ไม่ต้องพึ่งใคร
+                            if (txt.InvokeRequired)
+                                txt.Invoke(new Action(() => txt.ForeColor = Color.Blue));
+                            else
+                                txt.ForeColor = Color.Blue;
+
+                            return;
                         }
                     }
 
@@ -1255,32 +1261,9 @@ namespace CMATestVer1
         }
         private void DoCalibrate(DoWorkEventArgs e, int progressStart = 0, int progressEnd = 100)
         {
-            //bool isPreCalChecked = false;
-            //this.Invoke(new Action(() =>
-            //{
-            //    isPreCalChecked = chkPreCal.Checked; // เปลี่ยน chkPreCal เป็นชื่อ CheckBox ของคุณ
-            //}));
 
             if (_sequenceStep == 0)
             {
-                //2. เช็คว่าถ้าติก CheckBox ให้ทำ Pre-Cal
-                //if (isPreCalChecked)
-                //{
-                //    SendPreCalibrationFrame(backgroundWorkerOhm, "รอบที่ 1");
-                //    if (backgroundWorkerOhm.CancellationPending) { e.Cancel = true; return; }
-                //    System.Threading.Thread.Sleep(200);
-
-                //    SendPreCalibrationFrame(backgroundWorkerOhm, "รอบที่ 2");
-                //    if (backgroundWorkerOhm.CancellationPending) { e.Cancel = true; return; }
-                //    System.Threading.Thread.Sleep(200);
-
-                //    LogToRx("--- ทำ Pre-Calibration เรียบร้อยแล้ว ---", Color.Green);
-                //}
-                //else
-                //{
-                //    LogToRx("--- ข้ามขั้นตอน Pre-Calibration ---", Color.Gray);
-                //}
-
                 LogToRx("--- เริ่มกระบวนการ Calibrate หลัก ---", Color.Black);
             }
 
@@ -1356,7 +1339,7 @@ namespace CMATestVer1
                 SetStep(1, StepState.Running);
 
                 backgroundWorkerOhm.ReportProgress(Pct(10));
-                if (!VerifyOhmValueSync(200, 99.2)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!VerifyOhmValueSync(200, 99.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
 
                 SetStep(1, StepState.Pass);
 
@@ -1466,92 +1449,26 @@ namespace CMATestVer1
 
             if (!ShouldSkip(12))
             {
-                //------------------------------------------
-                //LogToRx("ตรวจสอบการทำงาน Compressor และ Fan ");
-
-                //backgroundWorkerOhm.ReportProgress(Pct(90));
-                //SetStep(8, StepState.Running);
-
-                //if (!WriteRegister(1, 1, 200)) { ReportStepFailure(e); return; }
-                ////if (!WriteAndVerifyFlag(2, 0, 1, () => ID2_reg0IsOn, true)) { ReportStepFailure(e); return; }
-                ////if (!WriteAndVerifyFlag(2, 1, 1, () => ID2_reg1IsOn, true)) { ReportStepFailure(e); return; }
-
-                //if (!CheckRegisterStatus_ALL(3, 5, true, "CoolFan")) { ReportStepFailure(e); return; }
-
-                //if (!CancellableSleep(1000)) { e.Cancel = true; return; }
-
-                //SendOhm(2000);
-
-                //bool isCompressorOn = false;
-                //bool isHotFanOn = false;
-                //var sw = System.Diagnostics.Stopwatch.StartNew();
-
-                //while (sw.Elapsed.TotalSeconds < 20)
-                //{
-                //    if (ID3_reg3IsOn) isCompressorOn = true;
-                //    if (ID3_reg4IsOn) isHotFanOn = true;
-
-                //    if (isCompressorOn && isHotFanOn) break;
-
-                //    if (!CancellableSleep(200)) { e.Cancel = true; return; }
-                //}
-
-                //if (isCompressorOn && isHotFanOn)
-                //{
-                //    if (!CancellableSleep(3000)) { e.Cancel = true; return; }
-                //}
-                //else
-                //{
-                //    if (!isCompressorOn)
-                //    {
-                //        if (!CheckRegisterStatus_ALL(3, 3, true, "Compressor")) { ReportStepFailure(e); return; }
-                //    }
-                //    if (!isHotFanOn)
-                //    {
-                //        if (!CheckRegisterStatus_ALL(3, 4, true, "HotFan")) { ReportStepFailure(e); return; }
-                //    }
-                //}
-
-                //SetStep(8, StepState.Pass);
-
-                //backgroundWorkerOhm.ReportProgress(Pct(95));
-
-                //_testStepResumed = 13;
-                //---------------------
-
-                LogToRx("ตรวจสอบ Compressor");
+                LogToRx("ตรวจสอบการทำงาน Compressor และ Fan ");
 
                 backgroundWorkerOhm.ReportProgress(Pct(90));
                 SetStep(8, StepState.Running);
 
                 if (!WriteRegister(1, 1, 200)) { ReportStepFailure(e); return; }
+
+                ID3_reg3IsOn = false;
+                ID3_reg4IsOn = false;
+                ID3_reg5IsOn = false;
+
+                if (!CheckRegisterStatus_ALL(3, 5, true, "CoolFan")) { ReportStepFailure(e); return; }
+
                 if (!CancellableSleep(1000)) { e.Cancel = true; return; }
 
                 SendOhm(2000);
 
-                bool isCompressorOn = false;
-                var sw = System.Diagnostics.Stopwatch.StartNew();
+                if (!CheckCompressorAndHotFan(20)) { ReportStepFailure(e); return; }
 
-                while (sw.Elapsed.TotalSeconds < 20)
-                {
-                    if (ID3_reg3IsOn)
-                    {
-                        isCompressorOn = true;
-                        break;
-                    }
-
-                    if (!CancellableSleep(200)) { e.Cancel = true; return; }
-                }
-
-                if (isCompressorOn)
-                {
-                    if (!CancellableSleep(2000)) { e.Cancel = true; return; }
-                    if (!CheckRegisterStatus_ALL(3, 3, true, "Compressor")) { ReportStepFailure(e); return; }
-                }
-                else
-                {
-                    if (!CheckRegisterStatus_ALL(3, 3, true, "Compressor")) { ReportStepFailure(e); return; }
-                }
+                if (!CancellableSleep(3000)) { e.Cancel = true; return; }
 
                 SetStep(8, StepState.Pass);
 
@@ -1587,6 +1504,49 @@ namespace CMATestVer1
             e.Result = "SUCCESS";
         }
 
+        private bool CheckCompressorAndHotFan(int timeoutSeconds = 20)
+        {
+            LogToRx("กำลังตรวจสอบ Compressor และ HotFan");
+
+            bool isCompressorOn = false;
+            bool isHotFanOn = false;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            while (sw.Elapsed.TotalSeconds < timeoutSeconds)
+            {
+                if (ID3_reg3IsOn) isCompressorOn = true;
+                if (ID3_reg4IsOn) isHotFanOn = true;
+
+                if (isCompressorOn && isHotFanOn) break;
+
+                if (backgroundWorkerOhm.CancellationPending) return false;
+                if (!CancellableSleep(200)) return false;
+            }
+
+            if (isCompressorOn)
+            {
+                _Compressor = "OK";
+                LogToRx("[PASS] Compressor ทำงาน", Color.Green);
+            }
+            else
+            {
+                _Compressor = "FAIL";
+                LogToRx("[FAIL] Compressor ไม่ทำงาน!", Color.Red);
+            }
+
+            if (isHotFanOn)
+            {
+                _HotFan = "OK";
+                LogToRx("[PASS] HotFan ทำงาน", Color.Green);
+            }
+            else
+            {
+                _HotFan = "FAIL";
+                LogToRx("[FAIL] HotFan ไม่ทำงาน!", Color.Red);
+            }
+
+            return isCompressorOn && isHotFanOn;
+        }
 
         private void DoCalAndTestWithRetry(DoWorkEventArgs e)
         {
@@ -1664,7 +1624,7 @@ namespace CMATestVer1
                 // 👇 เช็คจากค่าดิบที่เก็บไว้ตรงๆ ไม่ผ่าน UI แล้ว
                 if (TryGetLastRegister(id, addr, out short actualRaw))
                 {
-                    LogToRx($"[DEBUG] addr={addr} actualRaw={actualRaw} expected={val}");
+                    //LogToRx($"[DEBUG] addr={addr} actualRaw={actualRaw} expected={val}");
 
                     if (Math.Abs((int)actualRaw - val) <= 1) return true;
                 }
@@ -1736,6 +1696,23 @@ namespace CMATestVer1
                 progressBar1.Value = e.ProgressPercentage;
             }
         }
+        private void CloseForm4IfOpen()
+        {
+            if (_form4Instance != null && !_form4Instance.IsDisposed)
+            {
+                try
+                {
+                    if (_DisPort != null)
+                    {
+                        _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
+                    }
+                    _form4Instance.Close();
+                }
+                catch { }
+            }
+            _form4Instance = null;
+            _autoOpenCountdown = 0;
+        }
         private void backgroundWorker1_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             btnRun.Text = "Run";
@@ -1759,22 +1736,6 @@ namespace CMATestVer1
             System.Threading.Thread.Sleep(100);
             ExecuteWriteSingleRegister(2, 1, 0);
 
-            // ปิด Form4 จริงๆ ถ้ายังเปิดค้างอยู่ (เดิมแค่ set null ฟอร์มเลยไม่ถูกปิด)
-            if (_form4Instance != null && !_form4Instance.IsDisposed)
-            {
-                try
-                {
-                    if (_DisPort != null)
-                    {
-                        _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
-                    }
-                    _form4Instance.Close();
-                }
-                catch { }
-            }
-            _form4Instance = null;
-            _autoOpenCountdown = 0;
-
             var t = _runStopwatch.Elapsed;
             lblElapsedTime.Text = $"{t.Minutes:D2}:{t.Seconds:D2}";
 
@@ -1791,11 +1752,12 @@ namespace CMATestVer1
 
             if (e.Cancelled)
             {
+                CloseForm4IfOpen();
                 LogToRx($"{modeLabel}: หยุดการทำงานชั่วคราว");
             }
             else if (e.Error != null)
             {
-
+                CloseForm4IfOpen();
                 MessageBox.Show("เกิดข้อผิดพลาด: " + e.Error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else if (e.Result?.ToString() == "SUCCESS")
@@ -1835,12 +1797,12 @@ namespace CMATestVer1
             }
             else
             {
+                CloseForm4IfOpen();
                 LogToRx($"{modeLabel}: ล้มเหลว");
                 MessageBox.Show($"ไม่สามารถ {modeLabel} ได้ตามเกณฑ์ที่กำหนด", "Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 if (hasTest) SaveTestDataToExcel("FAIL");
             }
         }
-
 
 
         //--- ส่วนประกอบในการสั่ง Calibrate
@@ -1882,7 +1844,7 @@ namespace CMATestVer1
         }
         private void CollectDataToArray(int currentOhm)
         {
-            int waitSteps = (currentOhm == 100) ? 90 : 50;
+            int waitSteps = (currentOhm == 100) ? 60 : 50;
 
             for (int i = 0; i < waitSteps; i++)
             {
@@ -1987,7 +1949,7 @@ namespace CMATestVer1
                 double diff = Math.Abs(_currentPv - expectedPv);
                 //LogToRx($"วินาทีที่ {i + 1}: ค่าปัจจุบัน PV = {_currentPv:F2} (Diff: {diff:F2})");
 
-                if (diff < 5.0)
+                if (diff < 1.0)
                 {
                     isPass = true;
                     break;
@@ -2400,12 +2362,12 @@ namespace CMATestVer1
 
                     for (int row = startRow; row <= lastRow; row++)
                     {
-                        string existingSN = sheet.Cell(row, 27).GetString().Trim();
+                        string existingSN = sheet.Cell(row, 28).GetString().Trim();
 
                         if (!string.IsNullOrEmpty(existingSN) &&
                             existingSN.Equals(sn.Trim(), StringComparison.OrdinalIgnoreCase))
                         {
-                            return true; 
+                            return true;
                         }
                     }
                 }
@@ -2496,7 +2458,7 @@ namespace CMATestVer1
                     {
                         if (pageBreakRows.Contains(r)) continue;
 
-                        string existingSN = sheet.Cell(r, 27).GetString().Trim();
+                        string existingSN = sheet.Cell(r, 28).GetString().Trim();
 
                         if (!string.IsNullOrEmpty(existingSN) && existingSN.Equals(serialNumber, StringComparison.OrdinalIgnoreCase))
                         {
@@ -2515,7 +2477,7 @@ namespace CMATestVer1
                     {
                         nextRow = duplicateRow;
                     }
-                    else if (lastRow >= 12 && !string.IsNullOrEmpty(sheet.Cell(lastRow, 27).GetString()))
+                    else if (lastRow >= 12 && !string.IsNullOrEmpty(sheet.Cell(lastRow, 28).GetString()))
                     {
                         nextRow = lastRow + 1;
                     }
@@ -2536,9 +2498,8 @@ namespace CMATestVer1
                     SetCellWithFont(sheet, nextRow, 9, _hp_AL2Result);
                     SetCellWithFont(sheet, nextRow, 11, _alarm1Result);
 
-                    SetCellWithFont(sheet, nextRow, 12, _Compressor);
-
-                    SetCellWithFont(sheet, nextRow, 13, _Compressor);
+                    SetCellWithFont(sheet, nextRow, 12, _HotFan);
+                    SetCellWithFont(sheet, nextRow, 13, _CoolFan);
                     SetCellWithFont(sheet, nextRow, 14, _Compressor);
                     SetCellWithFont(sheet, nextRow, 15, _verify200Result);
                     SetCellWithFont(sheet, nextRow, 16, _verify2000Result);
@@ -2558,10 +2519,23 @@ namespace CMATestVer1
                     SetCellWithFont(sheet, nextRow, 23, _btnDownResult);
                     SetCellWithFont(sheet, nextRow, 24, _btnUpResult);
                     SetCellWithFont(sheet, nextRow, 25, _ledResult);
-                    SetCellWithFont(sheet, nextRow, 26, testStatus);
-                    SetCellWithFont(sheet, nextRow, 27, serialNumber);
+
+                    if (testStatus == "PASS")
+                    {
+                        SetCellWithFont(sheet, nextRow, 26, "OK");   // Z = ปกติ
+                        SetCellWithFont(sheet, nextRow, 27, "");     // AA = ไม่ปกติ (เคลียร์ว่าง)
+                    }
+                    else
+                    {
+                        SetCellWithFont(sheet, nextRow, 26, "");     // Z = ปกติ (เคลียร์ว่าง)
+                        SetCellWithFont(sheet, nextRow, 27, "OK");   // AA = ไม่ปกติ
+                    }
+                    SetCellWithFont(sheet, nextRow, 28, serialNumber); // AB = S/N
+
 
                     int actualCount = 0;
+                    int goodCount = 0;
+                    int defectCount = 0;
                     int checkRow = 12;
 
                     while (true)
@@ -2574,23 +2548,40 @@ namespace CMATestVer1
                         }
 
                         // ถ้าไม่มีข้อมูล S/N (Col 27) และ ลำดับ (Col 1) แสดงว่าหมดแถวที่มีข้อมูลแล้ว
-                        if (string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 27).GetString()) &&
+                        if (string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 28).GetString()) &&
                             string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 1).GetString()))
                         {
                             break;
                         }
 
                         actualCount++;
+
+                        // นับ Good/Defect จากคอลัมน์ Z(26)=ปกติ, AA(27)=ไม่ปกติ
+                        string zCheck = sheet.Cell(checkRow, 26).GetString().Trim().ToUpper();
+                        string aaCheck = sheet.Cell(checkRow, 27).GetString().Trim().ToUpper();
+
+                        if (zCheck == "OK") goodCount++;
+                        else if (aaCheck == "OK") defectCount++;
+
                         checkRow++;
                     }
 
                     sheet.Cell("U3").Value = actualCount;
 
+                    // ── เขียนสรุป Q'ty / Good / Defect / % Yield ──
+                    double yieldPercent = actualCount > 0 ? Math.Round((double)goodCount / actualCount * 100.0, 2) : 0;
+
+                    sheet.Cell("F124").Value = actualCount;
+                    sheet.Cell("H124").Value = goodCount;
+                    sheet.Cell("J124").Value = defectCount;
+                    sheet.Cell("L124").Value = yieldPercent;
+                    sheet.Cell("L124").Style.NumberFormat.Format = "0.00\"%\"";
+
                     workbook.Save();
                 }
 
                 LoadLotHistory();
-                LoadExcelToDataGrid(_excelFilePath); 
+                LoadExcelToDataGrid(_excelFilePath);
                 //_ = PostResultAsync(testStatus); //  post ผลลง Server
 
                 LogToRx($"S/N: {serialNumber} | LOT: {lotNumber} บันทึกเรียบร้อย", Color.Green);
@@ -2740,7 +2731,7 @@ namespace CMATestVer1
         {
             if (cmbLot.SelectedItem == null || string.IsNullOrEmpty(ResultFolder)) return;
 
-            string selectedLot = cmbLot.SelectedItem.ToString() ??"";
+            string selectedLot = cmbLot.SelectedItem.ToString() ?? "";
 
             // 🟡 แก้ไข: บังคับให้อ่านไฟล์จาก ResultFolder (โฟลเดอร์ที่เราเลือก) เท่านั้น
             string filePath = Path.Combine(ResultFolder, selectedLot + ".xlsx");
@@ -2752,7 +2743,7 @@ namespace CMATestVer1
         }
         private void LoadExcelToDataGrid(string? filePath = null)
         {
-            
+
             if (!string.IsNullOrEmpty(filePath))
             {
                 _historyExcelFilePath = filePath;
@@ -2791,49 +2782,85 @@ namespace CMATestVer1
                 int passCount = 0;
                 int failCount = 0;
 
+                int[] pageBreakRows = new int[] { 30, 49, 68, 87, 106 };
+
                 string selectedLotOnUI = cmbLot.Text.Trim();
 
-                while (!string.IsNullOrEmpty(sheet.Cell(row, 1).GetString()))
+                while (true)
                 {
+                    if (pageBreakRows.Contains(row))
+                    {
+                        row++;
+                        continue;
+                    }
+                    // เช็คจาก S/N (col 28) แทน No. (col 1) เพราะ No. ถูกพิมพ์ไว้ล่วงหน้าในเทมเพลต
+                    if (string.IsNullOrWhiteSpace(sheet.Cell(row, 28).GetString()) &&
+                        string.IsNullOrWhiteSpace(sheet.Cell(row, 1).GetString()))
+                    {
+                        break;
+                    }
+
+                    // ถ้า No. มีเลขแต่ S/N ว่าง = แถวที่เทมเพลต pre-print ไว้แต่ยังไม่มีข้อมูลจริง ข้ามไป
+                    if (string.IsNullOrWhiteSpace(sheet.Cell(row, 28).GetString()))
+                    {
+                        row++;
+                        continue;
+                    }
+
                     lotCount++;
 
-                    
-                    string statusValue = sheet.Cell(row, 26).GetString().Trim().ToUpper();
-                    if (statusValue == "PASS") passCount++;
-                    else if (statusValue == "FAIL") failCount++;
+                    // ── ตรวจสถานะจาก 2 คอลัมน์แยกกัน: Z(26)=ปกติ, AA(27)=ไม่ปกติ ──
+                    string zVal = sheet.Cell(row, 26).GetString().Trim().ToUpper();  // ปกติ
+                    string aaVal = sheet.Cell(row, 27).GetString().Trim().ToUpper(); // ไม่ปกติ
 
-                    string currentSn = sheet.Cell(row, 27).GetString().Trim();
+                    string statusValue;
+                    if (zVal == "OK")
+                    {
+                        statusValue = "PASS";
+                        passCount++;
+                    }
+                    else if (aaVal == "OK")
+                    {
+                        statusValue = "FAIL";
+                        failCount++;
+                    }
+                    else
+                    {
+                        statusValue = "";
+                    }
+
+                    string currentSn = sheet.Cell(row, 28).GetString().Trim();
 
                     rows.Add(new TestResultExcel
                     {
-                        No = (int)sheet.Cell(row, 1).GetDouble(),        // A: ลำดับ
-                        RelayLED = sheet.Cell(row, 3).GetString(),        // B: (ฝากค่าสลับหรือเทียบเคียงกับตัวแปรเก่า)
-                        WL = sheet.Cell(row, 5).GetString(),              // C: WL
-                        WL_AL2 = sheet.Cell(row, 6).GetString(),          // D: WL/AL2
-                        HP = sheet.Cell(row, 8).GetString(),              // E: HP
-                        HP_AL2 = sheet.Cell(row, 9).GetString(),          // F: HP/AL2
+                        No = (int)sheet.Cell(row, 1).GetDouble(),          // A: ลำดับ
+                        RelayLED = sheet.Cell(row, 3).GetString(),         // B: (ฝากค่าสลับหรือเทียบเคียงกับตัวแปรเก่า)
+                        WL = sheet.Cell(row, 5).GetString(),               // C: WL
+                        WL_AL2 = sheet.Cell(row, 6).GetString(),           // D: WL/AL2
+                        HP = sheet.Cell(row, 8).GetString(),               // E: HP
+                        HP_AL2 = sheet.Cell(row, 9).GetString(),           // F: HP/AL2
                         Alarm1 = sheet.Cell(row, 11).GetString(),          // G: Alarm1
 
-                        hotFAN = sheet.Cell(row, 12).GetString(),      // H: Compressor
-                        coolFAN = sheet.Cell(row, 13).GetString(),      // H: Compressor
+                        hotFAN = sheet.Cell(row, 12).GetString(),          // H: Compressor
+                        coolFAN = sheet.Cell(row, 13).GetString(),         // H: Compressor
                         Compressor = sheet.Cell(row, 14).GetString(),      // H: Compressor
 
                         Ohm200 = sheet.Cell(row, 15).GetString(),          // I: จ่าย 200
-                        Ohm2000 = sheet.Cell(row, 16).GetString(),        // J: จ่าย 2000
-                        Ohm8000 = sheet.Cell(row, 17).GetString(),        // K: จ่าย 8000
+                        Ohm2000 = sheet.Cell(row, 16).GetString(),         // J: จ่าย 2000
+                        Ohm8000 = sheet.Cell(row, 17).GetString(),         // K: จ่าย 8000
 
-                        test20 = sheet.Cell(row, 18).GetString(),      // H: Compressor
+                        test20 = sheet.Cell(row, 18).GetString(),          // H: Compressor
                         test30 = sheet.Cell(row, 19).GetString(),          // I: จ่าย 200
-                        test40 = sheet.Cell(row, 20).GetString(),        // J: จ่าย 2000
-                        test50 = sheet.Cell(row, 21).GetString(),        // K: จ่าย 8000
+                        test40 = sheet.Cell(row, 20).GetString(),          // J: จ่าย 2000
+                        test50 = sheet.Cell(row, 21).GetString(),          // K: จ่าย 8000
 
-                        BtnFunction = sheet.Cell(row, 22).GetString(),    // L: ปุ่ม F
-                        BtnDown = sheet.Cell(row, 23).GetString(),        // M: ปุ่ม ลด
-                        BtnUp = sheet.Cell(row, 24).GetString(),          // N: ปุ่ม เพิ่ม
-                        LedCheck = sheet.Cell(row, 25).GetString(),       // O: LED ติดครบ
-                        Status = sheet.Cell(row, 26).GetString(),         // T: Status
-                        LOT = excelLotFromHeader,                         // ดึงจาก K3 มาใส่ใน Object
-                        SerialNumber = sheet.Cell(row, 27).GetString()    // U: S/N
+                        BtnFunction = sheet.Cell(row, 22).GetString(),     // L: ปุ่ม F
+                        BtnDown = sheet.Cell(row, 23).GetString(),         // M: ปุ่ม ลด
+                        BtnUp = sheet.Cell(row, 24).GetString(),           // N: ปุ่ม เพิ่ม
+                        LedCheck = sheet.Cell(row, 25).GetString(),        // O: LED ติดครบ
+                        Status = statusValue,                              // T: Status
+                        LOT = excelLotFromHeader,                          // ดึงจาก K3 มาใส่ใน Object
+                        SerialNumber = sheet.Cell(row, 28).GetString()     // U: S/N
                     });
 
                     row++;
@@ -2965,7 +2992,7 @@ namespace CMATestVer1
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }
-        
+
 
 
         //-- ส่วนของการดึงข้อมูลโดยใช้ date จาก cmb
@@ -3588,9 +3615,6 @@ namespace CMATestVer1
 
         }
 
-
-
-
         //check 5temp impostend
         private string[] _tempSweepResults = new string[5] { "-", "-", "-", "-", "-" }; // index 0=10°C, 1=20°C, 2=30°C, 3=40°C, 4=50°C
         private static readonly (int Ohm, int TargetTemp)[] TempSweepPoints = new (int, int)[]
@@ -3598,8 +3622,91 @@ namespace CMATestVer1
             (3684, 10),(2489, 20),(1703, 30),(1158, 40),(821,  50)
         };
 
+        public void btnTestCoolFan_Click(object sender, EventArgs e)
+        {
+            if (ID3_reg5IsOn)
+                LogToRx("[PASS] Cool Fan ทำงานอยู่ (สถานะ: ON)", Color.Green);
+            else
+                LogToRx("[FAIL] Cool Fan ไม่ทำงาน (สถานะ: OFF)", Color.Red);
+        }
 
+        private async Task CheckCompressorAndHotFanManual(int timeoutSeconds = 10)
+        {
+            try
+            {
+                LogToRx("--- เริ่มทดสอบ Compressor & HotFan ---", Color.Blue);
 
+                // 1. Set SV = 20.0
+                ExecuteWriteSingleRegister(1, 1, 200);
+                await Task.Delay(500);
 
+                // 2. สั่ง Ohm จ่าย 2000
+                SendOhm(2000);
+                await Task.Delay(500);
+
+                // 3. เปิด WL และ HP ให้ติดทั้งคู่
+                ExecuteWriteSingleRegister(2, 0, 1); // WL ON
+                await Task.Delay(300);
+                ExecuteWriteSingleRegister(2, 1, 1); // HP ON
+                await Task.Delay(500);
+
+                // 4. รอเช็คสถานะ Compressor (reg3) และ HotFan (reg4) ~5 วินาที
+                bool isCompressorOn = false;
+                bool isHotFanOn = false;
+
+                for (int i = 0; i < timeoutSeconds; i++)
+                {
+                    await Task.Delay(1000);
+
+                    if (ID3_reg3IsOn) isCompressorOn = true;
+                    if (ID3_reg4IsOn) isHotFanOn = true;
+
+                    if (isCompressorOn && isHotFanOn) break;
+                }
+
+                if (isCompressorOn)
+                    LogToRx("[PASS] Compressor ทำงาน", Color.Green);
+                else
+                    LogToRx("[FAIL] Compressor ไม่ทำงาน!", Color.Red);
+
+                if (isHotFanOn)
+                    LogToRx("[PASS] HotFan ทำงาน", Color.Green);
+                else
+                    LogToRx("[FAIL] HotFan ไม่ทำงาน!", Color.Red);
+
+                await Task.Delay(5000);
+
+                // 5. ปิดไฟ WL และ HP
+                ExecuteWriteSingleRegister(2, 0, 0); // WL OFF
+                await Task.Delay(300);
+                ExecuteWriteSingleRegister(2, 1, 0); // HP OFF
+
+                LogToRx("--- ปิดไฟ WL/HP เรียบร้อย ---", Color.Blue);
+            }
+            catch (Exception ex)
+            {
+                LogToRx($"Error: {ex.Message}", Color.Red);
+            }
+        }
+
+        public async void btnTestCompressorHotFan_Click(object sender, EventArgs e)
+            => await CheckCompressorAndHotFanManual(10);
+
+        private bool _isTestingCompressorHotFan = false;
+        public async void btnTestCompHotFan_Click(object sender, EventArgs e)
+        {
+            if (_isTestingCompressorHotFan) return; // กันกดซ้ำ
+
+            _isTestingCompressorHotFan = true;
+
+            try
+            {
+                await CheckCompressorAndHotFanManual(10);
+            }
+            finally
+            {
+                _isTestingCompressorHotFan = false;
+            }
+        }
     }
 }

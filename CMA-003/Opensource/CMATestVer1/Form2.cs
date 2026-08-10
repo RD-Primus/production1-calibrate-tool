@@ -209,5 +209,17 @@ namespace CMATestVer1
                 txtOhm.ForeColor = Color.Gray;
             }
         }
+
+        private void chkCoolfan_Click(object sender, EventArgs e)
+        {
+            _mainForm.btnTestCoolFan_Click(null!, null!);
+        }
+
+        private void btnTestCompressorHotFan_Click(object sender, EventArgs e)
+        {
+            _mainForm.btnTestCompHotFan_Click(null!, null!);
+        }
+
+
     }
 }
