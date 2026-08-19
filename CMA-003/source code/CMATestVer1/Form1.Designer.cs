@@ -39,6 +39,9 @@
             label29 = new Label();
             label41 = new Label();
             myRoundedPanel12 = new CMA003AVer2.MyRoundedPanel();
+            customLine7 = new CMA003AVer2.CustomLine();
+            txtECN = new TextBox();
+            label40 = new Label();
             customLine5 = new CMA003AVer2.CustomLine();
             btnSelectFolder = new Button();
             myRoundedPanel61 = new CMA003AVer2.MyRoundedPanel();
@@ -78,6 +81,9 @@
             label39 = new Label();
             pictureBox2 = new PictureBox();
             myRoundedPanel1 = new CMA003AVer2.MyRoundedPanel();
+            myRoundedPanel73 = new CMA003AVer2.MyRoundedPanel();
+            lblConnStatusValue = new Label();
+            label46 = new Label();
             chkMultiplyBy100 = new CheckBox();
             customLine3 = new CMA003AVer2.CustomLine();
             customLine2 = new CMA003AVer2.CustomLine();
@@ -87,14 +93,14 @@
             myRoundedPanel4 = new CMA003AVer2.MyRoundedPanel();
             displaybox = new PictureBox();
             label13 = new Label();
+            SerialboxOhm = new ComboBox();
+            portDis = new ComboBox();
             customLine1 = new CMA003AVer2.CustomLine();
             bntRefresh = new Button();
-            SerialboxOhm = new ComboBox();
             label14 = new Label();
             label11 = new Label();
             btnConnect = new Button();
             label6 = new Label();
-            portDis = new ComboBox();
             PortBox = new ComboBox();
             myRoundedPanel15 = new CMA003AVer2.MyRoundedPanel();
             myRoundedPanel56 = new CMA003AVer2.MyRoundedPanel();
@@ -254,21 +260,15 @@
             label43 = new Label();
             label44 = new Label();
             label45 = new Label();
-            label46 = new Label();
-            label47 = new Label();
             picStep2 = new PictureBox();
             picStep4 = new PictureBox();
             picStep5 = new PictureBox();
-            picStep8 = new PictureBox();
             picCal = new PictureBox();
             label48 = new Label();
             label49 = new Label();
             picStep6 = new PictureBox();
-            picStep7 = new PictureBox();
             picStep3 = new PictureBox();
             label64 = new Label();
-            label40 = new Label();
-            picStep9 = new PictureBox();
             myRoundedPanel6 = new CMA003AVer2.MyRoundedPanel();
             myRoundedPanel12.SuspendLayout();
             myRoundedPanel61.SuspendLayout();
@@ -289,6 +289,7 @@
             myRoundedPanel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             myRoundedPanel1.SuspendLayout();
+            myRoundedPanel73.SuspendLayout();
             myRoundedPanel14.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picdata).BeginInit();
             myRoundedPanel4.SuspendLayout();
@@ -363,12 +364,9 @@
             ((System.ComponentModel.ISupportInitialize)picStep2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picStep4).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picStep5).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)picStep8).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picCal).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picStep6).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)picStep7).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picStep3).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)picStep9).BeginInit();
             myRoundedPanel6.SuspendLayout();
             SuspendLayout();
             // 
@@ -384,10 +382,12 @@
             // 
             // txtSerialNumber
             // 
-            txtSerialNumber.Font = new Font("Arial Narrow", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtSerialNumber.Location = new Point(55, 46);
+            txtSerialNumber.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txtSerialNumber.ForeColor = Color.Blue;
+            txtSerialNumber.Location = new Point(74, 55);
+            txtSerialNumber.Margin = new Padding(4);
             txtSerialNumber.Name = "txtSerialNumber";
-            txtSerialNumber.Size = new Size(201, 26);
+            txtSerialNumber.Size = new Size(236, 35);
             txtSerialNumber.TabIndex = 95;
             txtSerialNumber.TextChanged += txtSerialNumber_TextChanged;
             txtSerialNumber.KeyDown += txtSerialNumber_KeyDown;
@@ -398,9 +398,10 @@
             label9.AutoSize = true;
             label9.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.FromArgb(65, 67, 27);
-            label9.Location = new Point(7, 51);
+            label9.Location = new Point(9, 62);
+            label9.Margin = new Padding(4, 0, 4, 0);
             label9.Name = "label9";
-            label9.Size = new Size(42, 19);
+            label9.Size = new Size(50, 24);
             label9.TabIndex = 121;
             label9.Text = "S/N:";
             // 
@@ -409,9 +410,10 @@
             label29.AutoSize = true;
             label29.Font = new Font("Arial Black", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label29.ForeColor = Color.FromArgb(65, 67, 27);
-            label29.Location = new Point(80, 7);
+            label29.Location = new Point(85, 9);
+            label29.Margin = new Padding(4, 0, 4, 0);
             label29.Name = "label29";
-            label29.Size = new Size(157, 27);
+            label29.Size = new Size(198, 33);
             label29.TabIndex = 123;
             label29.Text = "Test Progress";
             // 
@@ -420,9 +422,10 @@
             label41.AutoSize = true;
             label41.Font = new Font("Arial Narrow", 24F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label41.ForeColor = Color.FromArgb(65, 67, 27);
-            label41.Location = new Point(31, 1);
+            label41.Location = new Point(25, 1);
+            label41.Margin = new Padding(4, 0, 4, 0);
             label41.Name = "label41";
-            label41.Size = new Size(50, 37);
+            label41.Size = new Size(63, 46);
             label41.TabIndex = 124;
             label41.Text = "🕟";
             // 
@@ -430,6 +433,9 @@
             // 
             myRoundedPanel12.BackColor = Color.FromArgb(121, 174, 111);
             myRoundedPanel12.BorderRadius = 15;
+            myRoundedPanel12.Controls.Add(customLine7);
+            myRoundedPanel12.Controls.Add(txtECN);
+            myRoundedPanel12.Controls.Add(label40);
             myRoundedPanel12.Controls.Add(customLine5);
             myRoundedPanel12.Controls.Add(btnSelectFolder);
             myRoundedPanel12.Controls.Add(label9);
@@ -439,18 +445,54 @@
             myRoundedPanel12.Controls.Add(txtLot);
             myRoundedPanel12.Controls.Add(txtSerialNumber);
             myRoundedPanel12.Controls.Add(label56);
-            myRoundedPanel12.Location = new Point(1087, 12);
+            myRoundedPanel12.Location = new Point(1359, 14);
+            myRoundedPanel12.Margin = new Padding(4);
             myRoundedPanel12.Name = "myRoundedPanel12";
-            myRoundedPanel12.Size = new Size(268, 170);
+            myRoundedPanel12.Size = new Size(320, 269);
             myRoundedPanel12.TabIndex = 128;
+            // 
+            // customLine7
+            // 
+            customLine7.IsVertical = false;
+            customLine7.LineColor = Color.White;
+            customLine7.Location = new Point(14, 199);
+            customLine7.Margin = new Padding(4);
+            customLine7.Name = "customLine7";
+            customLine7.Size = new Size(306, 12);
+            customLine7.TabIndex = 138;
+            customLine7.Text = "customLine7";
+            customLine7.Thickness = 2;
+            // 
+            // txtECN
+            // 
+            txtECN.Font = new Font("Arial Narrow", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtECN.Location = new Point(74, 164);
+            txtECN.Margin = new Padding(4);
+            txtECN.Name = "txtECN";
+            txtECN.Size = new Size(236, 30);
+            txtECN.TabIndex = 137;
+            txtECN.TextChanged += txtECN_TextChanged;
+            // 
+            // label40
+            // 
+            label40.AutoSize = true;
+            label40.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label40.ForeColor = Color.FromArgb(65, 67, 27);
+            label40.Location = new Point(10, 171);
+            label40.Margin = new Padding(4, 0, 4, 0);
+            label40.Name = "label40";
+            label40.Size = new Size(58, 24);
+            label40.TabIndex = 136;
+            label40.Text = "ECN:";
             // 
             // customLine5
             // 
             customLine5.IsVertical = false;
             customLine5.LineColor = Color.White;
-            customLine5.Location = new Point(11, 116);
+            customLine5.Location = new Point(14, 145);
+            customLine5.Margin = new Padding(4);
             customLine5.Name = "customLine5";
-            customLine5.Size = new Size(245, 10);
+            customLine5.Size = new Size(306, 12);
             customLine5.TabIndex = 135;
             customLine5.Text = "customLine5";
             customLine5.Thickness = 2;
@@ -458,9 +500,10 @@
             // btnSelectFolder
             // 
             btnSelectFolder.Font = new Font("Arial Narrow", 11.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            btnSelectFolder.Location = new Point(211, 130);
+            btnSelectFolder.Location = new Point(250, 219);
+            btnSelectFolder.Margin = new Padding(4);
             btnSelectFolder.Name = "btnSelectFolder";
-            btnSelectFolder.Size = new Size(48, 30);
+            btnSelectFolder.Size = new Size(60, 38);
             btnSelectFolder.TabIndex = 134;
             btnSelectFolder.Text = "Save";
             btnSelectFolder.UseVisualStyleBackColor = true;
@@ -471,26 +514,29 @@
             myRoundedPanel61.BackColor = Color.FromArgb(248, 243, 225);
             myRoundedPanel61.BorderRadius = 10;
             myRoundedPanel61.Controls.Add(txtExcelPath);
-            myRoundedPanel61.Location = new Point(55, 130);
+            myRoundedPanel61.Location = new Point(69, 219);
+            myRoundedPanel61.Margin = new Padding(4);
             myRoundedPanel61.Name = "myRoundedPanel61";
-            myRoundedPanel61.Size = new Size(150, 30);
+            myRoundedPanel61.Size = new Size(173, 38);
             myRoundedPanel61.TabIndex = 128;
             // 
             // txtExcelPath
             // 
-            txtExcelPath.Location = new Point(4, 4);
+            txtExcelPath.Location = new Point(5, 5);
+            txtExcelPath.Margin = new Padding(4);
             txtExcelPath.Name = "txtExcelPath";
             txtExcelPath.ScrollBars = ScrollBars.Horizontal;
-            txtExcelPath.Size = new Size(142, 23);
+            txtExcelPath.Size = new Size(164, 27);
             txtExcelPath.TabIndex = 0;
             // 
             // customLine6
             // 
             customLine6.IsVertical = false;
             customLine6.LineColor = Color.White;
-            customLine6.Location = new Point(11, 73);
+            customLine6.Location = new Point(14, 91);
+            customLine6.Margin = new Padding(4);
             customLine6.Name = "customLine6";
-            customLine6.Size = new Size(245, 10);
+            customLine6.Size = new Size(306, 12);
             customLine6.TabIndex = 131;
             customLine6.Text = "customLine6";
             customLine6.Thickness = 2;
@@ -500,18 +546,20 @@
             label5.AutoSize = true;
             label5.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(65, 67, 27);
-            label5.Location = new Point(10, 137);
+            label5.Location = new Point(12, 228);
+            label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(44, 19);
+            label5.Size = new Size(53, 24);
             label5.TabIndex = 129;
             label5.Text = "Path";
             // 
             // txtLot
             // 
             txtLot.Font = new Font("Arial Narrow", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtLot.Location = new Point(55, 88);
+            txtLot.Location = new Point(74, 110);
+            txtLot.Margin = new Padding(4);
             txtLot.Name = "txtLot";
-            txtLot.Size = new Size(201, 26);
+            txtLot.Size = new Size(236, 30);
             txtLot.TabIndex = 131;
             txtLot.TextChanged += txtLot_TextChanged;
             // 
@@ -520,9 +568,10 @@
             label56.AutoSize = true;
             label56.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label56.ForeColor = Color.FromArgb(65, 67, 27);
-            label56.Location = new Point(8, 94);
+            label56.Location = new Point(10, 118);
+            label56.Margin = new Padding(4, 0, 4, 0);
             label56.Name = "label56";
-            label56.Size = new Size(45, 19);
+            label56.Size = new Size(56, 24);
             label56.TabIndex = 130;
             label56.Text = "LOT:";
             // 
@@ -536,9 +585,10 @@
             tabPage3.Controls.Add(myRoundedPanel1);
             tabPage3.Controls.Add(myRoundedPanel15);
             tabPage3.Location = new Point(4, 5);
+            tabPage3.Margin = new Padding(4);
             tabPage3.Name = "tabPage3";
-            tabPage3.Padding = new Padding(3);
-            tabPage3.Size = new Size(1065, 588);
+            tabPage3.Padding = new Padding(4);
+            tabPage3.Size = new Size(1333, 720);
             tabPage3.TabIndex = 0;
             tabPage3.Text = "tabPage3";
             // 
@@ -551,19 +601,20 @@
             myRoundedPanel16.Controls.Add(label37);
             myRoundedPanel16.Controls.Add(RxBox);
             myRoundedPanel16.Controls.Add(label1);
-            myRoundedPanel16.Location = new Point(14, 104);
+            myRoundedPanel16.Location = new Point(18, 129);
+            myRoundedPanel16.Margin = new Padding(4);
             myRoundedPanel16.Name = "myRoundedPanel16";
-            myRoundedPanel16.Size = new Size(492, 315);
+            myRoundedPanel16.Size = new Size(615, 394);
             myRoundedPanel16.TabIndex = 120;
             // 
             // btnClr
             // 
             btnClr.BackColor = Color.FromArgb(174, 183, 132);
             btnClr.Font = new Font("Arial", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnClr.Location = new Point(416, 10);
-            btnClr.Margin = new Padding(3, 2, 3, 2);
+            btnClr.Location = new Point(520, 12);
+            btnClr.Margin = new Padding(4, 2, 4, 2);
             btnClr.Name = "btnClr";
-            btnClr.Size = new Size(56, 25);
+            btnClr.Size = new Size(70, 31);
             btnClr.TabIndex = 101;
             btnClr.Text = "CLR";
             btnClr.UseVisualStyleBackColor = false;
@@ -572,9 +623,10 @@
             // progressBar1
             // 
             progressBar1.ForeColor = Color.FromArgb(91, 126, 60);
-            progressBar1.Location = new Point(19, 272);
+            progressBar1.Location = new Point(24, 340);
+            progressBar1.Margin = new Padding(4);
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(453, 23);
+            progressBar1.Size = new Size(566, 29);
             progressBar1.TabIndex = 99;
             // 
             // label37
@@ -582,9 +634,10 @@
             label37.AutoSize = true;
             label37.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label37.ForeColor = Color.FromArgb(52, 103, 57);
-            label37.Location = new Point(19, 251);
+            label37.Location = new Point(24, 314);
+            label37.Margin = new Padding(4, 0, 4, 0);
             label37.Name = "label37";
-            label37.Size = new Size(79, 19);
+            label37.Size = new Size(96, 24);
             label37.TabIndex = 119;
             label37.Text = "Progress";
             // 
@@ -592,9 +645,10 @@
             // 
             RxBox.BackColor = Color.FromArgb(248, 243, 225);
             RxBox.Font = new Font("Cordia New", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            RxBox.Location = new Point(19, 38);
+            RxBox.Location = new Point(24, 48);
+            RxBox.Margin = new Padding(4);
             RxBox.Name = "RxBox";
-            RxBox.Size = new Size(453, 200);
+            RxBox.Size = new Size(565, 249);
             RxBox.TabIndex = 118;
             RxBox.Text = "";
             // 
@@ -603,9 +657,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Arial Black", 17.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(65, 67, 27);
-            label1.Location = new Point(19, 7);
+            label1.Location = new Point(24, 9);
+            label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(95, 32);
+            label1.Size = new Size(121, 41);
             label1.TabIndex = 85;
             label1.Text = "Status";
             // 
@@ -618,9 +673,10 @@
             myRoundedPanel42.Controls.Add(myRoundedPanel9);
             myRoundedPanel42.Controls.Add(myRoundedPanel10);
             myRoundedPanel42.Controls.Add(myRoundedPanel8);
-            myRoundedPanel42.Location = new Point(793, 106);
+            myRoundedPanel42.Location = new Point(991, 131);
+            myRoundedPanel42.Margin = new Padding(4);
             myRoundedPanel42.Name = "myRoundedPanel42";
-            myRoundedPanel42.Size = new Size(257, 459);
+            myRoundedPanel42.Size = new Size(321, 574);
             myRoundedPanel42.TabIndex = 122;
             // 
             // myRoundedPanel62
@@ -629,16 +685,18 @@
             myRoundedPanel62.BorderRadius = 20;
             myRoundedPanel62.Controls.Add(picCoolFan);
             myRoundedPanel62.Controls.Add(label54);
-            myRoundedPanel62.Location = new Point(19, 366);
+            myRoundedPanel62.Location = new Point(24, 458);
+            myRoundedPanel62.Margin = new Padding(4);
             myRoundedPanel62.Name = "myRoundedPanel62";
-            myRoundedPanel62.Size = new Size(218, 70);
+            myRoundedPanel62.Size = new Size(272, 88);
             myRoundedPanel62.TabIndex = 120;
             // 
             // picCoolFan
             // 
-            picCoolFan.Location = new Point(20, 9);
+            picCoolFan.Location = new Point(25, 11);
+            picCoolFan.Margin = new Padding(4);
             picCoolFan.Name = "picCoolFan";
-            picCoolFan.Size = new Size(40, 60);
+            picCoolFan.Size = new Size(50, 75);
             picCoolFan.TabIndex = 101;
             picCoolFan.TabStop = false;
             // 
@@ -648,9 +706,10 @@
             label54.BackColor = Color.White;
             label54.Font = new Font("Arial", 14.25F, FontStyle.Bold);
             label54.ForeColor = Color.FromArgb(65, 67, 27);
-            label54.Location = new Point(71, 27);
+            label54.Location = new Point(89, 34);
+            label54.Margin = new Padding(4, 0, 4, 0);
             label54.Name = "label54";
-            label54.Size = new Size(108, 22);
+            label54.Size = new Size(136, 29);
             label54.TabIndex = 115;
             label54.Text = "COOL FAN";
             // 
@@ -660,16 +719,18 @@
             myRoundedPanel13.BorderRadius = 20;
             myRoundedPanel13.Controls.Add(picHotFan);
             myRoundedPanel13.Controls.Add(label27);
-            myRoundedPanel13.Location = new Point(19, 279);
+            myRoundedPanel13.Location = new Point(24, 349);
+            myRoundedPanel13.Margin = new Padding(4);
             myRoundedPanel13.Name = "myRoundedPanel13";
-            myRoundedPanel13.Size = new Size(218, 70);
+            myRoundedPanel13.Size = new Size(272, 88);
             myRoundedPanel13.TabIndex = 119;
             // 
             // picHotFan
             // 
-            picHotFan.Location = new Point(20, 9);
+            picHotFan.Location = new Point(25, 11);
+            picHotFan.Margin = new Padding(4);
             picHotFan.Name = "picHotFan";
-            picHotFan.Size = new Size(40, 60);
+            picHotFan.Size = new Size(50, 75);
             picHotFan.TabIndex = 101;
             picHotFan.TabStop = false;
             // 
@@ -679,9 +740,10 @@
             label27.BackColor = Color.White;
             label27.Font = new Font("Arial", 14.25F, FontStyle.Bold);
             label27.ForeColor = Color.FromArgb(65, 67, 27);
-            label27.Location = new Point(71, 26);
+            label27.Location = new Point(89, 32);
+            label27.Margin = new Padding(4, 0, 4, 0);
             label27.Name = "label27";
-            label27.Size = new Size(93, 22);
+            label27.Size = new Size(118, 29);
             label27.TabIndex = 115;
             label27.Text = "HOT FAN";
             // 
@@ -691,16 +753,18 @@
             myRoundedPanel9.BorderRadius = 20;
             myRoundedPanel9.Controls.Add(picCom);
             myRoundedPanel9.Controls.Add(label34);
-            myRoundedPanel9.Location = new Point(19, 191);
+            myRoundedPanel9.Location = new Point(24, 239);
+            myRoundedPanel9.Margin = new Padding(4);
             myRoundedPanel9.Name = "myRoundedPanel9";
-            myRoundedPanel9.Size = new Size(218, 70);
+            myRoundedPanel9.Size = new Size(272, 88);
             myRoundedPanel9.TabIndex = 118;
             // 
             // picCom
             // 
-            picCom.Location = new Point(20, 9);
+            picCom.Location = new Point(25, 11);
+            picCom.Margin = new Padding(4);
             picCom.Name = "picCom";
-            picCom.Size = new Size(40, 60);
+            picCom.Size = new Size(50, 75);
             picCom.TabIndex = 108;
             picCom.TabStop = false;
             // 
@@ -710,9 +774,10 @@
             label34.BackColor = Color.White;
             label34.Font = new Font("Arial", 14.25F, FontStyle.Bold);
             label34.ForeColor = Color.FromArgb(65, 67, 27);
-            label34.Location = new Point(71, 28);
+            label34.Location = new Point(89, 35);
+            label34.Margin = new Padding(4, 0, 4, 0);
             label34.Name = "label34";
-            label34.Size = new Size(126, 22);
+            label34.Size = new Size(153, 29);
             label34.TabIndex = 116;
             label34.Text = "Compressor";
             // 
@@ -722,9 +787,10 @@
             myRoundedPanel10.BorderRadius = 20;
             myRoundedPanel10.Controls.Add(label10);
             myRoundedPanel10.Controls.Add(picHp);
-            myRoundedPanel10.Location = new Point(19, 103);
+            myRoundedPanel10.Location = new Point(24, 129);
+            myRoundedPanel10.Margin = new Padding(4);
             myRoundedPanel10.Name = "myRoundedPanel10";
-            myRoundedPanel10.Size = new Size(218, 70);
+            myRoundedPanel10.Size = new Size(272, 88);
             myRoundedPanel10.TabIndex = 119;
             // 
             // label10
@@ -733,17 +799,19 @@
             label10.BackColor = Color.White;
             label10.Font = new Font("Arial", 14.25F, FontStyle.Bold);
             label10.ForeColor = Color.FromArgb(65, 67, 27);
-            label10.Location = new Point(71, 27);
+            label10.Location = new Point(89, 34);
+            label10.Margin = new Padding(4, 0, 4, 0);
             label10.Name = "label10";
-            label10.Size = new Size(142, 22);
+            label10.Size = new Size(175, 29);
             label10.TabIndex = 114;
             label10.Text = "High Pressure";
             // 
             // picHp
             // 
-            picHp.Location = new Point(20, 9);
+            picHp.Location = new Point(25, 11);
+            picHp.Margin = new Padding(4);
             picHp.Name = "picHp";
-            picHp.Size = new Size(40, 60);
+            picHp.Size = new Size(50, 75);
             picHp.TabIndex = 100;
             picHp.TabStop = false;
             // 
@@ -753,9 +821,10 @@
             myRoundedPanel8.BorderRadius = 20;
             myRoundedPanel8.Controls.Add(label8);
             myRoundedPanel8.Controls.Add(picWL);
-            myRoundedPanel8.Location = new Point(19, 16);
+            myRoundedPanel8.Location = new Point(24, 20);
+            myRoundedPanel8.Margin = new Padding(4);
             myRoundedPanel8.Name = "myRoundedPanel8";
-            myRoundedPanel8.Size = new Size(218, 70);
+            myRoundedPanel8.Size = new Size(272, 88);
             myRoundedPanel8.TabIndex = 117;
             // 
             // label8
@@ -764,17 +833,19 @@
             label8.BackColor = Color.White;
             label8.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label8.ForeColor = Color.FromArgb(65, 67, 27);
-            label8.Location = new Point(71, 25);
+            label8.Location = new Point(89, 31);
+            label8.Margin = new Padding(4, 0, 4, 0);
             label8.Name = "label8";
-            label8.Size = new Size(117, 22);
+            label8.Size = new Size(146, 29);
             label8.TabIndex = 113;
             label8.Text = "Water Lavel";
             // 
             // picWL
             // 
-            picWL.Location = new Point(20, 9);
+            picWL.Location = new Point(25, 11);
+            picWL.Margin = new Padding(4);
             picWL.Name = "picWL";
-            picWL.Size = new Size(40, 60);
+            picWL.Size = new Size(50, 75);
             picWL.TabIndex = 98;
             picWL.TabStop = false;
             // 
@@ -785,9 +856,10 @@
             myRoundedPanel41.Controls.Add(myRoundedPanel3);
             myRoundedPanel41.Controls.Add(lblRegis0);
             myRoundedPanel41.Controls.Add(label39);
-            myRoundedPanel41.Location = new Point(16, 439);
+            myRoundedPanel41.Location = new Point(20, 548);
+            myRoundedPanel41.Margin = new Padding(4);
             myRoundedPanel41.Name = "myRoundedPanel41";
-            myRoundedPanel41.Size = new Size(490, 126);
+            myRoundedPanel41.Size = new Size(612, 158);
             myRoundedPanel41.TabIndex = 121;
             // 
             // myRoundedPanel3
@@ -796,20 +868,20 @@
             myRoundedPanel3.BorderRadius = 10;
             myRoundedPanel3.Controls.Add(Regis1);
             myRoundedPanel3.Controls.Add(label2);
-            myRoundedPanel3.Location = new Point(331, 31);
-            myRoundedPanel3.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel3.Location = new Point(414, 39);
+            myRoundedPanel3.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel3.Name = "myRoundedPanel3";
-            myRoundedPanel3.Size = new Size(139, 77);
+            myRoundedPanel3.Size = new Size(174, 96);
             myRoundedPanel3.TabIndex = 91;
             // 
             // Regis1
             // 
             Regis1.BackColor = SystemColors.ButtonFace;
             Regis1.Font = new Font("Roboto", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            Regis1.Location = new Point(5, 29);
-            Regis1.Margin = new Padding(3, 2, 3, 2);
+            Regis1.Location = new Point(6, 36);
+            Regis1.Margin = new Padding(4, 2, 4, 2);
             Regis1.Name = "Regis1";
-            Regis1.Size = new Size(129, 42);
+            Regis1.Size = new Size(160, 51);
             Regis1.TabIndex = 0;
             Regis1.TextAlign = HorizontalAlignment.Center;
             Regis1.TextChanged += CommonRegis_TextChanged;
@@ -822,9 +894,10 @@
             label2.AutoSize = true;
             label2.Font = new Font("Arial", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(65, 67, 27);
-            label2.Location = new Point(52, 6);
+            label2.Location = new Point(65, 8);
+            label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(37, 24);
+            label2.Size = new Size(50, 32);
             label2.TabIndex = 120;
             label2.Text = "SV";
             // 
@@ -833,9 +906,10 @@
             lblRegis0.AutoSize = true;
             lblRegis0.Font = new Font("Roboto", 38.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblRegis0.ForeColor = Color.Yellow;
-            lblRegis0.Location = new Point(19, 47);
+            lblRegis0.Location = new Point(24, 59);
+            lblRegis0.Margin = new Padding(4, 0, 4, 0);
             lblRegis0.Name = "lblRegis0";
-            lblRegis0.Size = new Size(56, 61);
+            lblRegis0.Size = new Size(69, 77);
             lblRegis0.TabIndex = 120;
             lblRegis0.Text = "0";
             // 
@@ -844,9 +918,10 @@
             label39.AutoSize = true;
             label39.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label39.ForeColor = SystemColors.MenuBar;
-            label39.Location = new Point(22, 16);
+            label39.Location = new Point(28, 20);
+            label39.Margin = new Padding(4, 0, 4, 0);
             label39.Name = "label39";
-            label39.Size = new Size(218, 26);
+            label39.Size = new Size(276, 34);
             label39.TabIndex = 120;
             label39.Text = "Process value (PV)";
             // 
@@ -854,9 +929,10 @@
             // 
             pictureBox2.BackColor = Color.FromArgb(232, 240, 216);
             pictureBox2.Image = Properties.Resources.primus;
-            pictureBox2.Location = new Point(0, 8);
+            pictureBox2.Location = new Point(4, 8);
+            pictureBox2.Margin = new Padding(4);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(75, 75);
+            pictureBox2.Size = new Size(94, 94);
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.TabIndex = 122;
             pictureBox2.TabStop = false;
@@ -865,34 +941,73 @@
             // 
             myRoundedPanel1.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel1.BorderRadius = 20;
+            myRoundedPanel1.Controls.Add(myRoundedPanel73);
             myRoundedPanel1.Controls.Add(chkMultiplyBy100);
             myRoundedPanel1.Controls.Add(customLine3);
             myRoundedPanel1.Controls.Add(customLine2);
             myRoundedPanel1.Controls.Add(myRoundedPanel14);
             myRoundedPanel1.Controls.Add(myRoundedPanel4);
+            myRoundedPanel1.Controls.Add(SerialboxOhm);
+            myRoundedPanel1.Controls.Add(portDis);
             myRoundedPanel1.Controls.Add(customLine1);
             myRoundedPanel1.Controls.Add(bntRefresh);
-            myRoundedPanel1.Controls.Add(SerialboxOhm);
             myRoundedPanel1.Controls.Add(label14);
             myRoundedPanel1.Controls.Add(label11);
             myRoundedPanel1.Controls.Add(btnConnect);
             myRoundedPanel1.Controls.Add(label6);
-            myRoundedPanel1.Controls.Add(portDis);
             myRoundedPanel1.Controls.Add(PortBox);
-            myRoundedPanel1.Location = new Point(81, 8);
-            myRoundedPanel1.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel1.Location = new Point(101, 10);
+            myRoundedPanel1.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel1.Name = "myRoundedPanel1";
-            myRoundedPanel1.Size = new Size(969, 69);
+            myRoundedPanel1.Size = new Size(1211, 98);
             myRoundedPanel1.TabIndex = 85;
+            // 
+            // myRoundedPanel73
+            // 
+            myRoundedPanel73.BackColor = Color.FromArgb(242, 237, 194);
+            myRoundedPanel73.BorderRadius = 15;
+            myRoundedPanel73.Controls.Add(lblConnStatusValue);
+            myRoundedPanel73.Controls.Add(label46);
+            myRoundedPanel73.Location = new Point(916, 10);
+            myRoundedPanel73.Margin = new Padding(4);
+            myRoundedPanel73.Name = "myRoundedPanel73";
+            myRoundedPanel73.Size = new Size(72, 78);
+            myRoundedPanel73.TabIndex = 128;
+            // 
+            // lblConnStatusValue
+            // 
+            lblConnStatusValue.BackColor = Color.FromArgb(242, 237, 194);
+            lblConnStatusValue.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblConnStatusValue.ForeColor = Color.Red;
+            lblConnStatusValue.Location = new Point(2, 38);
+            lblConnStatusValue.Margin = new Padding(4, 0, 4, 0);
+            lblConnStatusValue.Name = "lblConnStatusValue";
+            lblConnStatusValue.Size = new Size(69, 29);
+            lblConnStatusValue.TabIndex = 140;
+            lblConnStatusValue.Text = "●OFF";
+            lblConnStatusValue.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label46
+            // 
+            label46.AutoSize = true;
+            label46.Font = new Font("Cordia New", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label46.ForeColor = Color.Black;
+            label46.Location = new Point(8, 8);
+            label46.Margin = new Padding(4, 0, 4, 0);
+            label46.Name = "label46";
+            label46.Size = new Size(64, 30);
+            label46.TabIndex = 139;
+            label46.Text = "สถานะ";
             // 
             // chkMultiplyBy100
             // 
             chkMultiplyBy100.AutoSize = true;
             chkMultiplyBy100.Font = new Font("Arial Narrow", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             chkMultiplyBy100.ForeColor = Color.FromArgb(255, 255, 128);
-            chkMultiplyBy100.Location = new Point(286, 5);
+            chkMultiplyBy100.Location = new Point(491, 49);
+            chkMultiplyBy100.Margin = new Padding(4);
             chkMultiplyBy100.Name = "chkMultiplyBy100";
-            chkMultiplyBy100.Size = new Size(58, 20);
+            chkMultiplyBy100.Size = new Size(70, 24);
             chkMultiplyBy100.TabIndex = 127;
             chkMultiplyBy100.Text = "Ver 1.0";
             chkMultiplyBy100.UseVisualStyleBackColor = true;
@@ -901,9 +1016,10 @@
             // 
             customLine3.IsVertical = true;
             customLine3.LineColor = Color.Silver;
-            customLine3.Location = new Point(546, 10);
+            customLine3.Location = new Point(560, 18);
+            customLine3.Margin = new Padding(4);
             customLine3.Name = "customLine3";
-            customLine3.Size = new Size(14, 52);
+            customLine3.Size = new Size(18, 65);
             customLine3.TabIndex = 126;
             customLine3.Text = "customLine3";
             customLine3.Thickness = 2;
@@ -912,9 +1028,10 @@
             // 
             customLine2.IsVertical = true;
             customLine2.LineColor = Color.Silver;
-            customLine2.Location = new Point(346, 10);
+            customLine2.Location = new Point(322, 18);
+            customLine2.Margin = new Padding(4);
             customLine2.Name = "customLine2";
-            customLine2.Size = new Size(19, 52);
+            customLine2.Size = new Size(24, 65);
             customLine2.TabIndex = 125;
             customLine2.Text = "customLine2";
             customLine2.Thickness = 2;
@@ -922,21 +1039,23 @@
             // myRoundedPanel14
             // 
             myRoundedPanel14.BackColor = Color.FromArgb(242, 237, 194);
-            myRoundedPanel14.BorderRadius = 20;
+            myRoundedPanel14.BorderRadius = 15;
             myRoundedPanel14.Controls.Add(picdata);
             myRoundedPanel14.Controls.Add(label69);
-            myRoundedPanel14.Location = new Point(887, 5);
+            myRoundedPanel14.Location = new Point(1102, 10);
+            myRoundedPanel14.Margin = new Padding(4);
             myRoundedPanel14.Name = "myRoundedPanel14";
-            myRoundedPanel14.Size = new Size(72, 60);
+            myRoundedPanel14.Size = new Size(90, 78);
             myRoundedPanel14.TabIndex = 124;
             // 
             // picdata
             // 
             picdata.Cursor = Cursors.Hand;
             picdata.Image = Properties.Resources.fam;
-            picdata.Location = new Point(13, 0);
+            picdata.Location = new Point(16, 0);
+            picdata.Margin = new Padding(4);
             picdata.Name = "picdata";
-            picdata.Size = new Size(49, 46);
+            picdata.Size = new Size(61, 58);
             picdata.SizeMode = PictureBoxSizeMode.StretchImage;
             picdata.TabIndex = 95;
             picdata.TabStop = false;
@@ -947,30 +1066,33 @@
             label69.AutoSize = true;
             label69.Font = new Font("AngsanaUPC", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label69.ForeColor = SystemColors.ActiveCaptionText;
-            label69.Location = new Point(15, 35);
+            label69.Location = new Point(19, 44);
+            label69.Margin = new Padding(4, 0, 4, 0);
             label69.Name = "label69";
-            label69.Size = new Size(47, 33);
+            label69.Size = new Size(59, 42);
             label69.TabIndex = 95;
             label69.Text = "Data";
             // 
             // myRoundedPanel4
             // 
             myRoundedPanel4.BackColor = Color.FromArgb(242, 237, 194);
-            myRoundedPanel4.BorderRadius = 20;
+            myRoundedPanel4.BorderRadius = 15;
             myRoundedPanel4.Controls.Add(displaybox);
             myRoundedPanel4.Controls.Add(label13);
-            myRoundedPanel4.Location = new Point(808, 5);
+            myRoundedPanel4.Location = new Point(1004, 10);
+            myRoundedPanel4.Margin = new Padding(4);
             myRoundedPanel4.Name = "myRoundedPanel4";
-            myRoundedPanel4.Size = new Size(72, 60);
+            myRoundedPanel4.Size = new Size(90, 78);
             myRoundedPanel4.TabIndex = 123;
             // 
             // displaybox
             // 
             displaybox.Cursor = Cursors.Hand;
             displaybox.Image = Properties.Resources.display;
-            displaybox.Location = new Point(9, 0);
+            displaybox.Location = new Point(11, 0);
+            displaybox.Margin = new Padding(4);
             displaybox.Name = "displaybox";
-            displaybox.Size = new Size(52, 45);
+            displaybox.Size = new Size(65, 56);
             displaybox.SizeMode = PictureBoxSizeMode.StretchImage;
             displaybox.TabIndex = 93;
             displaybox.TabStop = false;
@@ -982,19 +1104,43 @@
             label13.AutoSize = true;
             label13.Font = new Font("AngsanaUPC", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label13.ForeColor = SystemColors.ActiveCaptionText;
-            label13.Location = new Point(6, 34);
+            label13.Location = new Point(8, 42);
+            label13.Margin = new Padding(4, 0, 4, 0);
             label13.Name = "label13";
-            label13.Size = new Size(66, 33);
+            label13.Size = new Size(84, 42);
             label13.TabIndex = 94;
             label13.Text = "DisPlay";
+            // 
+            // SerialboxOhm
+            // 
+            SerialboxOhm.BackColor = SystemColors.Window;
+            SerialboxOhm.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            SerialboxOhm.FormattingEnabled = true;
+            SerialboxOhm.Location = new Point(354, 46);
+            SerialboxOhm.Margin = new Padding(4, 2, 4, 2);
+            SerialboxOhm.Name = "SerialboxOhm";
+            SerialboxOhm.Size = new Size(129, 29);
+            SerialboxOhm.TabIndex = 85;
+            // 
+            // portDis
+            // 
+            portDis.BackColor = SystemColors.Window;
+            portDis.Font = new Font("STXinwei", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            portDis.FormattingEnabled = true;
+            portDis.Location = new Point(185, 46);
+            portDis.Margin = new Padding(4, 2, 4, 2);
+            portDis.Name = "portDis";
+            portDis.Size = new Size(129, 29);
+            portDis.TabIndex = 81;
             // 
             // customLine1
             // 
             customLine1.IsVertical = true;
             customLine1.LineColor = Color.Silver;
-            customLine1.Location = new Point(149, 10);
+            customLine1.Location = new Point(161, 18);
+            customLine1.Margin = new Padding(4);
             customLine1.Name = "customLine1";
-            customLine1.Size = new Size(13, 52);
+            customLine1.Size = new Size(16, 65);
             customLine1.TabIndex = 98;
             customLine1.Text = "customLine1";
             customLine1.Thickness = 2;
@@ -1003,55 +1149,47 @@
             // 
             bntRefresh.Cursor = Cursors.Hand;
             bntRefresh.Font = new Font("Arial", 12F, FontStyle.Bold);
-            bntRefresh.Location = new Point(712, 22);
-            bntRefresh.Margin = new Padding(3, 2, 3, 2);
+            bntRefresh.Location = new Point(786, 24);
+            bntRefresh.Margin = new Padding(4, 2, 4, 2);
             bntRefresh.Name = "bntRefresh";
-            bntRefresh.Size = new Size(88, 32);
+            bntRefresh.Size = new Size(110, 56);
             bntRefresh.TabIndex = 84;
             bntRefresh.Text = "Refresh";
             bntRefresh.UseVisualStyleBackColor = true;
             bntRefresh.Click += bntRefresh_Click;
             // 
-            // SerialboxOhm
-            // 
-            SerialboxOhm.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
-            SerialboxOhm.FormattingEnabled = true;
-            SerialboxOhm.Location = new Point(252, 25);
-            SerialboxOhm.Margin = new Padding(3, 2, 3, 2);
-            SerialboxOhm.Name = "SerialboxOhm";
-            SerialboxOhm.Size = new Size(93, 25);
-            SerialboxOhm.TabIndex = 85;
-            // 
             // label14
             // 
             label14.AutoSize = true;
-            label14.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label14.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label14.ForeColor = SystemColors.ButtonHighlight;
-            label14.Location = new Point(3, 25);
+            label14.Location = new Point(24, 20);
+            label14.Margin = new Padding(4, 0, 4, 0);
             label14.Name = "label14";
-            label14.Size = new Size(49, 22);
+            label14.Size = new Size(94, 24);
             label14.TabIndex = 76;
-            label14.Text = "Port";
+            label14.Text = "CMA-003";
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label11.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label11.ForeColor = SystemColors.ButtonHighlight;
-            label11.Location = new Point(159, 27);
+            label11.Location = new Point(354, 20);
+            label11.Margin = new Padding(4, 0, 4, 0);
             label11.Name = "label11";
-            label11.Size = new Size(93, 22);
+            label11.Size = new Size(128, 24);
             label11.TabIndex = 85;
-            label11.Text = "PortOhm";
+            label11.Text = "Ohm Source";
             // 
             // btnConnect
             // 
             btnConnect.Cursor = Cursors.Hand;
             btnConnect.Font = new Font("Arial", 12F, FontStyle.Bold);
-            btnConnect.Location = new Point(566, 22);
-            btnConnect.Margin = new Padding(3, 2, 3, 2);
+            btnConnect.Location = new Point(590, 25);
+            btnConnect.Margin = new Padding(4, 2, 4, 2);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(134, 32);
+            btnConnect.Size = new Size(176, 55);
             btnConnect.TabIndex = 83;
             btnConnect.Text = "Connect";
             btnConnect.UseVisualStyleBackColor = true;
@@ -1060,32 +1198,24 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label6.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label6.ForeColor = SystemColors.ButtonHighlight;
-            label6.Location = new Point(360, 26);
+            label6.Location = new Point(185, 20);
+            label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
-            label6.Size = new Size(79, 22);
+            label6.Size = new Size(79, 24);
             label6.TabIndex = 77;
             label6.Text = "Display";
             // 
-            // portDis
-            // 
-            portDis.Font = new Font("STXinwei", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
-            portDis.FormattingEnabled = true;
-            portDis.Location = new Point(440, 26);
-            portDis.Margin = new Padding(3, 2, 3, 2);
-            portDis.Name = "portDis";
-            portDis.Size = new Size(104, 25);
-            portDis.TabIndex = 81;
-            // 
             // PortBox
             // 
+            PortBox.BackColor = SystemColors.Window;
             PortBox.Font = new Font("STXinwei", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
             PortBox.FormattingEnabled = true;
-            PortBox.Location = new Point(53, 25);
-            PortBox.Margin = new Padding(3, 2, 3, 2);
+            PortBox.Location = new Point(24, 46);
+            PortBox.Margin = new Padding(4, 2, 4, 2);
             PortBox.Name = "PortBox";
-            PortBox.Size = new Size(94, 25);
+            PortBox.Size = new Size(129, 29);
             PortBox.TabIndex = 80;
             // 
             // myRoundedPanel15
@@ -1102,9 +1232,10 @@
             myRoundedPanel15.Controls.Add(customLine4);
             myRoundedPanel15.Controls.Add(btnRun);
             myRoundedPanel15.Controls.Add(bntStop);
-            myRoundedPanel15.Location = new Point(523, 106);
+            myRoundedPanel15.Location = new Point(654, 131);
+            myRoundedPanel15.Margin = new Padding(4);
             myRoundedPanel15.Name = "myRoundedPanel15";
-            myRoundedPanel15.Size = new Size(252, 459);
+            myRoundedPanel15.Size = new Size(315, 574);
             myRoundedPanel15.TabIndex = 119;
             // 
             // myRoundedPanel56
@@ -1113,18 +1244,19 @@
             myRoundedPanel56.BorderRadius = 15;
             myRoundedPanel56.Controls.Add(lblElapsedTime);
             myRoundedPanel56.Controls.Add(label7);
-            myRoundedPanel56.Location = new Point(43, 370);
+            myRoundedPanel56.Location = new Point(54, 462);
+            myRoundedPanel56.Margin = new Padding(4);
             myRoundedPanel56.Name = "myRoundedPanel56";
-            myRoundedPanel56.Size = new Size(165, 66);
+            myRoundedPanel56.Size = new Size(206, 82);
             myRoundedPanel56.TabIndex = 130;
             // 
             // lblElapsedTime
             // 
-            lblElapsedTime.AutoSize = true;
             lblElapsedTime.Font = new Font("Arial", 27.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblElapsedTime.Location = new Point(42, 16);
+            lblElapsedTime.Location = new Point(49, 21);
+            lblElapsedTime.Margin = new Padding(4, 0, 4, 0);
             lblElapsedTime.Name = "lblElapsedTime";
-            lblElapsedTime.Size = new Size(112, 42);
+            lblElapsedTime.Size = new Size(153, 52);
             lblElapsedTime.TabIndex = 1;
             lblElapsedTime.Text = "00:00";
             lblElapsedTime.TextAlign = ContentAlignment.MiddleCenter;
@@ -1133,9 +1265,10 @@
             // 
             label7.AutoSize = true;
             label7.Font = new Font("STXinwei", 35.9999962F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label7.Location = new Point(-6, 10);
+            label7.Location = new Point(-11, 12);
+            label7.Margin = new Padding(4, 0, 4, 0);
             label7.Name = "label7";
-            label7.Size = new Size(69, 48);
+            label7.Size = new Size(89, 61);
             label7.TabIndex = 0;
             label7.Text = "⏱";
             // 
@@ -1143,9 +1276,10 @@
             // 
             pictureBox1.Cursor = Cursors.Hand;
             pictureBox1.Image = Properties.Resources.setting2;
-            pictureBox1.Location = new Point(189, 121);
+            pictureBox1.Location = new Point(236, 151);
+            pictureBox1.Margin = new Padding(4);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(48, 45);
+            pictureBox1.Size = new Size(60, 56);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 111;
             pictureBox1.TabStop = false;
@@ -1156,9 +1290,10 @@
             label50.AutoSize = true;
             label50.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label50.ForeColor = Color.FromArgb(65, 67, 27);
-            label50.Location = new Point(18, 331);
+            label50.Location = new Point(22, 414);
+            label50.Margin = new Padding(4, 0, 4, 0);
             label50.Name = "label50";
-            label50.Size = new Size(74, 26);
+            label50.Size = new Size(93, 34);
             label50.TabIndex = 129;
             label50.Text = "Timer";
             // 
@@ -1167,9 +1302,10 @@
             label38.AutoSize = true;
             label38.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label38.ForeColor = Color.FromArgb(65, 67, 27);
-            label38.Location = new Point(65, 20);
+            label38.Location = new Point(81, 25);
+            label38.Margin = new Padding(4, 0, 4, 0);
             label38.Name = "label38";
-            label38.Size = new Size(106, 26);
+            label38.Size = new Size(134, 34);
             label38.TabIndex = 119;
             label38.Text = "Controls";
             // 
@@ -1178,9 +1314,10 @@
             label3.AutoSize = true;
             label3.Font = new Font("Arial Narrow", 26.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(65, 67, 27);
-            label3.Location = new Point(18, 10);
+            label3.Location = new Point(22, 12);
+            label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(61, 42);
+            label3.Size = new Size(76, 52);
             label3.TabIndex = 128;
             label3.Text = "🛠️";
             // 
@@ -1189,9 +1326,10 @@
             myRoundedPanel55.BackColor = Color.FromArgb(242, 237, 194);
             myRoundedPanel55.BorderRadius = 10;
             myRoundedPanel55.Controls.Add(chkTest);
-            myRoundedPanel55.Location = new Point(18, 121);
+            myRoundedPanel55.Location = new Point(22, 151);
+            myRoundedPanel55.Margin = new Padding(4);
             myRoundedPanel55.Name = "myRoundedPanel55";
-            myRoundedPanel55.Size = new Size(165, 40);
+            myRoundedPanel55.Size = new Size(206, 50);
             myRoundedPanel55.TabIndex = 127;
             // 
             // chkTest
@@ -1199,9 +1337,10 @@
             chkTest.AutoSize = true;
             chkTest.Font = new Font("Arial", 15.75F, FontStyle.Bold);
             chkTest.ForeColor = Color.FromArgb(52, 103, 57);
-            chkTest.Location = new Point(9, 7);
+            chkTest.Location = new Point(11, 9);
+            chkTest.Margin = new Padding(4);
             chkTest.Name = "chkTest";
-            chkTest.Size = new Size(71, 28);
+            chkTest.Size = new Size(91, 36);
             chkTest.TabIndex = 124;
             chkTest.Text = "Test";
             chkTest.UseVisualStyleBackColor = true;
@@ -1211,9 +1350,10 @@
             myRoundedPanel7.BackColor = Color.FromArgb(242, 237, 194);
             myRoundedPanel7.BorderRadius = 10;
             myRoundedPanel7.Controls.Add(chkCal);
-            myRoundedPanel7.Location = new Point(18, 60);
+            myRoundedPanel7.Location = new Point(22, 75);
+            myRoundedPanel7.Margin = new Padding(4);
             myRoundedPanel7.Name = "myRoundedPanel7";
-            myRoundedPanel7.Size = new Size(165, 40);
+            myRoundedPanel7.Size = new Size(206, 50);
             myRoundedPanel7.TabIndex = 126;
             // 
             // chkCal
@@ -1221,9 +1361,10 @@
             chkCal.AutoSize = true;
             chkCal.Font = new Font("Arial", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             chkCal.ForeColor = Color.FromArgb(52, 103, 57);
-            chkCal.Location = new Point(9, 8);
+            chkCal.Location = new Point(11, 10);
+            chkCal.Margin = new Padding(4);
             chkCal.Name = "chkCal";
-            chkCal.Size = new Size(137, 28);
+            chkCal.Size = new Size(181, 36);
             chkCal.TabIndex = 123;
             chkCal.Text = "Calibration";
             chkCal.UseVisualStyleBackColor = true;
@@ -1232,9 +1373,10 @@
             // 
             customLine4.IsVertical = false;
             customLine4.LineColor = Color.White;
-            customLine4.Location = new Point(15, 305);
+            customLine4.Location = new Point(19, 381);
+            customLine4.Margin = new Padding(4);
             customLine4.Name = "customLine4";
-            customLine4.Size = new Size(225, 26);
+            customLine4.Size = new Size(281, 32);
             customLine4.TabIndex = 101;
             customLine4.Text = "customLine4";
             customLine4.Thickness = 2;
@@ -1244,10 +1386,10 @@
             btnRun.BackColor = Color.Gold;
             btnRun.Cursor = Cursors.Hand;
             btnRun.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnRun.Location = new Point(16, 177);
-            btnRun.Margin = new Padding(3, 2, 3, 2);
+            btnRun.Location = new Point(20, 221);
+            btnRun.Margin = new Padding(4, 2, 4, 2);
             btnRun.Name = "btnRun";
-            btnRun.Size = new Size(221, 54);
+            btnRun.Size = new Size(276, 68);
             btnRun.TabIndex = 125;
             btnRun.Text = "Run";
             btnRun.UseVisualStyleBackColor = false;
@@ -1258,10 +1400,10 @@
             bntStop.BackColor = Color.FromArgb(180, 82, 83);
             bntStop.Cursor = Cursors.Hand;
             bntStop.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            bntStop.Location = new Point(18, 245);
-            bntStop.Margin = new Padding(3, 2, 3, 2);
+            bntStop.Location = new Point(22, 306);
+            bntStop.Margin = new Padding(4, 2, 4, 2);
             bntStop.Name = "bntStop";
-            bntStop.Size = new Size(219, 54);
+            bntStop.Size = new Size(274, 68);
             bntStop.TabIndex = 118;
             bntStop.Text = "Stop";
             bntStop.UseVisualStyleBackColor = false;
@@ -1274,10 +1416,11 @@
             tabControl2.Controls.Add(tabPage4);
             tabControl2.Controls.Add(tabPage1);
             tabControl2.ItemSize = new Size(0, 1);
-            tabControl2.Location = new Point(3, 1);
+            tabControl2.Location = new Point(2, 4);
+            tabControl2.Margin = new Padding(4);
             tabControl2.Name = "tabControl2";
             tabControl2.SelectedIndex = 0;
-            tabControl2.Size = new Size(1073, 597);
+            tabControl2.Size = new Size(1341, 729);
             tabControl2.SizeMode = TabSizeMode.Fixed;
             tabControl2.TabIndex = 93;
             // 
@@ -1298,9 +1441,10 @@
             tabPage4.Controls.Add(myRoundedPanel45);
             tabPage4.Controls.Add(myRoundedPanel2);
             tabPage4.Location = new Point(4, 5);
+            tabPage4.Margin = new Padding(4);
             tabPage4.Name = "tabPage4";
-            tabPage4.Padding = new Padding(3);
-            tabPage4.Size = new Size(1065, 588);
+            tabPage4.Padding = new Padding(4);
+            tabPage4.Size = new Size(1333, 720);
             tabPage4.TabIndex = 1;
             tabPage4.Text = "tabPage4";
             // 
@@ -1309,9 +1453,10 @@
             myRoundedPanel71.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel71.BorderRadius = 10;
             myRoundedPanel71.Controls.Add(label12);
-            myRoundedPanel71.Location = new Point(18, 74);
+            myRoundedPanel71.Location = new Point(22, 90);
+            myRoundedPanel71.Margin = new Padding(4);
             myRoundedPanel71.Name = "myRoundedPanel71";
-            myRoundedPanel71.Size = new Size(1027, 24);
+            myRoundedPanel71.Size = new Size(1284, 30);
             myRoundedPanel71.TabIndex = 127;
             // 
             // label12
@@ -1319,9 +1464,10 @@
             label12.AutoSize = true;
             label12.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
             label12.ForeColor = Color.White;
-            label12.Location = new Point(14, 5);
+            label12.Location = new Point(18, 6);
+            label12.Margin = new Padding(4, 0, 4, 0);
             label12.Name = "label12";
-            label12.Size = new Size(157, 17);
+            label12.Size = new Size(193, 21);
             label12.TabIndex = 92;
             label12.Text = "Display Parameters";
             // 
@@ -1330,9 +1476,10 @@
             myRoundedPanel60.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel60.BorderRadius = 10;
             myRoundedPanel60.Controls.Add(label53);
-            myRoundedPanel60.Location = new Point(906, 338);
+            myRoundedPanel60.Location = new Point(1132, 408);
+            myRoundedPanel60.Margin = new Padding(4);
             myRoundedPanel60.Name = "myRoundedPanel60";
-            myRoundedPanel60.Size = new Size(139, 24);
+            myRoundedPanel60.Size = new Size(174, 30);
             myRoundedPanel60.TabIndex = 133;
             // 
             // label53
@@ -1340,18 +1487,20 @@
             label53.AutoSize = true;
             label53.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
             label53.ForeColor = Color.White;
-            label53.Location = new Point(17, 5);
+            label53.Location = new Point(21, 6);
+            label53.Margin = new Padding(4, 0, 4, 0);
             label53.Name = "label53";
-            label53.Size = new Size(54, 17);
+            label53.Size = new Size(68, 21);
             label53.TabIndex = 92;
             label53.Text = "SetUp";
             // 
             // panel7
             // 
             panel7.BackColor = Color.FromArgb(52, 103, 57);
-            panel7.Location = new Point(906, 345);
+            panel7.Location = new Point(1132, 416);
+            panel7.Margin = new Padding(4);
             panel7.Name = "panel7";
-            panel7.Size = new Size(139, 22);
+            panel7.Size = new Size(174, 28);
             panel7.TabIndex = 132;
             // 
             // myRoundedPanel59
@@ -1360,17 +1509,19 @@
             myRoundedPanel59.BorderRadius = 20;
             myRoundedPanel59.Controls.Add(btnSet);
             myRoundedPanel59.Controls.Add(myRoundedPanel72);
-            myRoundedPanel59.Location = new Point(906, 340);
+            myRoundedPanel59.Location = new Point(1132, 410);
+            myRoundedPanel59.Margin = new Padding(4);
             myRoundedPanel59.Name = "myRoundedPanel59";
-            myRoundedPanel59.Size = new Size(139, 225);
+            myRoundedPanel59.Size = new Size(174, 281);
             myRoundedPanel59.TabIndex = 132;
             // 
             // btnSet
             // 
             btnSet.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnSet.Location = new Point(32, 199);
+            btnSet.Location = new Point(40, 249);
+            btnSet.Margin = new Padding(4);
             btnSet.Name = "btnSet";
-            btnSet.Size = new Size(75, 23);
+            btnSet.Size = new Size(94, 29);
             btnSet.TabIndex = 1;
             btnSet.Text = "Set";
             btnSet.UseVisualStyleBackColor = true;
@@ -1387,18 +1538,20 @@
             myRoundedPanel72.Controls.Add(label67);
             myRoundedPanel72.Controls.Add(label66);
             myRoundedPanel72.Controls.Add(label65);
-            myRoundedPanel72.Location = new Point(16, 34);
+            myRoundedPanel72.Location = new Point(20, 42);
+            myRoundedPanel72.Margin = new Padding(4);
             myRoundedPanel72.Name = "myRoundedPanel72";
-            myRoundedPanel72.Size = new Size(108, 162);
+            myRoundedPanel72.Size = new Size(135, 202);
             myRoundedPanel72.TabIndex = 0;
             // 
             // label72
             // 
             label72.AutoSize = true;
             label72.Font = new Font("Arial", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label72.Location = new Point(26, 142);
+            label72.Location = new Point(32, 178);
+            label72.Margin = new Padding(4, 0, 4, 0);
             label72.Name = "label72";
-            label72.Size = new Size(56, 16);
+            label72.Size = new Size(72, 19);
             label72.TabIndex = 99;
             label72.Text = "CLR = 1";
             // 
@@ -1406,9 +1559,10 @@
             // 
             label71.AutoSize = true;
             label71.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label71.Location = new Point(27, 119);
+            label71.Location = new Point(34, 149);
+            label71.Margin = new Padding(4, 0, 4, 0);
             label71.Name = "label71";
-            label71.Size = new Size(49, 16);
+            label71.Size = new Size(63, 19);
             label71.TabIndex = 98;
             label71.Text = "ON = 5";
             // 
@@ -1416,9 +1570,10 @@
             // 
             label70.AutoSize = true;
             label70.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label70.Location = new Point(29, 96);
+            label70.Location = new Point(36, 120);
+            label70.Margin = new Padding(4, 0, 4, 0);
             label70.Name = "label70";
-            label70.Size = new Size(46, 16);
+            label70.Size = new Size(59, 19);
             label70.TabIndex = 97;
             label70.Text = "D3 = 1";
             // 
@@ -1426,9 +1581,10 @@
             // 
             label68.AutoSize = true;
             label68.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label68.Location = new Point(29, 74);
+            label68.Location = new Point(36, 92);
+            label68.Margin = new Padding(4, 0, 4, 0);
             label68.Name = "label68";
-            label68.Size = new Size(46, 16);
+            label68.Size = new Size(59, 19);
             label68.TabIndex = 96;
             label68.Text = "D2 = 3";
             // 
@@ -1436,9 +1592,10 @@
             // 
             label67.AutoSize = true;
             label67.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label67.Location = new Point(29, 51);
+            label67.Location = new Point(36, 64);
+            label67.Margin = new Padding(4, 0, 4, 0);
             label67.Name = "label67";
-            label67.Size = new Size(46, 16);
+            label67.Size = new Size(59, 19);
             label67.TabIndex = 95;
             label67.Text = "D1 = 3";
             // 
@@ -1446,9 +1603,10 @@
             // 
             label66.AutoSize = true;
             label66.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label66.Location = new Point(27, 27);
+            label66.Location = new Point(34, 34);
+            label66.Margin = new Padding(4, 0, 4, 0);
             label66.Name = "label66";
-            label66.Size = new Size(55, 16);
+            label66.Size = new Size(69, 19);
             label66.TabIndex = 94;
             label66.Text = "ALF = 1";
             // 
@@ -1456,9 +1614,10 @@
             // 
             label65.AutoSize = true;
             label65.Font = new Font("Arial", 9.75F, FontStyle.Bold);
-            label65.Location = new Point(27, 7);
+            label65.Location = new Point(34, 9);
+            label65.Margin = new Padding(4, 0, 4, 0);
             label65.Name = "label65";
-            label65.Size = new Size(55, 16);
+            label65.Size = new Size(69, 19);
             label65.TabIndex = 93;
             label65.Text = "SV = 20";
             // 
@@ -1467,9 +1626,10 @@
             myRoundedPanel11.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel11.BorderRadius = 10;
             myRoundedPanel11.Controls.Add(label4);
-            myRoundedPanel11.Location = new Point(466, 338);
+            myRoundedPanel11.Location = new Point(582, 408);
+            myRoundedPanel11.Margin = new Padding(4);
             myRoundedPanel11.Name = "myRoundedPanel11";
-            myRoundedPanel11.Size = new Size(422, 24);
+            myRoundedPanel11.Size = new Size(528, 30);
             myRoundedPanel11.TabIndex = 131;
             // 
             // label4
@@ -1477,18 +1637,20 @@
             label4.AutoSize = true;
             label4.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
             label4.ForeColor = Color.White;
-            label4.Location = new Point(14, 5);
+            label4.Location = new Point(18, 6);
+            label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(78, 17);
+            label4.Size = new Size(95, 21);
             label4.TabIndex = 92;
             label4.Text = "🔔 Alarm";
             // 
             // panel6
             // 
             panel6.BackColor = Color.FromArgb(52, 103, 57);
-            panel6.Location = new Point(466, 345);
+            panel6.Location = new Point(582, 416);
+            panel6.Margin = new Padding(4);
             panel6.Name = "panel6";
-            panel6.Size = new Size(422, 22);
+            panel6.Size = new Size(528, 28);
             panel6.TabIndex = 130;
             // 
             // myRoundedPanel5
@@ -1499,9 +1661,10 @@
             myRoundedPanel5.Controls.Add(myRoundedPanel35);
             myRoundedPanel5.Controls.Add(myRoundedPanel43);
             myRoundedPanel5.Controls.Add(myRoundedPanel29);
-            myRoundedPanel5.Location = new Point(466, 338);
+            myRoundedPanel5.Location = new Point(582, 408);
+            myRoundedPanel5.Margin = new Padding(4);
             myRoundedPanel5.Name = "myRoundedPanel5";
-            myRoundedPanel5.Size = new Size(422, 229);
+            myRoundedPanel5.Size = new Size(528, 286);
             myRoundedPanel5.TabIndex = 99;
             // 
             // myRoundedPanel47
@@ -1510,10 +1673,10 @@
             myRoundedPanel47.BorderRadius = 20;
             myRoundedPanel47.Controls.Add(myRoundedPanel48);
             myRoundedPanel47.Controls.Add(label30);
-            myRoundedPanel47.Location = new Point(221, 140);
-            myRoundedPanel47.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel47.Location = new Point(276, 175);
+            myRoundedPanel47.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel47.Name = "myRoundedPanel47";
-            myRoundedPanel47.Size = new Size(185, 74);
+            myRoundedPanel47.Size = new Size(231, 92);
             myRoundedPanel47.TabIndex = 105;
             // 
             // myRoundedPanel48
@@ -1521,20 +1684,20 @@
             myRoundedPanel48.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel48.BorderRadius = 10;
             myRoundedPanel48.Controls.Add(Regis16);
-            myRoundedPanel48.Location = new Point(19, 31);
-            myRoundedPanel48.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel48.Location = new Point(24, 39);
+            myRoundedPanel48.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel48.Name = "myRoundedPanel48";
-            myRoundedPanel48.Size = new Size(147, 34);
+            myRoundedPanel48.Size = new Size(184, 42);
             myRoundedPanel48.TabIndex = 91;
             // 
             // Regis16
             // 
             Regis16.BackColor = SystemColors.ButtonFace;
             Regis16.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis16.Location = new Point(8, 5);
-            Regis16.Margin = new Padding(3, 2, 3, 2);
+            Regis16.Location = new Point(10, 6);
+            Regis16.Margin = new Padding(4, 2, 4, 2);
             Regis16.Name = "Regis16";
-            Regis16.Size = new Size(132, 27);
+            Regis16.Size = new Size(164, 31);
             Regis16.TabIndex = 0;
             Regis16.TextAlign = HorizontalAlignment.Center;
             Regis16.TextChanged += CommonRegis_TextChanged;
@@ -1546,9 +1709,10 @@
             // 
             label30.AutoSize = true;
             label30.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label30.Location = new Point(75, 9);
+            label30.Location = new Point(94, 11);
+            label30.Margin = new Padding(4, 0, 4, 0);
             label30.Name = "label30";
-            label30.Size = new Size(42, 22);
+            label30.Size = new Size(53, 27);
             label30.TabIndex = 86;
             label30.Text = "ALL";
             // 
@@ -1558,10 +1722,10 @@
             myRoundedPanel35.BorderRadius = 20;
             myRoundedPanel35.Controls.Add(myRoundedPanel36);
             myRoundedPanel35.Controls.Add(label24);
-            myRoundedPanel35.Location = new Point(19, 47);
-            myRoundedPanel35.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel35.Location = new Point(24, 59);
+            myRoundedPanel35.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel35.Name = "myRoundedPanel35";
-            myRoundedPanel35.Size = new Size(182, 74);
+            myRoundedPanel35.Size = new Size(228, 92);
             myRoundedPanel35.TabIndex = 101;
             // 
             // myRoundedPanel36
@@ -1569,20 +1733,20 @@
             myRoundedPanel36.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel36.BorderRadius = 10;
             myRoundedPanel36.Controls.Add(Regis12);
-            myRoundedPanel36.Location = new Point(18, 31);
-            myRoundedPanel36.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel36.Location = new Point(22, 39);
+            myRoundedPanel36.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel36.Name = "myRoundedPanel36";
-            myRoundedPanel36.Size = new Size(147, 34);
+            myRoundedPanel36.Size = new Size(184, 42);
             myRoundedPanel36.TabIndex = 92;
             // 
             // Regis12
             // 
             Regis12.BackColor = SystemColors.ButtonFace;
             Regis12.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis12.Location = new Point(8, 5);
-            Regis12.Margin = new Padding(3, 2, 3, 2);
+            Regis12.Location = new Point(10, 6);
+            Regis12.Margin = new Padding(4, 2, 4, 2);
             Regis12.Name = "Regis12";
-            Regis12.Size = new Size(132, 27);
+            Regis12.Size = new Size(164, 31);
             Regis12.TabIndex = 0;
             Regis12.TextAlign = HorizontalAlignment.Center;
             Regis12.TextChanged += CommonRegis_TextChanged;
@@ -1594,9 +1758,10 @@
             // 
             label24.AutoSize = true;
             label24.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label24.Location = new Point(39, 7);
+            label24.Location = new Point(49, 9);
+            label24.Margin = new Padding(4, 0, 4, 0);
             label24.Name = "label24";
-            label24.Size = new Size(104, 22);
+            label24.Size = new Size(129, 27);
             label24.TabIndex = 87;
             label24.Text = "ClearAlarm";
             // 
@@ -1606,10 +1771,10 @@
             myRoundedPanel43.BorderRadius = 20;
             myRoundedPanel43.Controls.Add(myRoundedPanel44);
             myRoundedPanel43.Controls.Add(label28);
-            myRoundedPanel43.Location = new Point(20, 140);
-            myRoundedPanel43.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel43.Location = new Point(25, 175);
+            myRoundedPanel43.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel43.Name = "myRoundedPanel43";
-            myRoundedPanel43.Size = new Size(181, 74);
+            myRoundedPanel43.Size = new Size(226, 92);
             myRoundedPanel43.TabIndex = 104;
             // 
             // myRoundedPanel44
@@ -1617,20 +1782,20 @@
             myRoundedPanel44.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel44.BorderRadius = 10;
             myRoundedPanel44.Controls.Add(Regis15);
-            myRoundedPanel44.Location = new Point(17, 31);
-            myRoundedPanel44.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel44.Location = new Point(21, 39);
+            myRoundedPanel44.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel44.Name = "myRoundedPanel44";
-            myRoundedPanel44.Size = new Size(147, 34);
+            myRoundedPanel44.Size = new Size(184, 42);
             myRoundedPanel44.TabIndex = 90;
             // 
             // Regis15
             // 
             Regis15.BackColor = SystemColors.ButtonFace;
             Regis15.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis15.Location = new Point(8, 5);
-            Regis15.Margin = new Padding(3, 2, 3, 2);
+            Regis15.Location = new Point(10, 6);
+            Regis15.Margin = new Padding(4, 2, 4, 2);
             Regis15.Name = "Regis15";
-            Regis15.Size = new Size(132, 27);
+            Regis15.Size = new Size(164, 31);
             Regis15.TabIndex = 0;
             Regis15.TextAlign = HorizontalAlignment.Center;
             Regis15.TextChanged += CommonRegis_TextChanged;
@@ -1642,9 +1807,10 @@
             // 
             label28.AutoSize = true;
             label28.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label28.Location = new Point(74, 9);
+            label28.Location = new Point(92, 11);
+            label28.Margin = new Padding(4, 0, 4, 0);
             label28.Name = "label28";
-            label28.Size = new Size(45, 22);
+            label28.Size = new Size(56, 27);
             label28.TabIndex = 85;
             label28.Text = "ALH";
             // 
@@ -1654,10 +1820,10 @@
             myRoundedPanel29.BorderRadius = 20;
             myRoundedPanel29.Controls.Add(myRoundedPanel30);
             myRoundedPanel29.Controls.Add(label21);
-            myRoundedPanel29.Location = new Point(221, 43);
-            myRoundedPanel29.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel29.Location = new Point(276, 54);
+            myRoundedPanel29.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel29.Name = "myRoundedPanel29";
-            myRoundedPanel29.Size = new Size(183, 74);
+            myRoundedPanel29.Size = new Size(229, 92);
             myRoundedPanel29.TabIndex = 103;
             // 
             // myRoundedPanel30
@@ -1665,20 +1831,20 @@
             myRoundedPanel30.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel30.BorderRadius = 10;
             myRoundedPanel30.Controls.Add(Regis14);
-            myRoundedPanel30.Location = new Point(18, 31);
-            myRoundedPanel30.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel30.Location = new Point(22, 39);
+            myRoundedPanel30.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel30.Name = "myRoundedPanel30";
-            myRoundedPanel30.Size = new Size(147, 34);
+            myRoundedPanel30.Size = new Size(184, 42);
             myRoundedPanel30.TabIndex = 92;
             // 
             // Regis14
             // 
             Regis14.BackColor = SystemColors.ButtonFace;
             Regis14.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis14.Location = new Point(7, 5);
-            Regis14.Margin = new Padding(3, 2, 3, 2);
+            Regis14.Location = new Point(9, 6);
+            Regis14.Margin = new Padding(4, 2, 4, 2);
             Regis14.Name = "Regis14";
-            Regis14.Size = new Size(132, 27);
+            Regis14.Size = new Size(164, 31);
             Regis14.TabIndex = 0;
             Regis14.TextAlign = HorizontalAlignment.Center;
             Regis14.TextChanged += CommonRegis_TextChanged;
@@ -1690,9 +1856,10 @@
             // 
             label21.AutoSize = true;
             label21.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label21.Location = new Point(73, 9);
+            label21.Location = new Point(91, 11);
+            label21.Margin = new Padding(4, 0, 4, 0);
             label21.Name = "label21";
-            label21.Size = new Size(42, 22);
+            label21.Size = new Size(53, 27);
             label21.TabIndex = 87;
             label21.Text = "ALF";
             // 
@@ -1701,9 +1868,10 @@
             myRoundedPanel57.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel57.BorderRadius = 10;
             myRoundedPanel57.Controls.Add(label35);
-            myRoundedPanel57.Location = new Point(18, 340);
+            myRoundedPanel57.Location = new Point(22, 410);
+            myRoundedPanel57.Margin = new Padding(4);
             myRoundedPanel57.Name = "myRoundedPanel57";
-            myRoundedPanel57.Size = new Size(420, 24);
+            myRoundedPanel57.Size = new Size(525, 30);
             myRoundedPanel57.TabIndex = 129;
             // 
             // label35
@@ -1711,29 +1879,32 @@
             label35.AutoSize = true;
             label35.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
             label35.ForeColor = Color.White;
-            label35.Location = new Point(14, 5);
+            label35.Location = new Point(18, 6);
+            label35.Margin = new Padding(4, 0, 4, 0);
             label35.Name = "label35";
-            label35.Size = new Size(92, 17);
+            label35.Size = new Size(112, 21);
             label35.TabIndex = 92;
             label35.Text = "🎛️ Control";
             // 
             // panel5
             // 
             panel5.BackColor = Color.FromArgb(52, 103, 57);
-            panel5.Location = new Point(18, 347);
+            panel5.Location = new Point(22, 419);
+            panel5.Margin = new Padding(4);
             panel5.Name = "panel5";
-            panel5.Size = new Size(420, 22);
+            panel5.Size = new Size(525, 28);
             panel5.TabIndex = 128;
             // 
             // BackHome
             // 
             BackHome.AutoSize = true;
             BackHome.Cursor = Cursors.Hand;
-            BackHome.Font = new Font("Segoe UI", 33.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            BackHome.Font = new Font("Segoe UI", 32.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             BackHome.ForeColor = Color.Green;
-            BackHome.Location = new Point(6, 7);
+            BackHome.Location = new Point(8, 2);
+            BackHome.Margin = new Padding(4, 0, 4, 0);
             BackHome.Name = "BackHome";
-            BackHome.Size = new Size(89, 61);
+            BackHome.Size = new Size(104, 72);
             BackHome.TabIndex = 128;
             BackHome.Text = "🔙";
             BackHome.Click += BackHome_Click;
@@ -1742,17 +1913,19 @@
             // 
             panel4.BackColor = Color.FromArgb(52, 103, 57);
             panel4.Controls.Add(btnCalSave);
-            panel4.Location = new Point(18, 84);
+            panel4.Location = new Point(22, 102);
+            panel4.Margin = new Padding(4);
             panel4.Name = "panel4";
-            panel4.Size = new Size(1027, 22);
+            panel4.Size = new Size(1284, 28);
             panel4.TabIndex = 126;
             // 
             // btnCalSave
             // 
             btnCalSave.Font = new Font("Arial Narrow", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnCalSave.Location = new Point(951, -8);
+            btnCalSave.Location = new Point(1189, -10);
+            btnCalSave.Margin = new Padding(4);
             btnCalSave.Name = "btnCalSave";
-            btnCalSave.Size = new Size(69, 22);
+            btnCalSave.Size = new Size(86, 28);
             btnCalSave.TabIndex = 132;
             btnCalSave.Text = "ทดสอบ";
             btnCalSave.UseVisualStyleBackColor = true;
@@ -1766,9 +1939,10 @@
             myRoundedPanel45.Controls.Add(myRoundedPanel23);
             myRoundedPanel45.Controls.Add(myRoundedPanel25);
             myRoundedPanel45.Controls.Add(myRoundedPanel53);
-            myRoundedPanel45.Location = new Point(18, 340);
+            myRoundedPanel45.Location = new Point(22, 410);
+            myRoundedPanel45.Margin = new Padding(4);
             myRoundedPanel45.Name = "myRoundedPanel45";
-            myRoundedPanel45.Size = new Size(420, 229);
+            myRoundedPanel45.Size = new Size(525, 286);
             myRoundedPanel45.TabIndex = 98;
             // 
             // myRoundedPanel19
@@ -1777,10 +1951,10 @@
             myRoundedPanel19.BorderRadius = 20;
             myRoundedPanel19.Controls.Add(myRoundedPanel20);
             myRoundedPanel19.Controls.Add(label16);
-            myRoundedPanel19.Location = new Point(216, 140);
-            myRoundedPanel19.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel19.Location = new Point(270, 175);
+            myRoundedPanel19.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel19.Name = "myRoundedPanel19";
-            myRoundedPanel19.Size = new Size(183, 74);
+            myRoundedPanel19.Size = new Size(229, 92);
             myRoundedPanel19.TabIndex = 97;
             // 
             // myRoundedPanel20
@@ -1788,20 +1962,20 @@
             myRoundedPanel20.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel20.BorderRadius = 10;
             myRoundedPanel20.Controls.Add(Regis8);
-            myRoundedPanel20.Location = new Point(18, 31);
-            myRoundedPanel20.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel20.Location = new Point(22, 39);
+            myRoundedPanel20.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel20.Name = "myRoundedPanel20";
-            myRoundedPanel20.Size = new Size(147, 34);
+            myRoundedPanel20.Size = new Size(184, 42);
             myRoundedPanel20.TabIndex = 92;
             // 
             // Regis8
             // 
             Regis8.BackColor = SystemColors.ButtonFace;
             Regis8.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis8.Location = new Point(8, 5);
-            Regis8.Margin = new Padding(3, 2, 3, 2);
+            Regis8.Location = new Point(10, 6);
+            Regis8.Margin = new Padding(4, 2, 4, 2);
             Regis8.Name = "Regis8";
-            Regis8.Size = new Size(132, 27);
+            Regis8.Size = new Size(164, 31);
             Regis8.TabIndex = 0;
             Regis8.TextAlign = HorizontalAlignment.Center;
             Regis8.TextChanged += CommonRegis_TextChanged;
@@ -1813,9 +1987,10 @@
             // 
             label16.AutoSize = true;
             label16.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label16.Location = new Point(75, 8);
+            label16.Location = new Point(94, 10);
+            label16.Margin = new Padding(4, 0, 4, 0);
             label16.Name = "label16";
-            label16.Size = new Size(35, 22);
+            label16.Size = new Size(42, 27);
             label16.TabIndex = 87;
             label16.Text = "Off";
             // 
@@ -1825,10 +2000,10 @@
             myRoundedPanel23.BorderRadius = 20;
             myRoundedPanel23.Controls.Add(myRoundedPanel24);
             myRoundedPanel23.Controls.Add(label18);
-            myRoundedPanel23.Location = new Point(15, 140);
-            myRoundedPanel23.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel23.Location = new Point(19, 175);
+            myRoundedPanel23.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel23.Name = "myRoundedPanel23";
-            myRoundedPanel23.Size = new Size(182, 74);
+            myRoundedPanel23.Size = new Size(228, 92);
             myRoundedPanel23.TabIndex = 96;
             // 
             // myRoundedPanel24
@@ -1836,20 +2011,20 @@
             myRoundedPanel24.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel24.BorderRadius = 10;
             myRoundedPanel24.Controls.Add(Regis7);
-            myRoundedPanel24.Location = new Point(18, 31);
-            myRoundedPanel24.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel24.Location = new Point(22, 39);
+            myRoundedPanel24.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel24.Name = "myRoundedPanel24";
-            myRoundedPanel24.Size = new Size(147, 34);
+            myRoundedPanel24.Size = new Size(184, 42);
             myRoundedPanel24.TabIndex = 92;
             // 
             // Regis7
             // 
             Regis7.BackColor = SystemColors.ButtonFace;
             Regis7.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis7.Location = new Point(8, 5);
-            Regis7.Margin = new Padding(3, 2, 3, 2);
+            Regis7.Location = new Point(10, 6);
+            Regis7.Margin = new Padding(4, 2, 4, 2);
             Regis7.Name = "Regis7";
-            Regis7.Size = new Size(132, 27);
+            Regis7.Size = new Size(164, 31);
             Regis7.TabIndex = 0;
             Regis7.TextAlign = HorizontalAlignment.Center;
             Regis7.TextChanged += CommonRegis_TextChanged;
@@ -1861,9 +2036,10 @@
             // 
             label18.AutoSize = true;
             label18.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label18.Location = new Point(76, 8);
+            label18.Location = new Point(95, 10);
+            label18.Margin = new Padding(4, 0, 4, 0);
             label18.Name = "label18";
-            label18.Size = new Size(33, 22);
+            label18.Size = new Size(41, 27);
             label18.TabIndex = 87;
             label18.Text = "On";
             // 
@@ -1873,10 +2049,10 @@
             myRoundedPanel25.BorderRadius = 20;
             myRoundedPanel25.Controls.Add(myRoundedPanel26);
             myRoundedPanel25.Controls.Add(label19);
-            myRoundedPanel25.Location = new Point(216, 43);
-            myRoundedPanel25.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel25.Location = new Point(270, 54);
+            myRoundedPanel25.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel25.Name = "myRoundedPanel25";
-            myRoundedPanel25.Size = new Size(185, 74);
+            myRoundedPanel25.Size = new Size(231, 92);
             myRoundedPanel25.TabIndex = 95;
             // 
             // myRoundedPanel26
@@ -1884,20 +2060,20 @@
             myRoundedPanel26.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel26.BorderRadius = 10;
             myRoundedPanel26.Controls.Add(Regis6);
-            myRoundedPanel26.Location = new Point(19, 31);
-            myRoundedPanel26.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel26.Location = new Point(24, 39);
+            myRoundedPanel26.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel26.Name = "myRoundedPanel26";
-            myRoundedPanel26.Size = new Size(147, 34);
+            myRoundedPanel26.Size = new Size(184, 42);
             myRoundedPanel26.TabIndex = 91;
             // 
             // Regis6
             // 
             Regis6.BackColor = SystemColors.ButtonFace;
             Regis6.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis6.Location = new Point(8, 5);
-            Regis6.Margin = new Padding(3, 2, 3, 2);
+            Regis6.Location = new Point(10, 6);
+            Regis6.Margin = new Padding(4, 2, 4, 2);
             Regis6.Name = "Regis6";
-            Regis6.Size = new Size(132, 27);
+            Regis6.Size = new Size(164, 31);
             Regis6.TabIndex = 0;
             Regis6.TextAlign = HorizontalAlignment.Center;
             Regis6.TextChanged += CommonRegis_TextChanged;
@@ -1909,9 +2085,10 @@
             // 
             label19.AutoSize = true;
             label19.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label19.Location = new Point(65, 8);
+            label19.Location = new Point(81, 10);
+            label19.Margin = new Padding(4, 0, 4, 0);
             label19.Name = "label19";
-            label19.Size = new Size(58, 23);
+            label19.Size = new Size(70, 28);
             label19.TabIndex = 86;
             label19.Text = "Mode";
             // 
@@ -1921,10 +2098,10 @@
             myRoundedPanel53.BorderRadius = 20;
             myRoundedPanel53.Controls.Add(myRoundedPanel54);
             myRoundedPanel53.Controls.Add(label33);
-            myRoundedPanel53.Location = new Point(15, 43);
-            myRoundedPanel53.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel53.Location = new Point(19, 54);
+            myRoundedPanel53.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel53.Name = "myRoundedPanel53";
-            myRoundedPanel53.Size = new Size(183, 74);
+            myRoundedPanel53.Size = new Size(229, 92);
             myRoundedPanel53.TabIndex = 100;
             // 
             // myRoundedPanel54
@@ -1932,21 +2109,21 @@
             myRoundedPanel54.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel54.BorderRadius = 10;
             myRoundedPanel54.Controls.Add(Regis4);
-            myRoundedPanel54.Location = new Point(18, 31);
-            myRoundedPanel54.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel54.Location = new Point(22, 39);
+            myRoundedPanel54.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel54.Name = "myRoundedPanel54";
-            myRoundedPanel54.Size = new Size(147, 34);
+            myRoundedPanel54.Size = new Size(184, 42);
             myRoundedPanel54.TabIndex = 92;
             // 
             // Regis4
             // 
             Regis4.BackColor = SystemColors.ButtonFace;
             Regis4.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis4.Location = new Point(7, 5);
-            Regis4.Margin = new Padding(3, 2, 3, 2);
+            Regis4.Location = new Point(9, 6);
+            Regis4.Margin = new Padding(4, 2, 4, 2);
             Regis4.Name = "Regis4";
             Regis4.ReadOnly = true;
-            Regis4.Size = new Size(132, 27);
+            Regis4.Size = new Size(164, 31);
             Regis4.TabIndex = 0;
             Regis4.TextAlign = HorizontalAlignment.Center;
             Regis4.TextChanged += CommonRegis_TextChanged;
@@ -1958,9 +2135,10 @@
             // 
             label33.AutoSize = true;
             label33.Font = new Font("Arial Black", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label33.Location = new Point(77, 8);
+            label33.Location = new Point(96, 10);
+            label33.Margin = new Padding(4, 0, 4, 0);
             label33.Name = "label33";
-            label33.Size = new Size(33, 22);
+            label33.Size = new Size(41, 27);
             label33.TabIndex = 87;
             label33.Text = "DP";
             // 
@@ -1978,10 +2156,10 @@
             myRoundedPanel2.Controls.Add(myRoundedPanel39);
             myRoundedPanel2.Controls.Add(myRoundedPanel21);
             myRoundedPanel2.Controls.Add(myRoundedPanel37);
-            myRoundedPanel2.Location = new Point(18, 77);
-            myRoundedPanel2.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel2.Location = new Point(22, 94);
+            myRoundedPanel2.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel2.Name = "myRoundedPanel2";
-            myRoundedPanel2.Size = new Size(1027, 240);
+            myRoundedPanel2.Size = new Size(1284, 300);
             myRoundedPanel2.TabIndex = 88;
             // 
             // myRoundedPanel46
@@ -1990,10 +2168,10 @@
             myRoundedPanel46.BorderRadius = 20;
             myRoundedPanel46.Controls.Add(myRoundedPanel58);
             myRoundedPanel46.Controls.Add(label36);
-            myRoundedPanel46.Location = new Point(422, 43);
-            myRoundedPanel46.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel46.Location = new Point(528, 54);
+            myRoundedPanel46.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel46.Name = "myRoundedPanel46";
-            myRoundedPanel46.Size = new Size(182, 74);
+            myRoundedPanel46.Size = new Size(228, 92);
             myRoundedPanel46.TabIndex = 97;
             // 
             // myRoundedPanel58
@@ -2001,20 +2179,20 @@
             myRoundedPanel58.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel58.BorderRadius = 10;
             myRoundedPanel58.Controls.Add(Regis19);
-            myRoundedPanel58.Location = new Point(18, 31);
-            myRoundedPanel58.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel58.Location = new Point(22, 39);
+            myRoundedPanel58.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel58.Name = "myRoundedPanel58";
-            myRoundedPanel58.Size = new Size(147, 34);
+            myRoundedPanel58.Size = new Size(184, 42);
             myRoundedPanel58.TabIndex = 92;
             // 
             // Regis19
             // 
             Regis19.BackColor = SystemColors.ButtonFace;
             Regis19.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis19.Location = new Point(8, 4);
-            Regis19.Margin = new Padding(3, 2, 3, 2);
+            Regis19.Location = new Point(10, 5);
+            Regis19.Margin = new Padding(4, 2, 4, 2);
             Regis19.Name = "Regis19";
-            Regis19.Size = new Size(132, 27);
+            Regis19.Size = new Size(164, 31);
             Regis19.TabIndex = 1;
             Regis19.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2022,9 +2200,10 @@
             // 
             label36.AutoSize = true;
             label36.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label36.Location = new Point(66, 8);
+            label36.Location = new Point(82, 10);
+            label36.Margin = new Padding(4, 0, 4, 0);
             label36.Name = "label36";
-            label36.Size = new Size(46, 22);
+            label36.Size = new Size(57, 27);
             label36.TabIndex = 87;
             label36.Text = "ADC";
             // 
@@ -2034,10 +2213,10 @@
             myRoundedPanel31.BorderRadius = 20;
             myRoundedPanel31.Controls.Add(myRoundedPanel32);
             myRoundedPanel31.Controls.Add(label22);
-            myRoundedPanel31.Location = new Point(627, 147);
-            myRoundedPanel31.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel31.Location = new Point(784, 184);
+            myRoundedPanel31.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel31.Name = "myRoundedPanel31";
-            myRoundedPanel31.Size = new Size(183, 74);
+            myRoundedPanel31.Size = new Size(229, 92);
             myRoundedPanel31.TabIndex = 102;
             // 
             // myRoundedPanel32
@@ -2045,21 +2224,21 @@
             myRoundedPanel32.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel32.BorderRadius = 10;
             myRoundedPanel32.Controls.Add(Regis13);
-            myRoundedPanel32.Location = new Point(18, 31);
-            myRoundedPanel32.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel32.Location = new Point(22, 39);
+            myRoundedPanel32.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel32.Name = "myRoundedPanel32";
-            myRoundedPanel32.Size = new Size(147, 34);
+            myRoundedPanel32.Size = new Size(184, 42);
             myRoundedPanel32.TabIndex = 92;
             // 
             // Regis13
             // 
             Regis13.BackColor = SystemColors.ButtonFace;
             Regis13.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis13.Location = new Point(7, 5);
-            Regis13.Margin = new Padding(3, 2, 3, 2);
+            Regis13.Location = new Point(9, 6);
+            Regis13.Margin = new Padding(4, 2, 4, 2);
             Regis13.Name = "Regis13";
             Regis13.ReadOnly = true;
-            Regis13.Size = new Size(132, 27);
+            Regis13.Size = new Size(164, 31);
             Regis13.TabIndex = 0;
             Regis13.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2067,9 +2246,10 @@
             // 
             label22.AutoSize = true;
             label22.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label22.Location = new Point(44, 7);
+            label22.Location = new Point(55, 9);
+            label22.Margin = new Padding(4, 0, 4, 0);
             label22.Name = "label22";
-            label22.Size = new Size(102, 22);
+            label22.Size = new Size(126, 27);
             label22.TabIndex = 87;
             label22.Text = "AlarmLimit";
             // 
@@ -2079,10 +2259,10 @@
             myRoundedPanel49.BorderRadius = 20;
             myRoundedPanel49.Controls.Add(myRoundedPanel50);
             myRoundedPanel49.Controls.Add(label31);
-            myRoundedPanel49.Location = new Point(831, 147);
-            myRoundedPanel49.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel49.Location = new Point(1039, 184);
+            myRoundedPanel49.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel49.Name = "myRoundedPanel49";
-            myRoundedPanel49.Size = new Size(183, 74);
+            myRoundedPanel49.Size = new Size(229, 92);
             myRoundedPanel49.TabIndex = 109;
             // 
             // myRoundedPanel50
@@ -2090,21 +2270,21 @@
             myRoundedPanel50.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel50.BorderRadius = 10;
             myRoundedPanel50.Controls.Add(Regis24);
-            myRoundedPanel50.Location = new Point(18, 31);
-            myRoundedPanel50.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel50.Location = new Point(22, 39);
+            myRoundedPanel50.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel50.Name = "myRoundedPanel50";
-            myRoundedPanel50.Size = new Size(147, 34);
+            myRoundedPanel50.Size = new Size(184, 42);
             myRoundedPanel50.TabIndex = 92;
             // 
             // Regis24
             // 
             Regis24.BackColor = SystemColors.ButtonFace;
             Regis24.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis24.Location = new Point(7, 5);
-            Regis24.Margin = new Padding(3, 2, 3, 2);
+            Regis24.Location = new Point(9, 6);
+            Regis24.Margin = new Padding(4, 2, 4, 2);
             Regis24.Name = "Regis24";
             Regis24.ReadOnly = true;
-            Regis24.Size = new Size(132, 27);
+            Regis24.Size = new Size(164, 31);
             Regis24.TabIndex = 0;
             Regis24.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2112,9 +2292,10 @@
             // 
             label31.AutoSize = true;
             label31.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label31.Location = new Point(45, 7);
+            label31.Location = new Point(56, 9);
+            label31.Margin = new Padding(4, 0, 4, 0);
             label31.Name = "label31";
-            label31.Size = new Size(95, 22);
+            label31.Size = new Size(120, 27);
             label31.TabIndex = 87;
             label31.Text = "ST2_T_Dly";
             // 
@@ -2124,10 +2305,10 @@
             myRoundedPanel17.BorderRadius = 20;
             myRoundedPanel17.Controls.Add(myRoundedPanel18);
             myRoundedPanel17.Controls.Add(label15);
-            myRoundedPanel17.Location = new Point(14, 43);
-            myRoundedPanel17.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel17.Location = new Point(18, 54);
+            myRoundedPanel17.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel17.Name = "myRoundedPanel17";
-            myRoundedPanel17.Size = new Size(183, 74);
+            myRoundedPanel17.Size = new Size(229, 92);
             myRoundedPanel17.TabIndex = 93;
             // 
             // myRoundedPanel18
@@ -2135,21 +2316,21 @@
             myRoundedPanel18.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel18.BorderRadius = 10;
             myRoundedPanel18.Controls.Add(Regis2);
-            myRoundedPanel18.Location = new Point(18, 31);
-            myRoundedPanel18.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel18.Location = new Point(22, 39);
+            myRoundedPanel18.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel18.Name = "myRoundedPanel18";
-            myRoundedPanel18.Size = new Size(147, 34);
+            myRoundedPanel18.Size = new Size(184, 42);
             myRoundedPanel18.TabIndex = 92;
             // 
             // Regis2
             // 
             Regis2.BackColor = SystemColors.ButtonFace;
             Regis2.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis2.Location = new Point(7, 5);
-            Regis2.Margin = new Padding(3, 2, 3, 2);
+            Regis2.Location = new Point(9, 6);
+            Regis2.Margin = new Padding(4, 2, 4, 2);
             Regis2.Name = "Regis2";
             Regis2.ReadOnly = true;
-            Regis2.Size = new Size(132, 27);
+            Regis2.Size = new Size(164, 31);
             Regis2.TabIndex = 0;
             Regis2.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2157,9 +2338,10 @@
             // 
             label15.AutoSize = true;
             label15.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label15.Location = new Point(51, 7);
+            label15.Location = new Point(64, 9);
+            label15.Margin = new Padding(4, 0, 4, 0);
             label15.Name = "label15";
-            label15.Size = new Size(85, 22);
+            label15.Size = new Size(107, 27);
             label15.TabIndex = 87;
             label15.Text = "PVAdjust";
             // 
@@ -2169,10 +2351,10 @@
             myRoundedPanel51.BorderRadius = 20;
             myRoundedPanel51.Controls.Add(myRoundedPanel52);
             myRoundedPanel51.Controls.Add(label32);
-            myRoundedPanel51.Location = new Point(218, 42);
-            myRoundedPanel51.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel51.Location = new Point(272, 52);
+            myRoundedPanel51.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel51.Name = "myRoundedPanel51";
-            myRoundedPanel51.Size = new Size(183, 74);
+            myRoundedPanel51.Size = new Size(229, 92);
             myRoundedPanel51.TabIndex = 99;
             // 
             // myRoundedPanel52
@@ -2180,21 +2362,21 @@
             myRoundedPanel52.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel52.BorderRadius = 10;
             myRoundedPanel52.Controls.Add(Regis3);
-            myRoundedPanel52.Location = new Point(18, 31);
-            myRoundedPanel52.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel52.Location = new Point(22, 39);
+            myRoundedPanel52.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel52.Name = "myRoundedPanel52";
-            myRoundedPanel52.Size = new Size(147, 34);
+            myRoundedPanel52.Size = new Size(184, 42);
             myRoundedPanel52.TabIndex = 92;
             // 
             // Regis3
             // 
             Regis3.BackColor = SystemColors.ButtonFace;
             Regis3.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis3.Location = new Point(7, 5);
-            Regis3.Margin = new Padding(3, 2, 3, 2);
+            Regis3.Location = new Point(9, 6);
+            Regis3.Margin = new Padding(4, 2, 4, 2);
             Regis3.Name = "Regis3";
             Regis3.ReadOnly = true;
-            Regis3.Size = new Size(132, 27);
+            Regis3.Size = new Size(164, 31);
             Regis3.TabIndex = 0;
             Regis3.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2202,9 +2384,10 @@
             // 
             label32.AutoSize = true;
             label32.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label32.Location = new Point(57, 7);
+            label32.Location = new Point(71, 9);
+            label32.Margin = new Padding(4, 0, 4, 0);
             label32.Name = "label32";
-            label32.Size = new Size(77, 22);
+            label32.Size = new Size(95, 27);
             label32.TabIndex = 87;
             label32.Text = "PVFilter";
             // 
@@ -2214,10 +2397,10 @@
             myRoundedPanel27.BorderRadius = 20;
             myRoundedPanel27.Controls.Add(myRoundedPanel28);
             myRoundedPanel27.Controls.Add(label20);
-            myRoundedPanel27.Location = new Point(14, 145);
-            myRoundedPanel27.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel27.Location = new Point(18, 181);
+            myRoundedPanel27.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel27.Name = "myRoundedPanel27";
-            myRoundedPanel27.Size = new Size(183, 74);
+            myRoundedPanel27.Size = new Size(229, 92);
             myRoundedPanel27.TabIndex = 98;
             // 
             // myRoundedPanel28
@@ -2225,20 +2408,20 @@
             myRoundedPanel28.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel28.BorderRadius = 10;
             myRoundedPanel28.Controls.Add(Regis9);
-            myRoundedPanel28.Location = new Point(18, 31);
-            myRoundedPanel28.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel28.Location = new Point(22, 39);
+            myRoundedPanel28.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel28.Name = "myRoundedPanel28";
-            myRoundedPanel28.Size = new Size(147, 34);
+            myRoundedPanel28.Size = new Size(184, 42);
             myRoundedPanel28.TabIndex = 92;
             // 
             // Regis9
             // 
             Regis9.BackColor = SystemColors.ButtonFace;
             Regis9.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis9.Location = new Point(7, 5);
-            Regis9.Margin = new Padding(3, 2, 3, 2);
+            Regis9.Location = new Point(9, 6);
+            Regis9.Margin = new Padding(4, 2, 4, 2);
             Regis9.Name = "Regis9";
-            Regis9.Size = new Size(132, 27);
+            Regis9.Size = new Size(164, 31);
             Regis9.TabIndex = 0;
             Regis9.TextAlign = HorizontalAlignment.Center;
             Regis9.TextChanged += CommonRegis_TextChanged;
@@ -2250,9 +2433,10 @@
             // 
             label20.AutoSize = true;
             label20.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label20.Location = new Point(78, 7);
+            label20.Location = new Point(98, 9);
+            label20.Margin = new Padding(4, 0, 4, 0);
             label20.Name = "label20";
-            label20.Size = new Size(32, 22);
+            label20.Size = new Size(40, 27);
             label20.TabIndex = 87;
             label20.Text = "D1";
             // 
@@ -2262,10 +2446,10 @@
             myRoundedPanel33.BorderRadius = 20;
             myRoundedPanel33.Controls.Add(myRoundedPanel34);
             myRoundedPanel33.Controls.Add(label23);
-            myRoundedPanel33.Location = new Point(218, 144);
-            myRoundedPanel33.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel33.Location = new Point(272, 180);
+            myRoundedPanel33.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel33.Name = "myRoundedPanel33";
-            myRoundedPanel33.Size = new Size(181, 74);
+            myRoundedPanel33.Size = new Size(226, 92);
             myRoundedPanel33.TabIndex = 99;
             // 
             // myRoundedPanel34
@@ -2273,20 +2457,20 @@
             myRoundedPanel34.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel34.BorderRadius = 10;
             myRoundedPanel34.Controls.Add(Regis10);
-            myRoundedPanel34.Location = new Point(17, 31);
-            myRoundedPanel34.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel34.Location = new Point(21, 39);
+            myRoundedPanel34.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel34.Name = "myRoundedPanel34";
-            myRoundedPanel34.Size = new Size(147, 34);
+            myRoundedPanel34.Size = new Size(184, 42);
             myRoundedPanel34.TabIndex = 90;
             // 
             // Regis10
             // 
             Regis10.BackColor = SystemColors.ButtonFace;
             Regis10.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis10.Location = new Point(7, 5);
-            Regis10.Margin = new Padding(3, 2, 3, 2);
+            Regis10.Location = new Point(9, 6);
+            Regis10.Margin = new Padding(4, 2, 4, 2);
             Regis10.Name = "Regis10";
-            Regis10.Size = new Size(132, 27);
+            Regis10.Size = new Size(164, 31);
             Regis10.TabIndex = 0;
             Regis10.TextAlign = HorizontalAlignment.Center;
             Regis10.TextChanged += CommonRegis_TextChanged;
@@ -2298,9 +2482,10 @@
             // 
             label23.AutoSize = true;
             label23.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label23.Location = new Point(77, 8);
+            label23.Location = new Point(96, 10);
+            label23.Margin = new Padding(4, 0, 4, 0);
             label23.Name = "label23";
-            label23.Size = new Size(32, 22);
+            label23.Size = new Size(40, 27);
             label23.TabIndex = 85;
             label23.Text = "D2";
             // 
@@ -2310,10 +2495,10 @@
             myRoundedPanel39.BorderRadius = 20;
             myRoundedPanel39.Controls.Add(myRoundedPanel40);
             myRoundedPanel39.Controls.Add(label26);
-            myRoundedPanel39.Location = new Point(831, 43);
-            myRoundedPanel39.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel39.Location = new Point(1039, 54);
+            myRoundedPanel39.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel39.Name = "myRoundedPanel39";
-            myRoundedPanel39.Size = new Size(183, 74);
+            myRoundedPanel39.Size = new Size(229, 92);
             myRoundedPanel39.TabIndex = 108;
             // 
             // myRoundedPanel40
@@ -2321,21 +2506,21 @@
             myRoundedPanel40.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel40.BorderRadius = 10;
             myRoundedPanel40.Controls.Add(Regis23);
-            myRoundedPanel40.Location = new Point(18, 31);
-            myRoundedPanel40.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel40.Location = new Point(22, 39);
+            myRoundedPanel40.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel40.Name = "myRoundedPanel40";
-            myRoundedPanel40.Size = new Size(147, 34);
+            myRoundedPanel40.Size = new Size(184, 42);
             myRoundedPanel40.TabIndex = 92;
             // 
             // Regis23
             // 
             Regis23.BackColor = SystemColors.ButtonFace;
             Regis23.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis23.Location = new Point(7, 5);
-            Regis23.Margin = new Padding(3, 2, 3, 2);
+            Regis23.Location = new Point(9, 6);
+            Regis23.Margin = new Padding(4, 2, 4, 2);
             Regis23.Name = "Regis23";
             Regis23.ReadOnly = true;
-            Regis23.Size = new Size(132, 27);
+            Regis23.Size = new Size(164, 31);
             Regis23.TabIndex = 0;
             Regis23.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2343,9 +2528,10 @@
             // 
             label26.AutoSize = true;
             label26.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label26.Location = new Point(46, 7);
+            label26.Location = new Point(58, 9);
+            label26.Margin = new Padding(4, 0, 4, 0);
             label26.Name = "label26";
-            label26.Size = new Size(95, 22);
+            label26.Size = new Size(120, 27);
             label26.TabIndex = 87;
             label26.Text = "ST1_T_Dly";
             // 
@@ -2355,10 +2541,10 @@
             myRoundedPanel21.BorderRadius = 20;
             myRoundedPanel21.Controls.Add(myRoundedPanel22);
             myRoundedPanel21.Controls.Add(label17);
-            myRoundedPanel21.Location = new Point(627, 43);
-            myRoundedPanel21.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel21.Location = new Point(784, 54);
+            myRoundedPanel21.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel21.Name = "myRoundedPanel21";
-            myRoundedPanel21.Size = new Size(181, 74);
+            myRoundedPanel21.Size = new Size(226, 92);
             myRoundedPanel21.TabIndex = 94;
             // 
             // myRoundedPanel22
@@ -2366,21 +2552,21 @@
             myRoundedPanel22.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel22.BorderRadius = 10;
             myRoundedPanel22.Controls.Add(Regis5);
-            myRoundedPanel22.Location = new Point(17, 31);
-            myRoundedPanel22.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel22.Location = new Point(21, 39);
+            myRoundedPanel22.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel22.Name = "myRoundedPanel22";
-            myRoundedPanel22.Size = new Size(147, 34);
+            myRoundedPanel22.Size = new Size(184, 42);
             myRoundedPanel22.TabIndex = 90;
             // 
             // Regis5
             // 
             Regis5.BackColor = SystemColors.ButtonFace;
             Regis5.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis5.Location = new Point(7, 5);
-            Regis5.Margin = new Padding(3, 2, 3, 2);
+            Regis5.Location = new Point(9, 6);
+            Regis5.Margin = new Padding(4, 2, 4, 2);
             Regis5.Name = "Regis5";
             Regis5.ReadOnly = true;
-            Regis5.Size = new Size(132, 27);
+            Regis5.Size = new Size(164, 31);
             Regis5.TabIndex = 0;
             Regis5.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2388,9 +2574,10 @@
             // 
             label17.AutoSize = true;
             label17.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label17.Location = new Point(68, 7);
+            label17.Location = new Point(85, 9);
+            label17.Margin = new Padding(4, 0, 4, 0);
             label17.Name = "label17";
-            label17.Size = new Size(50, 22);
+            label17.Size = new Size(64, 27);
             label17.TabIndex = 85;
             label17.Text = "Lock";
             // 
@@ -2400,10 +2587,10 @@
             myRoundedPanel37.BorderRadius = 20;
             myRoundedPanel37.Controls.Add(myRoundedPanel38);
             myRoundedPanel37.Controls.Add(label25);
-            myRoundedPanel37.Location = new Point(419, 144);
-            myRoundedPanel37.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel37.Location = new Point(524, 180);
+            myRoundedPanel37.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel37.Name = "myRoundedPanel37";
-            myRoundedPanel37.Size = new Size(185, 74);
+            myRoundedPanel37.Size = new Size(231, 92);
             myRoundedPanel37.TabIndex = 100;
             // 
             // myRoundedPanel38
@@ -2411,20 +2598,20 @@
             myRoundedPanel38.BackColor = Color.FromArgb(224, 224, 224);
             myRoundedPanel38.BorderRadius = 10;
             myRoundedPanel38.Controls.Add(Regis11);
-            myRoundedPanel38.Location = new Point(19, 31);
-            myRoundedPanel38.Margin = new Padding(3, 2, 3, 2);
+            myRoundedPanel38.Location = new Point(24, 39);
+            myRoundedPanel38.Margin = new Padding(4, 2, 4, 2);
             myRoundedPanel38.Name = "myRoundedPanel38";
-            myRoundedPanel38.Size = new Size(147, 34);
+            myRoundedPanel38.Size = new Size(184, 42);
             myRoundedPanel38.TabIndex = 91;
             // 
             // Regis11
             // 
             Regis11.BackColor = SystemColors.ButtonFace;
             Regis11.Font = new Font("STXinwei", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            Regis11.Location = new Point(7, 5);
-            Regis11.Margin = new Padding(3, 2, 3, 2);
+            Regis11.Location = new Point(9, 6);
+            Regis11.Margin = new Padding(4, 2, 4, 2);
             Regis11.Name = "Regis11";
-            Regis11.Size = new Size(132, 27);
+            Regis11.Size = new Size(164, 31);
             Regis11.TabIndex = 0;
             Regis11.TextAlign = HorizontalAlignment.Center;
             Regis11.TextChanged += CommonRegis_TextChanged;
@@ -2436,9 +2623,10 @@
             // 
             label25.AutoSize = true;
             label25.Font = new Font("Arial Black", 11.25F, FontStyle.Bold);
-            label25.Location = new Point(75, 7);
+            label25.Location = new Point(94, 9);
+            label25.Margin = new Padding(4, 0, 4, 0);
             label25.Name = "label25";
-            label25.Size = new Size(32, 22);
+            label25.Size = new Size(40, 27);
             label25.TabIndex = 86;
             label25.Text = "D3";
             // 
@@ -2458,9 +2646,10 @@
             tabPage1.Controls.Add(MassagerBox);
             tabPage1.Controls.Add(panel2);
             tabPage1.Location = new Point(4, 5);
+            tabPage1.Margin = new Padding(4);
             tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(1065, 588);
+            tabPage1.Padding = new Padding(4);
+            tabPage1.Size = new Size(1333, 720);
             tabPage1.TabIndex = 2;
             tabPage1.Text = "tabPage1";
             // 
@@ -2471,18 +2660,20 @@
             myRoundedPanel66.Controls.Add(picCir);
             myRoundedPanel66.Controls.Add(cmbDisplaySource);
             myRoundedPanel66.Controls.Add(label60);
-            myRoundedPanel66.Location = new Point(25, 175);
+            myRoundedPanel66.Location = new Point(31, 205);
+            myRoundedPanel66.Margin = new Padding(4);
             myRoundedPanel66.Name = "myRoundedPanel66";
-            myRoundedPanel66.Size = new Size(1015, 24);
+            myRoundedPanel66.Size = new Size(1269, 30);
             myRoundedPanel66.TabIndex = 98;
             // 
             // picCir
             // 
             picCir.Cursor = Cursors.Hand;
             picCir.Image = Properties.Resources.Cir2;
-            picCir.Location = new Point(978, 3);
+            picCir.Location = new Point(1222, 4);
+            picCir.Margin = new Padding(4);
             picCir.Name = "picCir";
-            picCir.Size = new Size(34, 22);
+            picCir.Size = new Size(42, 28);
             picCir.SizeMode = PictureBoxSizeMode.StretchImage;
             picCir.TabIndex = 105;
             picCir.TabStop = false;
@@ -2493,9 +2684,10 @@
             // 
             cmbDisplaySource.FormattingEnabled = true;
             cmbDisplaySource.Items.AddRange(new object[] { "EXCEL", "DATABASE" });
-            cmbDisplaySource.Location = new Point(888, 3);
+            cmbDisplaySource.Location = new Point(1110, 4);
+            cmbDisplaySource.Margin = new Padding(4);
             cmbDisplaySource.Name = "cmbDisplaySource";
-            cmbDisplaySource.Size = new Size(84, 23);
+            cmbDisplaySource.Size = new Size(104, 28);
             cmbDisplaySource.TabIndex = 101;
             cmbDisplaySource.SelectedIndexChanged += cmbDisplaySource_SelectedIndexChanged;
             // 
@@ -2504,9 +2696,10 @@
             label60.AutoSize = true;
             label60.Font = new Font("Arial Black", 14.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label60.ForeColor = Color.White;
-            label60.Location = new Point(8, 0);
+            label60.Location = new Point(10, 0);
+            label60.Margin = new Padding(4, 0, 4, 0);
             label60.Name = "label60";
-            label60.Size = new Size(125, 27);
+            label60.Size = new Size(157, 33);
             label60.TabIndex = 94;
             label60.Text = "Show Data";
             // 
@@ -2514,9 +2707,10 @@
             // 
             pictHome.Cursor = Cursors.Hand;
             pictHome.Image = Properties.Resources.Home;
-            pictHome.Location = new Point(938, 16);
+            pictHome.Location = new Point(1172, 14);
+            pictHome.Margin = new Padding(4);
             pictHome.Name = "pictHome";
-            pictHome.Size = new Size(102, 70);
+            pictHome.Size = new Size(128, 88);
             pictHome.SizeMode = PictureBoxSizeMode.StretchImage;
             pictHome.TabIndex = 104;
             pictHome.TabStop = false;
@@ -2528,18 +2722,20 @@
             myRoundedPanel70.BorderRadius = 10;
             myRoundedPanel70.Controls.Add(lblLotCount);
             myRoundedPanel70.Controls.Add(label63);
-            myRoundedPanel70.Location = new Point(490, 106);
+            myRoundedPanel70.Location = new Point(612, 119);
+            myRoundedPanel70.Margin = new Padding(4);
             myRoundedPanel70.Name = "myRoundedPanel70";
-            myRoundedPanel70.Size = new Size(550, 56);
+            myRoundedPanel70.Size = new Size(688, 70);
             myRoundedPanel70.TabIndex = 102;
             // 
             // lblLotCount
             // 
             lblLotCount.Font = new Font("Roboto", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblLotCount.ForeColor = Color.FromArgb(84, 107, 65);
-            lblLotCount.Location = new Point(3, 3);
+            lblLotCount.Location = new Point(4, 4);
+            lblLotCount.Margin = new Padding(4, 0, 4, 0);
             lblLotCount.Name = "lblLotCount";
-            lblLotCount.Size = new Size(547, 33);
+            lblLotCount.Size = new Size(684, 41);
             lblLotCount.TabIndex = 104;
             lblLotCount.Text = "0";
             lblLotCount.TextAlign = ContentAlignment.MiddleCenter;
@@ -2549,9 +2745,10 @@
             label63.AutoSize = true;
             label63.Font = new Font("Arial Narrow", 12F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label63.ForeColor = Color.FromArgb(65, 67, 27);
-            label63.Location = new Point(248, 34);
+            label63.Location = new Point(310, 42);
+            label63.Margin = new Padding(4, 0, 4, 0);
             label63.Name = "label63";
-            label63.Size = new Size(60, 20);
+            label63.Size = new Size(73, 24);
             label63.TabIndex = 103;
             label63.Text = "Lot Size";
             // 
@@ -2561,18 +2758,20 @@
             myRoundedPanel69.BorderRadius = 10;
             myRoundedPanel69.Controls.Add(lblFailCount);
             myRoundedPanel69.Controls.Add(label62);
-            myRoundedPanel69.Location = new Point(260, 106);
+            myRoundedPanel69.Location = new Point(325, 119);
+            myRoundedPanel69.Margin = new Padding(4);
             myRoundedPanel69.Name = "myRoundedPanel69";
-            myRoundedPanel69.Size = new Size(209, 56);
+            myRoundedPanel69.Size = new Size(261, 70);
             myRoundedPanel69.TabIndex = 101;
             // 
             // lblFailCount
             // 
             lblFailCount.Font = new Font("Roboto", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblFailCount.ForeColor = Color.FromArgb(196, 69, 69);
-            lblFailCount.Location = new Point(39, 2);
+            lblFailCount.Location = new Point(49, 2);
+            lblFailCount.Margin = new Padding(4, 0, 4, 0);
             lblFailCount.Name = "lblFailCount";
-            lblFailCount.Size = new Size(131, 33);
+            lblFailCount.Size = new Size(164, 41);
             lblFailCount.TabIndex = 103;
             lblFailCount.Text = "0";
             lblFailCount.TextAlign = ContentAlignment.MiddleCenter;
@@ -2582,9 +2781,10 @@
             label62.AutoSize = true;
             label62.Font = new Font("Arial Narrow", 12F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label62.ForeColor = Color.FromArgb(65, 67, 27);
-            label62.Location = new Point(86, 34);
+            label62.Location = new Point(108, 42);
+            label62.Margin = new Padding(4, 0, 4, 0);
             label62.Name = "label62";
-            label62.Size = new Size(37, 20);
+            label62.Size = new Size(47, 24);
             label62.TabIndex = 102;
             label62.Text = "FAIL";
             // 
@@ -2594,18 +2794,20 @@
             myRoundedPanel68.BorderRadius = 10;
             myRoundedPanel68.Controls.Add(lblPassCount);
             myRoundedPanel68.Controls.Add(label61);
-            myRoundedPanel68.Location = new Point(27, 106);
+            myRoundedPanel68.Location = new Point(34, 119);
+            myRoundedPanel68.Margin = new Padding(4);
             myRoundedPanel68.Name = "myRoundedPanel68";
-            myRoundedPanel68.Size = new Size(209, 56);
+            myRoundedPanel68.Size = new Size(261, 70);
             myRoundedPanel68.TabIndex = 100;
             // 
             // lblPassCount
             // 
             lblPassCount.Font = new Font("Roboto", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblPassCount.ForeColor = Color.FromArgb(84, 107, 65);
-            lblPassCount.Location = new Point(15, 3);
+            lblPassCount.Location = new Point(19, 4);
+            lblPassCount.Margin = new Padding(4, 0, 4, 0);
             lblPassCount.Name = "lblPassCount";
-            lblPassCount.Size = new Size(182, 33);
+            lblPassCount.Size = new Size(228, 41);
             lblPassCount.TabIndex = 102;
             lblPassCount.Text = "0";
             lblPassCount.TextAlign = ContentAlignment.MiddleCenter;
@@ -2615,9 +2817,10 @@
             label61.AutoSize = true;
             label61.Font = new Font("Arial Narrow", 12F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label61.ForeColor = Color.FromArgb(65, 67, 27);
-            label61.Location = new Point(84, 34);
+            label61.Location = new Point(105, 42);
+            label61.Margin = new Padding(4, 0, 4, 0);
             label61.Name = "label61";
-            label61.Size = new Size(45, 20);
+            label61.Size = new Size(55, 24);
             label61.TabIndex = 101;
             label61.Text = "PASS";
             // 
@@ -2634,18 +2837,20 @@
             myRoundedPanel67.Controls.Add(label52);
             myRoundedPanel67.Controls.Add(label55);
             myRoundedPanel67.Controls.Add(btnGet);
-            myRoundedPanel67.Location = new Point(25, 14);
+            myRoundedPanel67.Location = new Point(31, 11);
+            myRoundedPanel67.Margin = new Padding(4);
             myRoundedPanel67.Name = "myRoundedPanel67";
-            myRoundedPanel67.Size = new Size(896, 72);
+            myRoundedPanel67.Size = new Size(1120, 90);
             myRoundedPanel67.TabIndex = 99;
             // 
             // btnPost
             // 
             btnPost.Cursor = Cursors.Hand;
             btnPost.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnPost.Location = new Point(729, 11);
+            btnPost.Location = new Point(911, 14);
+            btnPost.Margin = new Padding(4);
             btnPost.Name = "btnPost";
-            btnPost.Size = new Size(140, 53);
+            btnPost.Size = new Size(175, 66);
             btnPost.TabIndex = 1;
             btnPost.Text = "Post";
             btnPost.UseVisualStyleBackColor = true;
@@ -2656,17 +2861,19 @@
             panel3.BackColor = Color.FromArgb(121, 174, 111);
             panel3.Controls.Add(cmbLot);
             panel3.Controls.Add(label58);
-            panel3.Location = new Point(348, 0);
+            panel3.Location = new Point(435, 0);
+            panel3.Margin = new Padding(4);
             panel3.Name = "panel3";
-            panel3.Size = new Size(178, 72);
+            panel3.Size = new Size(222, 90);
             panel3.TabIndex = 100;
             // 
             // cmbLot
             // 
             cmbLot.FormattingEnabled = true;
-            cmbLot.Location = new Point(12, 37);
+            cmbLot.Location = new Point(15, 46);
+            cmbLot.Margin = new Padding(4);
             cmbLot.Name = "cmbLot";
-            cmbLot.Size = new Size(155, 23);
+            cmbLot.Size = new Size(193, 28);
             cmbLot.TabIndex = 101;
             cmbLot.SelectedIndexChanged += cmbLot_SelectedIndexChanged;
             // 
@@ -2675,9 +2882,10 @@
             label58.AutoSize = true;
             label58.Font = new Font("Arial Narrow", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label58.ForeColor = Color.FromArgb(65, 67, 27);
-            label58.Location = new Point(12, 8);
+            label58.Location = new Point(15, 10);
+            label58.Margin = new Padding(4, 0, 4, 0);
             label58.Name = "label58";
-            label58.Size = new Size(47, 25);
+            label58.Size = new Size(59, 31);
             label58.TabIndex = 91;
             label58.Text = "LOT";
             // 
@@ -2686,36 +2894,40 @@
             label51.AutoSize = true;
             label51.Font = new Font("Arial Narrow", 14.25F);
             label51.ForeColor = Color.White;
-            label51.Location = new Point(17, 12);
+            label51.Location = new Point(21, 15);
+            label51.Margin = new Padding(4, 0, 4, 0);
             label51.Name = "label51";
-            label51.Size = new Size(38, 23);
+            label51.Size = new Size(44, 29);
             label51.TabIndex = 86;
             label51.Text = "วันที่";
             // 
             // cmbDay
             // 
             cmbDay.FormattingEnabled = true;
-            cmbDay.Location = new Point(17, 37);
+            cmbDay.Location = new Point(21, 46);
+            cmbDay.Margin = new Padding(4);
             cmbDay.Name = "cmbDay";
-            cmbDay.Size = new Size(84, 23);
+            cmbDay.Size = new Size(104, 28);
             cmbDay.TabIndex = 5;
             cmbDay.SelectedIndexChanged += cmbDay_SelectedIndexChanged_2;
             // 
             // cmbMonth
             // 
             cmbMonth.FormattingEnabled = true;
-            cmbMonth.Location = new Point(125, 37);
+            cmbMonth.Location = new Point(156, 46);
+            cmbMonth.Margin = new Padding(4);
             cmbMonth.Name = "cmbMonth";
-            cmbMonth.Size = new Size(86, 23);
+            cmbMonth.Size = new Size(106, 28);
             cmbMonth.TabIndex = 6;
             cmbMonth.SelectedIndexChanged += cmbMonth_SelectedIndexChanged_2;
             // 
             // cmbYear
             // 
             cmbYear.FormattingEnabled = true;
-            cmbYear.Location = new Point(235, 37);
+            cmbYear.Location = new Point(294, 46);
+            cmbYear.Margin = new Padding(4);
             cmbYear.Name = "cmbYear";
-            cmbYear.Size = new Size(85, 23);
+            cmbYear.Size = new Size(105, 28);
             cmbYear.TabIndex = 7;
             cmbYear.SelectedIndexChanged += cmbYear_SelectedIndexChanged_2;
             // 
@@ -2724,9 +2936,10 @@
             label52.AutoSize = true;
             label52.Font = new Font("Arial Narrow", 14.25F);
             label52.ForeColor = Color.White;
-            label52.Location = new Point(125, 12);
+            label52.Location = new Point(156, 15);
+            label52.Margin = new Padding(4, 0, 4, 0);
             label52.Name = "label52";
-            label52.Size = new Size(44, 23);
+            label52.Size = new Size(50, 29);
             label52.TabIndex = 87;
             label52.Text = "เดือน";
             // 
@@ -2735,9 +2948,10 @@
             label55.AutoSize = true;
             label55.Font = new Font("Arial Narrow", 14.25F);
             label55.ForeColor = Color.White;
-            label55.Location = new Point(235, 12);
+            label55.Location = new Point(294, 15);
+            label55.Margin = new Padding(4, 0, 4, 0);
             label55.Name = "label55";
-            label55.Size = new Size(20, 23);
+            label55.Size = new Size(24, 29);
             label55.TabIndex = 88;
             label55.Text = "ปี";
             // 
@@ -2745,9 +2959,10 @@
             // 
             btnGet.Cursor = Cursors.Hand;
             btnGet.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnGet.Location = new Point(559, 11);
+            btnGet.Location = new Point(699, 14);
+            btnGet.Margin = new Padding(4);
             btnGet.Name = "btnGet";
-            btnGet.Size = new Size(147, 53);
+            btnGet.Size = new Size(184, 66);
             btnGet.TabIndex = 2;
             btnGet.Text = "Get";
             btnGet.UseVisualStyleBackColor = true;
@@ -2758,9 +2973,10 @@
             myRoundedPanel65.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel65.BorderRadius = 10;
             myRoundedPanel65.Controls.Add(label59);
-            myRoundedPanel65.Location = new Point(25, 421);
+            myRoundedPanel65.Location = new Point(31, 512);
+            myRoundedPanel65.Margin = new Padding(4);
             myRoundedPanel65.Name = "myRoundedPanel65";
-            myRoundedPanel65.Size = new Size(1015, 24);
+            myRoundedPanel65.Size = new Size(1269, 30);
             myRoundedPanel65.TabIndex = 96;
             // 
             // label59
@@ -2768,18 +2984,20 @@
             label59.AutoSize = true;
             label59.Font = new Font("Arial Black", 14.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label59.ForeColor = Color.White;
-            label59.Location = new Point(9, 0);
+            label59.Location = new Point(11, 0);
+            label59.Margin = new Padding(4, 0, 4, 0);
             label59.Name = "label59";
-            label59.Size = new Size(114, 27);
+            label59.Size = new Size(143, 33);
             label59.TabIndex = 92;
             label59.Text = "Massager";
             // 
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(52, 103, 57);
-            panel1.Location = new Point(25, 428);
+            panel1.Location = new Point(31, 521);
+            panel1.Margin = new Padding(4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1015, 22);
+            panel1.Size = new Size(1269, 28);
             panel1.TabIndex = 95;
             // 
             // dataGridView1
@@ -2795,7 +3013,8 @@
             dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.EnableHeadersVisualStyles = false;
-            dataGridView1.Location = new Point(25, 204);
+            dataGridView1.Location = new Point(31, 241);
+            dataGridView1.Margin = new Padding(4);
             dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = SystemColors.Control;
@@ -2805,34 +3024,38 @@
             dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle2;
-            dataGridView1.Size = new Size(1015, 203);
+            dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.Size = new Size(1269, 254);
             dataGridView1.TabIndex = 89;
             dataGridView1.DataBindingComplete += dataGridView1_DataBindingComplete;
             // 
             // lblResultStatus
             // 
-            lblResultStatus.Location = new Point(658, 561);
+            lblResultStatus.Location = new Point(822, 694);
+            lblResultStatus.Margin = new Padding(4, 0, 4, 0);
             lblResultStatus.Name = "lblResultStatus";
-            lblResultStatus.Size = new Size(382, 15);
+            lblResultStatus.Size = new Size(478, 19);
             lblResultStatus.TabIndex = 4;
             lblResultStatus.Text = "แสดงสถานะ";
             lblResultStatus.TextAlign = ContentAlignment.MiddleRight;
             // 
             // MassagerBox
             // 
-            MassagerBox.Location = new Point(25, 449);
+            MassagerBox.Location = new Point(31, 548);
+            MassagerBox.Margin = new Padding(4);
             MassagerBox.Name = "MassagerBox";
             MassagerBox.ReadOnly = true;
-            MassagerBox.Size = new Size(1015, 108);
+            MassagerBox.Size = new Size(1268, 134);
             MassagerBox.TabIndex = 0;
             MassagerBox.Text = "";
             // 
             // panel2
             // 
             panel2.BackColor = Color.FromArgb(52, 103, 57);
-            panel2.Location = new Point(25, 182);
+            panel2.Location = new Point(31, 214);
+            panel2.Margin = new Padding(4);
             panel2.Name = "panel2";
-            panel2.Size = new Size(1015, 22);
+            panel2.Size = new Size(1269, 28);
             panel2.TabIndex = 97;
             // 
             // myRoundedPanel63
@@ -2840,9 +3063,10 @@
             myRoundedPanel63.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel63.BorderRadius = 5;
             myRoundedPanel63.Controls.Add(label57);
-            myRoundedPanel63.Location = new Point(1087, 12);
+            myRoundedPanel63.Location = new Point(1359, 14);
+            myRoundedPanel63.Margin = new Padding(4);
             myRoundedPanel63.Name = "myRoundedPanel63";
-            myRoundedPanel63.Size = new Size(268, 37);
+            myRoundedPanel63.Size = new Size(320, 46);
             myRoundedPanel63.TabIndex = 129;
             // 
             // label57
@@ -2850,9 +3074,10 @@
             label57.AutoSize = true;
             label57.Font = new Font("Arial Black", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label57.ForeColor = SystemColors.Control;
-            label57.Location = new Point(56, 6);
+            label57.Location = new Point(53, 5);
+            label57.Margin = new Padding(4, 0, 4, 0);
             label57.Name = "label57";
-            label57.Size = new Size(170, 27);
+            label57.Size = new Size(214, 33);
             label57.TabIndex = 132;
             label57.Text = "Device Identity";
             // 
@@ -2862,16 +3087,18 @@
             myRoundedPanel64.BorderRadius = 8;
             myRoundedPanel64.Controls.Add(label41);
             myRoundedPanel64.Controls.Add(label29);
-            myRoundedPanel64.Location = new Point(1087, 194);
+            myRoundedPanel64.Location = new Point(1359, 294);
+            myRoundedPanel64.Margin = new Padding(4);
             myRoundedPanel64.Name = "myRoundedPanel64";
-            myRoundedPanel64.Size = new Size(268, 40);
+            myRoundedPanel64.Size = new Size(320, 50);
             myRoundedPanel64.TabIndex = 133;
             // 
             // picStep1
             // 
-            picStep1.Location = new Point(43, 72);
+            picStep1.Location = new Point(25, 94);
+            picStep1.Margin = new Padding(4);
             picStep1.Name = "picStep1";
-            picStep1.Size = new Size(22, 22);
+            picStep1.Size = new Size(38, 38);
             picStep1.TabIndex = 125;
             picStep1.TabStop = false;
             // 
@@ -2879,111 +3106,87 @@
             // 
             label42.AutoSize = true;
             label42.BackColor = Color.White;
-            label42.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label42.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label42.ForeColor = Color.FromArgb(65, 67, 27);
-            label42.Location = new Point(88, 71);
+            label42.Location = new Point(72, 100);
+            label42.Margin = new Padding(4, 0, 4, 0);
             label42.Name = "label42";
-            label42.Size = new Size(86, 26);
+            label42.Size = new Size(152, 24);
             label42.TabIndex = 114;
-            label42.Text = "จ่าย 200 Ω";
+            label42.Text = "Check อุณหภูมิ";
             // 
             // label43
             // 
             label43.AutoSize = true;
             label43.BackColor = Color.White;
-            label43.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label43.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label43.ForeColor = Color.FromArgb(65, 67, 27);
-            label43.Location = new Point(88, 106);
+            label43.Location = new Point(72, 158);
+            label43.Margin = new Padding(4, 0, 4, 0);
             label43.Name = "label43";
-            label43.Size = new Size(94, 26);
+            label43.Size = new Size(141, 24);
             label43.TabIndex = 126;
-            label43.Text = "จ่าย 2000 Ω";
+            label43.Text = "Check ไฟ WL";
             // 
             // label44
             // 
             label44.AutoSize = true;
             label44.BackColor = Color.White;
-            label44.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label44.Font = new Font("Tahoma", 12F, FontStyle.Bold);
             label44.ForeColor = Color.FromArgb(65, 67, 27);
-            label44.Location = new Point(88, 182);
+            label44.Location = new Point(72, 266);
+            label44.Margin = new Padding(4, 0, 4, 0);
             label44.Name = "label44";
-            label44.Size = new Size(94, 26);
+            label44.Size = new Size(137, 24);
             label44.TabIndex = 127;
-            label44.Text = "จ่าย 8000 Ω";
+            label44.Text = "Check Alarm";
             // 
             // label45
             // 
             label45.AutoSize = true;
             label45.BackColor = Color.White;
-            label45.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold);
+            label45.Font = new Font("Tahoma", 12F, FontStyle.Bold);
             label45.ForeColor = Color.FromArgb(65, 67, 27);
-            label45.Location = new Point(88, 250);
+            label45.Location = new Point(73, 376);
+            label45.Margin = new Padding(4, 0, 4, 0);
             label45.Name = "label45";
-            label45.Size = new Size(135, 26);
+            label45.Size = new Size(80, 24);
             label45.TabIndex = 128;
-            label45.Text = "Check HP / Alarm2";
-            // 
-            // label46
-            // 
-            label46.AutoSize = true;
-            label46.BackColor = Color.White;
-            label46.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold);
-            label46.ForeColor = Color.FromArgb(65, 67, 27);
-            label46.Location = new Point(88, 318);
-            label46.Name = "label46";
-            label46.Size = new Size(115, 26);
-            label46.TabIndex = 129;
-            label46.Text = "Compressor ON";
-            // 
-            // label47
-            // 
-            label47.AutoSize = true;
-            label47.BackColor = Color.White;
-            label47.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold);
-            label47.ForeColor = Color.FromArgb(65, 67, 27);
-            label47.Location = new Point(88, 284);
-            label47.Name = "label47";
-            label47.Size = new Size(102, 26);
-            label47.TabIndex = 130;
-            label47.Text = "Check Alarm1";
+            label45.Text = "Set ค่า ";
             // 
             // picStep2
             // 
-            picStep2.Location = new Point(43, 108);
+            picStep2.Location = new Point(25, 150);
+            picStep2.Margin = new Padding(4);
             picStep2.Name = "picStep2";
-            picStep2.Size = new Size(22, 22);
+            picStep2.Size = new Size(38, 38);
             picStep2.TabIndex = 131;
             picStep2.TabStop = false;
             // 
             // picStep4
             // 
-            picStep4.Location = new Point(43, 182);
+            picStep4.Location = new Point(25, 259);
+            picStep4.Margin = new Padding(4);
             picStep4.Name = "picStep4";
-            picStep4.Size = new Size(22, 22);
+            picStep4.Size = new Size(38, 38);
             picStep4.TabIndex = 132;
             picStep4.TabStop = false;
             // 
             // picStep5
             // 
-            picStep5.Location = new Point(43, 216);
+            picStep5.Location = new Point(25, 314);
+            picStep5.Margin = new Padding(4);
             picStep5.Name = "picStep5";
-            picStep5.Size = new Size(22, 22);
+            picStep5.Size = new Size(38, 38);
             picStep5.TabIndex = 133;
             picStep5.TabStop = false;
             // 
-            // picStep8
-            // 
-            picStep8.Location = new Point(43, 318);
-            picStep8.Name = "picStep8";
-            picStep8.Size = new Size(22, 22);
-            picStep8.TabIndex = 135;
-            picStep8.TabStop = false;
-            // 
             // picCal
             // 
-            picCal.Location = new Point(43, 38);
+            picCal.Location = new Point(25, 39);
+            picCal.Margin = new Padding(4);
             picCal.Name = "picCal";
-            picCal.Size = new Size(22, 22);
+            picCal.Size = new Size(38, 38);
             picCal.TabIndex = 137;
             picCal.TabStop = false;
             // 
@@ -2991,11 +3194,12 @@
             // 
             label48.AutoSize = true;
             label48.BackColor = Color.White;
-            label48.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label48.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label48.ForeColor = Color.FromArgb(65, 67, 27);
-            label48.Location = new Point(88, 37);
+            label48.Location = new Point(72, 47);
+            label48.Margin = new Padding(4, 0, 4, 0);
             label48.Name = "label48";
-            label48.Size = new Size(71, 26);
+            label48.Size = new Size(101, 24);
             label48.TabIndex = 136;
             label48.Text = "Calibrate";
             // 
@@ -3003,35 +3207,30 @@
             // 
             label49.AutoSize = true;
             label49.BackColor = Color.White;
-            label49.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold);
+            label49.Font = new Font("Tahoma", 12F, FontStyle.Bold);
             label49.ForeColor = Color.FromArgb(65, 67, 27);
-            label49.Location = new Point(88, 216);
+            label49.Location = new Point(72, 320);
+            label49.Margin = new Padding(4, 0, 4, 0);
             label49.Name = "label49";
-            label49.Size = new Size(137, 26);
+            label49.Size = new Size(225, 24);
             label49.TabIndex = 138;
-            label49.Text = "Check WL / Alarm2";
+            label49.Text = "Check Comp. และ Fan";
             // 
             // picStep6
             // 
-            picStep6.Location = new Point(43, 250);
+            picStep6.Location = new Point(25, 368);
+            picStep6.Margin = new Padding(4);
             picStep6.Name = "picStep6";
-            picStep6.Size = new Size(22, 22);
+            picStep6.Size = new Size(38, 38);
             picStep6.TabIndex = 139;
             picStep6.TabStop = false;
             // 
-            // picStep7
-            // 
-            picStep7.Location = new Point(43, 284);
-            picStep7.Name = "picStep7";
-            picStep7.Size = new Size(22, 22);
-            picStep7.TabIndex = 140;
-            picStep7.TabStop = false;
-            // 
             // picStep3
             // 
-            picStep3.Location = new Point(43, 143);
+            picStep3.Location = new Point(25, 204);
+            picStep3.Margin = new Padding(4);
             picStep3.Name = "picStep3";
-            picStep3.Size = new Size(22, 22);
+            picStep3.Size = new Size(38, 38);
             picStep3.TabIndex = 142;
             picStep3.TabStop = false;
             // 
@@ -3039,69 +3238,45 @@
             // 
             label64.AutoSize = true;
             label64.BackColor = Color.White;
-            label64.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label64.Font = new Font("Tahoma", 12F, FontStyle.Bold);
             label64.ForeColor = Color.FromArgb(65, 67, 27);
-            label64.Location = new Point(88, 143);
+            label64.Location = new Point(72, 212);
+            label64.Margin = new Padding(4, 0, 4, 0);
             label64.Name = "label64";
-            label64.Size = new Size(89, 26);
+            label64.Size = new Size(137, 24);
             label64.TabIndex = 141;
-            label64.Text = "LED RELAY";
-            // 
-            // label40
-            // 
-            label40.AutoSize = true;
-            label40.BackColor = Color.White;
-            label40.Font = new Font("CordiaUPC", 15.75F, FontStyle.Bold);
-            label40.ForeColor = Color.FromArgb(65, 67, 27);
-            label40.Location = new Point(88, 352);
-            label40.Name = "label40";
-            label40.Size = new Size(59, 26);
-            label40.TabIndex = 143;
-            label40.Text = "Set ค่า ";
-            // 
-            // picStep9
-            // 
-            picStep9.Location = new Point(43, 352);
-            picStep9.Name = "picStep9";
-            picStep9.Size = new Size(22, 22);
-            picStep9.TabIndex = 144;
-            picStep9.TabStop = false;
+            label64.Text = "Check ไฟ HP";
             // 
             // myRoundedPanel6
             // 
             myRoundedPanel6.BackColor = Color.FromArgb(210, 220, 182);
             myRoundedPanel6.BorderRadius = 15;
-            myRoundedPanel6.Controls.Add(picStep9);
-            myRoundedPanel6.Controls.Add(label40);
             myRoundedPanel6.Controls.Add(label64);
             myRoundedPanel6.Controls.Add(picStep3);
-            myRoundedPanel6.Controls.Add(picStep7);
             myRoundedPanel6.Controls.Add(picStep6);
             myRoundedPanel6.Controls.Add(label49);
             myRoundedPanel6.Controls.Add(label48);
             myRoundedPanel6.Controls.Add(picCal);
-            myRoundedPanel6.Controls.Add(picStep8);
             myRoundedPanel6.Controls.Add(picStep5);
             myRoundedPanel6.Controls.Add(picStep4);
             myRoundedPanel6.Controls.Add(picStep2);
-            myRoundedPanel6.Controls.Add(label47);
-            myRoundedPanel6.Controls.Add(label46);
             myRoundedPanel6.Controls.Add(label45);
             myRoundedPanel6.Controls.Add(label44);
             myRoundedPanel6.Controls.Add(label43);
             myRoundedPanel6.Controls.Add(label42);
             myRoundedPanel6.Controls.Add(picStep1);
-            myRoundedPanel6.Location = new Point(1087, 209);
+            myRoundedPanel6.Location = new Point(1359, 316);
+            myRoundedPanel6.Margin = new Padding(4);
             myRoundedPanel6.Name = "myRoundedPanel6";
-            myRoundedPanel6.Size = new Size(268, 385);
+            myRoundedPanel6.Size = new Size(320, 419);
             myRoundedPanel6.TabIndex = 122;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleDimensions = new SizeF(120F, 120F);
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Color.FromArgb(232, 240, 216);
-            ClientSize = new Size(1368, 605);
+            ClientSize = new Size(1695, 750);
             Controls.Add(myRoundedPanel64);
             Controls.Add(myRoundedPanel63);
             Controls.Add(myRoundedPanel12);
@@ -3109,9 +3284,9 @@
             Controls.Add(tabControl2);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(3, 2, 3, 2);
+            Margin = new Padding(4, 2, 4, 2);
             Name = "Form1";
-            Text = "CMA-003 Test";
+            Text = "Calibrate and test Air Control. CMA-003";
             FormClosed += Form1_FormClosed;
             Load += Form1_Load;
             myRoundedPanel12.ResumeLayout(false);
@@ -3144,6 +3319,8 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             myRoundedPanel1.ResumeLayout(false);
             myRoundedPanel1.PerformLayout();
+            myRoundedPanel73.ResumeLayout(false);
+            myRoundedPanel73.PerformLayout();
             myRoundedPanel14.ResumeLayout(false);
             myRoundedPanel14.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picdata).EndInit();
@@ -3275,12 +3452,9 @@
             ((System.ComponentModel.ISupportInitialize)picStep2).EndInit();
             ((System.ComponentModel.ISupportInitialize)picStep4).EndInit();
             ((System.ComponentModel.ISupportInitialize)picStep5).EndInit();
-            ((System.ComponentModel.ISupportInitialize)picStep8).EndInit();
             ((System.ComponentModel.ISupportInitialize)picCal).EndInit();
             ((System.ComponentModel.ISupportInitialize)picStep6).EndInit();
-            ((System.ComponentModel.ISupportInitialize)picStep7).EndInit();
             ((System.ComponentModel.ISupportInitialize)picStep3).EndInit();
-            ((System.ComponentModel.ISupportInitialize)picStep9).EndInit();
             myRoundedPanel6.ResumeLayout(false);
             myRoundedPanel6.PerformLayout();
             ResumeLayout(false);
@@ -3405,21 +3579,15 @@
         private Label label43;
         private Label label44;
         private Label label45;
-        private Label label46;
-        private Label label47;
         private PictureBox picStep2;
         private PictureBox picStep4;
         private PictureBox picStep5;
-        private PictureBox picStep8;
         private PictureBox picCal;
         private Label label48;
         private Label label49;
         private PictureBox picStep6;
-        private PictureBox picStep7;
         private PictureBox picStep3;
         private Label label64;
-        private Label label40;
-        private PictureBox picStep9;
         private CMA003AVer2.MyRoundedPanel myRoundedPanel6;
         private TextBox Regis1;
         private CheckBox chkMultiplyBy100;
@@ -3525,5 +3693,12 @@
         private CMA003AVer2.MyRoundedPanel myRoundedPanel38;
         private TextBox Regis11;
         private Label label25;
+        private CMA003AVer2.CustomLine customLine7;
+        private TextBox txtECN;
+        private Label label40;
+        private CMA003AVer2.MyRoundedPanel myRoundedPanel73;
+        private Label lblStatusValue;
+        private Label label46;
+        private Label lblConnStatusValue;
     }
 }

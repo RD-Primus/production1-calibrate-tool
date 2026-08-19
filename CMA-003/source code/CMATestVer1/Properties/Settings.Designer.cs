@@ -58,5 +58,17 @@ namespace CMATestVer1.Properties {
                 this["SavedResultFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("RD-CN-18-0023")]
+        public string SavedECN {
+            get {
+                return ((string)(this["SavedECN"]));
+            }
+            set {
+                this["SavedECN"] = value;
+            }
+        }
     }
 }

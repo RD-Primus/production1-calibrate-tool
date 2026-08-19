@@ -78,9 +78,9 @@
             RecieverBox.BackColor = Color.FromArgb(26, 42, 26);
             RecieverBox.Font = new Font("Cordia New", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             RecieverBox.ForeColor = Color.White;
-            RecieverBox.Location = new Point(623, 87);
+            RecieverBox.Location = new Point(623, 109);
             RecieverBox.Name = "RecieverBox";
-            RecieverBox.Size = new Size(342, 484);
+            RecieverBox.Size = new Size(342, 462);
             RecieverBox.TabIndex = 87;
             RecieverBox.Text = "";
             // 
@@ -321,7 +321,6 @@
             // 
             myRoundedPanel7.BackColor = Color.FromArgb(58, 122, 58);
             myRoundedPanel7.BorderRadius = 10;
-            myRoundedPanel7.Controls.Add(btnRefreshDisplay);
             myRoundedPanel7.Controls.Add(countdown);
             myRoundedPanel7.Location = new Point(623, 18);
             myRoundedPanel7.Name = "myRoundedPanel7";
@@ -330,7 +329,7 @@
             // 
             // btnRefreshDisplay
             // 
-            btnRefreshDisplay.Location = new Point(277, 14);
+            btnRefreshDisplay.Location = new Point(913, 80);
             btnRefreshDisplay.Name = "btnRefreshDisplay";
             btnRefreshDisplay.Size = new Size(52, 23);
             btnRefreshDisplay.TabIndex = 91;
@@ -344,6 +343,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 240, 216);
             ClientSize = new Size(981, 583);
+            Controls.Add(btnRefreshDisplay);
             Controls.Add(myRoundedPanel7);
             Controls.Add(myRoundedPanel2);
             Controls.Add(testDis);

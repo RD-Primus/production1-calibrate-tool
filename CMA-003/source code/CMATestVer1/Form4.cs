@@ -210,6 +210,9 @@ namespace CMATestVer1
                         byte[] fullFrame = rxBuffer.GetRange(0, 41).ToArray();
                         rxBuffer.RemoveRange(0, 41);
 
+                        //แจ้ง Form1 ว่า _DisPort ยังมีสัญญาณตอบกลับจริง
+                        _parentForm?.OnDisPortFrameReceived();
+
                         if (!IsSafeToInvoke()) continue;
 
                         try
@@ -277,6 +280,8 @@ namespace CMATestVer1
                         rxBuffer.RemoveRange(0, 8);
 
                         ProcessModbusFunction03Response(requestFrame);
+
+                        _parentForm?.OnDisPortFrameReceived();
 
                         if (!IsSafeToInvoke()) continue;
 
@@ -622,8 +627,7 @@ namespace CMATestVer1
             else
             {
                 RecieverBox.AppendText($" ผลการตรวจสอบ :  FAILED (ล้มเหลว {_failedSteps.Count} ขั้นตอน) \r\n");
-                MessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: FAILED ✗",
-                                "Test Complete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                BigMessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: FAILED ✗", "Test Complete", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
             }
 
             string finalStatus = allPassed ? "PASS" : "FAIL";
@@ -756,9 +760,7 @@ namespace CMATestVer1
             // เตือนก่อนถ้ากำลังทดสอบอยู่
             if (currentState != AppState.Idle)
             {
-                var confirm = MessageBox.Show(
-                    "กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?",
-                    "ยืนยัน", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var confirm = BigMessageBox.Show("กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?", "ตรวจตอบ", MessageBoxIcon.Warning, MessageBoxButtons.YesNo, fontSize: 14f);
 
                 if (confirm == DialogResult.No) return;
             }
