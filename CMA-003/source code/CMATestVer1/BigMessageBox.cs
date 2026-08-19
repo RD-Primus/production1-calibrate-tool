@@ -156,27 +156,31 @@ namespace CMATestVer1
 
         private static List<string> WrapText(string text, Font font, int maxWidth)
         {
-            var words = text.Split(' ');
             var lines = new List<string>();
-            string currentLine = "";
+            var paragraphs = text.Replace("\r\n", "\n").Split('\n');   // ← เพิ่มบรรทัดนี้
 
-            foreach (var word in words)
+            foreach (var paragraph in paragraphs)
             {
-                string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-                var size = TextRenderer.MeasureText(testLine, font);
+                var words = paragraph.Split(' ');
+                string currentLine = "";
 
-                if (size.Width > maxWidth && !string.IsNullOrEmpty(currentLine))
+                foreach (var word in words)
                 {
-                    lines.Add(currentLine);
-                    currentLine = word;
+                    string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                    var size = TextRenderer.MeasureText(testLine, font);
+
+                    if (size.Width > maxWidth && !string.IsNullOrEmpty(currentLine))
+                    {
+                        lines.Add(currentLine);
+                        currentLine = word;
+                    }
+                    else
+                    {
+                        currentLine = testLine;
+                    }
                 }
-                else
-                {
-                    currentLine = testLine;
-                }
-            }
-            if (!string.IsNullOrEmpty(currentLine))
                 lines.Add(currentLine);
+            }
 
             return lines;
         }

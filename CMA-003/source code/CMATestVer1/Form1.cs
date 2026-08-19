@@ -475,7 +475,7 @@ namespace CMATestVer1
 
             if (reason != "UserDisconnect")
             {
-                BigMessageBox.Show($"การเชื่อมต่อขาดหาย:\n{reason}", "Connection Lost",
+                BigMessageBox.Show($"{reason}", "Connection Lost",
                                     MessageBoxIcon.Error, fontSize: 14f);
             }
 
@@ -1415,21 +1415,21 @@ namespace CMATestVer1
             if (!ShouldSkip(3))
             {
                 backgroundWorkerOhm.ReportProgress(Pct(15));
-                if (!VerifyOhmValueSync(821, 50.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!VerifyOhmValueSync(818, 50.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
                 _testStepResumed = 4;
             }
 
             if (!ShouldSkip(4))
             {
                 backgroundWorkerOhm.ReportProgress(Pct(20));
-                if (!VerifyOhmValueSync(1158, 40.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!VerifyOhmValueSync(1150, 40.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
                 _testStepResumed = 5;
             }
 
             if (!ShouldSkip(5))
             {
                 backgroundWorkerOhm.ReportProgress(Pct(25));
-                if (!VerifyOhmValueSync(1703, 30.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!VerifyOhmValueSync(1653, 30.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
                 _testStepResumed = 6;
             }
 
@@ -1448,7 +1448,7 @@ namespace CMATestVer1
             if (!ShouldSkip(7))
             {
                 backgroundWorkerOhm.ReportProgress(Pct(45));
-                if (!VerifyOhmValueSync(2489, 20.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!VerifyOhmValueSync(2435, 20.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
                 _testStepResumed = 8;
             }
 
@@ -2294,6 +2294,7 @@ namespace CMATestVer1
 
 
         //-- การตั้งค่าFrom 1
+
         private void Form1_Load(object sender, EventArgs e)
         {
             _excelFilePath = string.Empty;
@@ -2341,6 +2342,7 @@ namespace CMATestVer1
             cmbMonth.SelectedIndex = -1;
             cmbYear.SelectedIndex = -1;
         }
+
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             Application.Exit();
@@ -3738,88 +3740,12 @@ namespace CMATestVer1
 
         public void btnTestCoolFan_Click(object sender, EventArgs e)
         {
-            if (ID3_reg5IsOn)
+            if (ID3_reg3IsOn)
                 LogToRx("[PASS] Cool Fan ทำงานอยู่ (สถานะ: ON)", Color.Green);
             else
                 LogToRx("[FAIL] Cool Fan ไม่ทำงาน (สถานะ: OFF)", Color.Red);
         }
 
-        private async Task CheckCompressorAndHotFanManual(int timeoutSeconds = 10)
-        {
-            try
-            {
-                LogToRx("--- เริ่มทดสอบ Compressor & HotFan ---", Color.Blue);
-
-                // 1. Set SV = 20.0
-                ExecuteWriteSingleRegister(1, 1, 200);
-                await Task.Delay(500);
-
-                // 2. สั่ง Ohm จ่าย 2000
-                SendOhm(2000);
-                await Task.Delay(500);
-
-                // 3. เปิด WL และ HP ให้ติดทั้งคู่
-                ExecuteWriteSingleRegister(2, 0, 1); // WL ON
-                await Task.Delay(300);
-                ExecuteWriteSingleRegister(2, 1, 1); // HP ON
-                await Task.Delay(500);
-
-                // 4. รอเช็คสถานะ Compressor (reg3) และ HotFan (reg4) ~5 วินาที
-                bool isCompressorOn = false;
-                bool isHotFanOn = false;
-
-                for (int i = 0; i < timeoutSeconds; i++)
-                {
-                    await Task.Delay(1000);
-
-                    if (ID3_reg3IsOn) isCompressorOn = true;
-                    if (ID3_reg4IsOn) isHotFanOn = true;
-
-                    if (isCompressorOn && isHotFanOn) break;
-                }
-
-                if (isCompressorOn)
-                    LogToRx("[PASS] Compressor ทำงาน", Color.Green);
-                else
-                    LogToRx("[FAIL] Compressor ไม่ทำงาน!", Color.Red);
-
-                if (isHotFanOn)
-                    LogToRx("[PASS] HotFan ทำงาน", Color.Green);
-                else
-                    LogToRx("[FAIL] HotFan ไม่ทำงาน!", Color.Red);
-
-                await Task.Delay(5000);
-
-                // 5. ปิดไฟ WL และ HP
-                ExecuteWriteSingleRegister(2, 0, 0); // WL OFF
-                await Task.Delay(300);
-                ExecuteWriteSingleRegister(2, 1, 0); // HP OFF
-
-                LogToRx("--- ปิดไฟ WL/HP เรียบร้อย ---", Color.Blue);
-            }
-            catch (Exception ex)
-            {
-                LogToRx($"Error: {ex.Message}", Color.Red);
-            }
-        }
-
-
-        private bool _isTestingCompressorHotFan = false;
-        public async void btnTestCompHotFan_Click(object sender, EventArgs e)
-        {
-            if (_isTestingCompressorHotFan) return; // กันกดซ้ำ
-
-            _isTestingCompressorHotFan = true;
-
-            try
-            {
-                await CheckCompressorAndHotFanManual(10);
-            }
-            finally
-            {
-                _isTestingCompressorHotFan = false;
-            }
-        }
 
         private void txtECN_TextChanged(object sender, EventArgs e)
         {

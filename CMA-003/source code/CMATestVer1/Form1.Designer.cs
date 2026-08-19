@@ -584,11 +584,11 @@
             tabPage3.Controls.Add(pictureBox2);
             tabPage3.Controls.Add(myRoundedPanel1);
             tabPage3.Controls.Add(myRoundedPanel15);
-            tabPage3.Location = new Point(4, 5);
+            tabPage3.Location = new Point(4, 24);
             tabPage3.Margin = new Padding(4);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(4);
-            tabPage3.Size = new Size(1333, 720);
+            tabPage3.Size = new Size(1333, 701);
             tabPage3.TabIndex = 0;
             tabPage3.Text = "tabPage3";
             // 

@@ -67,27 +67,27 @@ namespace CMATestVer1
 
         private void send0_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(5397);
+            _mainForm.SendOhm(5753);
         }
         private void send10_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(3684);
+            _mainForm.SendOhm(3686);
         }
         private void send20_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(2489);
+            _mainForm.SendOhm(2435);
         }
         private void send30_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(1703);
+            _mainForm.SendOhm(1653);
         }
         private void send40_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(1158);
+            _mainForm.SendOhm(1150);
         }
         private void send50_Click(object sender, EventArgs e)
         {
-            _mainForm.SendOhm(821);
+            _mainForm.SendOhm(818);
         }
 
 
@@ -130,7 +130,7 @@ namespace CMATestVer1
                 }
 
                 // เปลี่ยนข้อความเตือนให้ครอบคลุมทศนิยม
-                MessageBox.Show("กรุณากรอกค่า Ohm ให้ถูกต้องเป็นตัวเลขจำนวนเต็มหรือทศนิยม", "ข้อผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                BigMessageBox.Show("กรุณากรอกค่า Ohm ให้ถูกต้องเป็นตัวเลขจำนวนเต็มหรือทศนิยม", "ข้อผิดพลาด",MessageBoxIcon.Warning, fontSize: 14f);
                 txtOhm.SelectAll();
                 txtOhm.Focus();
             }
@@ -212,12 +212,12 @@ namespace CMATestVer1
 
         private void chkCoolfan_Click(object sender, EventArgs e)
         {
-            _mainForm.btnTestCoolFan_Click(null!, null!);
+            
         }
 
         private void btnTestCompressorHotFan_Click(object sender, EventArgs e)
         {
-            _mainForm.btnTestCompHotFan_Click(null!, null!);
+            
         }
 
 

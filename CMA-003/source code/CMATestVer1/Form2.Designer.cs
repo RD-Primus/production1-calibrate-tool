@@ -57,25 +57,22 @@
             myRoundedPanel5 = new CMA003AVer2.MyRoundedPanel();
             PreCal = new Button();
             label5 = new Label();
-            myRoundedPanel6 = new CMA003AVer2.MyRoundedPanel();
-            btnTestCompressorHotFan = new Button();
-            chkCoolfan = new Button();
-            label6 = new Label();
+            pictureBox1 = new PictureBox();
             myRoundedPanel1.SuspendLayout();
             myRoundedPanel2.SuspendLayout();
             myRoundedPanel3.SuspendLayout();
             myRoundedPanel4.SuspendLayout();
             myRoundedPanel5.SuspendLayout();
-            myRoundedPanel6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // label10
             // 
             label10.AutoSize = true;
             label10.Font = new Font("Arial", 17.25F, FontStyle.Bold);
-            label10.Location = new Point(20, 129);
+            label10.Location = new Point(23, 172);
             label10.Name = "label10";
-            label10.Size = new Size(44, 27);
+            label10.Size = new Size(55, 34);
             label10.TabIndex = 116;
             label10.Text = "HP";
             // 
@@ -83,9 +80,9 @@
             // 
             label8.AutoSize = true;
             label8.Font = new Font("Arial", 17.25F, FontStyle.Bold);
-            label8.Location = new Point(18, 60);
+            label8.Location = new Point(21, 80);
             label8.Name = "label8";
-            label8.Size = new Size(47, 27);
+            label8.Size = new Size(60, 34);
             label8.TabIndex = 115;
             label8.Text = "WL";
             // 
@@ -94,9 +91,10 @@
             btnOff2.BackColor = Color.FromArgb(196, 69, 69);
             btnOff2.Font = new Font("Arial", 14.25F);
             btnOff2.ForeColor = Color.FromArgb(228, 214, 169);
-            btnOff2.Location = new Point(181, 115);
+            btnOff2.Location = new Point(207, 153);
+            btnOff2.Margin = new Padding(3, 4, 3, 4);
             btnOff2.Name = "btnOff2";
-            btnOff2.Size = new Size(105, 48);
+            btnOff2.Size = new Size(120, 64);
             btnOff2.TabIndex = 114;
             btnOff2.Text = "off";
             btnOff2.UseVisualStyleBackColor = false;
@@ -107,9 +105,10 @@
             btnOn2.BackColor = Color.FromArgb(91, 126, 60);
             btnOn2.Font = new Font("Arial", 14.25F);
             btnOn2.ForeColor = Color.FromArgb(228, 214, 169);
-            btnOn2.Location = new Point(73, 115);
+            btnOn2.Location = new Point(83, 153);
+            btnOn2.Margin = new Padding(3, 4, 3, 4);
             btnOn2.Name = "btnOn2";
-            btnOn2.Size = new Size(102, 48);
+            btnOn2.Size = new Size(117, 64);
             btnOn2.TabIndex = 113;
             btnOn2.Text = "On";
             btnOn2.UseVisualStyleBackColor = false;
@@ -120,9 +119,10 @@
             btnOff.BackColor = Color.FromArgb(196, 69, 69);
             btnOff.Font = new Font("Arial", 14.25F);
             btnOff.ForeColor = Color.FromArgb(228, 214, 169);
-            btnOff.Location = new Point(181, 46);
+            btnOff.Location = new Point(207, 61);
+            btnOff.Margin = new Padding(3, 4, 3, 4);
             btnOff.Name = "btnOff";
-            btnOff.Size = new Size(105, 51);
+            btnOff.Size = new Size(120, 68);
             btnOff.TabIndex = 112;
             btnOff.Text = "off";
             btnOff.UseVisualStyleBackColor = false;
@@ -133,9 +133,10 @@
             btnOn.BackColor = Color.FromArgb(91, 126, 60);
             btnOn.Font = new Font("Arial", 14.25F);
             btnOn.ForeColor = Color.FromArgb(228, 214, 169);
-            btnOn.Location = new Point(73, 46);
+            btnOn.Location = new Point(83, 61);
+            btnOn.Margin = new Padding(3, 4, 3, 4);
             btnOn.Name = "btnOn";
-            btnOn.Size = new Size(102, 51);
+            btnOn.Size = new Size(117, 68);
             btnOn.TabIndex = 111;
             btnOn.Text = "On";
             btnOn.UseVisualStyleBackColor = false;
@@ -146,10 +147,9 @@
             btn8000.BackColor = Color.FromArgb(91, 126, 60);
             btn8000.Font = new Font("Arial", 14.25F);
             btn8000.ForeColor = Color.FromArgb(228, 214, 169);
-            btn8000.Location = new Point(175, 62);
-            btn8000.Margin = new Padding(3, 2, 3, 2);
+            btn8000.Location = new Point(200, 83);
             btn8000.Name = "btn8000";
-            btn8000.Size = new Size(121, 36);
+            btn8000.Size = new Size(138, 48);
             btn8000.TabIndex = 119;
             btn8000.Text = "8000 Ohm";
             btn8000.UseVisualStyleBackColor = false;
@@ -160,10 +160,9 @@
             btn200.BackColor = Color.FromArgb(91, 126, 60);
             btn200.Font = new Font("Arial", 14.25F);
             btn200.ForeColor = Color.FromArgb(228, 214, 169);
-            btn200.Location = new Point(20, 62);
-            btn200.Margin = new Padding(3, 2, 3, 2);
+            btn200.Location = new Point(23, 83);
             btn200.Name = "btn200";
-            btn200.Size = new Size(121, 36);
+            btn200.Size = new Size(138, 48);
             btn200.TabIndex = 118;
             btn200.Text = "200 Ohm";
             btn200.UseVisualStyleBackColor = false;
@@ -174,10 +173,9 @@
             btn2000.BackColor = Color.FromArgb(91, 126, 60);
             btn2000.Font = new Font("Arial", 14.25F);
             btn2000.ForeColor = Color.FromArgb(228, 214, 169);
-            btn2000.Location = new Point(90, 112);
-            btn2000.Margin = new Padding(3, 2, 3, 2);
+            btn2000.Location = new Point(103, 149);
             btn2000.Name = "btn2000";
-            btn2000.Size = new Size(121, 36);
+            btn2000.Size = new Size(138, 48);
             btn2000.TabIndex = 120;
             btn2000.Text = "2000 Ohm";
             btn2000.UseVisualStyleBackColor = false;
@@ -188,9 +186,10 @@
             myRoundedPanel1.BackColor = Color.FromArgb(52, 103, 57);
             myRoundedPanel1.BorderRadius = 30;
             myRoundedPanel1.Controls.Add(label1);
-            myRoundedPanel1.Location = new Point(24, 21);
+            myRoundedPanel1.Location = new Point(27, 28);
+            myRoundedPanel1.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel1.Name = "myRoundedPanel1";
-            myRoundedPanel1.Size = new Size(644, 50);
+            myRoundedPanel1.Size = new Size(736, 67);
             myRoundedPanel1.TabIndex = 121;
             // 
             // label1
@@ -198,9 +197,9 @@
             label1.AutoSize = true;
             label1.Font = new Font("Arial Black", 17.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = SystemColors.ButtonHighlight;
-            label1.Location = new Point(224, 9);
+            label1.Location = new Point(256, 12);
             label1.Name = "label1";
-            label1.Size = new Size(203, 32);
+            label1.Size = new Size(258, 41);
             label1.TabIndex = 122;
             label1.Text = "Control Setting";
             // 
@@ -215,9 +214,10 @@
             myRoundedPanel2.Controls.Add(btnOff2);
             myRoundedPanel2.Controls.Add(btnOn2);
             myRoundedPanel2.Controls.Add(label10);
-            myRoundedPanel2.Location = new Point(361, 87);
+            myRoundedPanel2.Location = new Point(413, 116);
+            myRoundedPanel2.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel2.Name = "myRoundedPanel2";
-            myRoundedPanel2.Size = new Size(307, 176);
+            myRoundedPanel2.Size = new Size(351, 235);
             myRoundedPanel2.TabIndex = 122;
             // 
             // label2
@@ -225,9 +225,9 @@
             label2.AutoSize = true;
             label2.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic);
             label2.ForeColor = Color.FromArgb(98, 43, 20);
-            label2.Location = new Point(73, 10);
+            label2.Location = new Point(83, 13);
             label2.Name = "label2";
-            label2.Size = new Size(175, 26);
+            label2.Size = new Size(222, 34);
             label2.TabIndex = 117;
             label2.Text = "Control Alarm2";
             // 
@@ -239,9 +239,10 @@
             myRoundedPanel3.Controls.Add(btn200);
             myRoundedPanel3.Controls.Add(btn2000);
             myRoundedPanel3.Controls.Add(btn8000);
-            myRoundedPanel3.Location = new Point(24, 87);
+            myRoundedPanel3.Location = new Point(27, 116);
+            myRoundedPanel3.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel3.Name = "myRoundedPanel3";
-            myRoundedPanel3.Size = new Size(310, 176);
+            myRoundedPanel3.Size = new Size(354, 235);
             myRoundedPanel3.TabIndex = 123;
             // 
             // label3
@@ -249,18 +250,19 @@
             label3.AutoSize = true;
             label3.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic);
             label3.ForeColor = Color.FromArgb(98, 43, 20);
-            label3.Location = new Point(80, 10);
+            label3.Location = new Point(91, 13);
             label3.Name = "label3";
-            label3.Size = new Size(142, 26);
+            label3.Size = new Size(179, 34);
             label3.TabIndex = 118;
             label3.Text = "OhmSource";
             // 
             // txtOhm
             // 
             txtOhm.Font = new Font("Arial", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txtOhm.Location = new Point(18, 150);
+            txtOhm.Location = new Point(21, 200);
+            txtOhm.Margin = new Padding(3, 4, 3, 4);
             txtOhm.Name = "txtOhm";
-            txtOhm.Size = new Size(359, 32);
+            txtOhm.Size = new Size(410, 38);
             txtOhm.TabIndex = 125;
             txtOhm.TextChanged += txtOhm_TextChanged;
             txtOhm.Enter += txtOhm_Enter;
@@ -270,9 +272,10 @@
             // btnSendCustom
             // 
             btnSendCustom.Font = new Font("Arial Narrow", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnSendCustom.Location = new Point(383, 150);
+            btnSendCustom.Location = new Point(438, 200);
+            btnSendCustom.Margin = new Padding(3, 4, 3, 4);
             btnSendCustom.Name = "btnSendCustom";
-            btnSendCustom.Size = new Size(80, 32);
+            btnSendCustom.Size = new Size(91, 43);
             btnSendCustom.TabIndex = 126;
             btnSendCustom.Text = "ส่ง";
             btnSendCustom.UseVisualStyleBackColor = true;
@@ -291,9 +294,10 @@
             myRoundedPanel4.Controls.Add(send20);
             myRoundedPanel4.Controls.Add(send0);
             myRoundedPanel4.Controls.Add(send10);
-            myRoundedPanel4.Location = new Point(24, 281);
+            myRoundedPanel4.Location = new Point(27, 375);
+            myRoundedPanel4.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel4.Name = "myRoundedPanel4";
-            myRoundedPanel4.Size = new Size(479, 197);
+            myRoundedPanel4.Size = new Size(547, 263);
             myRoundedPanel4.TabIndex = 127;
             // 
             // label4
@@ -301,9 +305,9 @@
             label4.AutoSize = true;
             label4.Font = new Font("Arial Black", 17.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(98, 43, 20);
-            label4.Location = new Point(15, 10);
+            label4.Location = new Point(17, 13);
             label4.Name = "label4";
-            label4.Size = new Size(170, 32);
+            label4.Size = new Size(214, 41);
             label4.TabIndex = 121;
             label4.Text = "ทดสอบอุณหภูมิ";
             // 
@@ -312,10 +316,9 @@
             send50.BackColor = Color.FromArgb(91, 126, 60);
             send50.Font = new Font("Arial", 14.25F);
             send50.ForeColor = Color.FromArgb(228, 214, 169);
-            send50.Location = new Point(321, 91);
-            send50.Margin = new Padding(3, 2, 3, 2);
+            send50.Location = new Point(367, 121);
             send50.Name = "send50";
-            send50.Size = new Size(142, 36);
+            send50.Size = new Size(162, 48);
             send50.TabIndex = 130;
             send50.Text = "50°C";
             send50.UseVisualStyleBackColor = false;
@@ -326,10 +329,9 @@
             send40.BackColor = Color.FromArgb(91, 126, 60);
             send40.Font = new Font("Arial", 14.25F);
             send40.ForeColor = Color.FromArgb(228, 214, 169);
-            send40.Location = new Point(170, 91);
-            send40.Margin = new Padding(3, 2, 3, 2);
+            send40.Location = new Point(194, 121);
             send40.Name = "send40";
-            send40.Size = new Size(142, 36);
+            send40.Size = new Size(162, 48);
             send40.TabIndex = 129;
             send40.Text = "40°C";
             send40.UseVisualStyleBackColor = false;
@@ -340,10 +342,9 @@
             send30.BackColor = Color.FromArgb(91, 126, 60);
             send30.Font = new Font("Arial", 14.25F);
             send30.ForeColor = Color.FromArgb(228, 214, 169);
-            send30.Location = new Point(16, 91);
-            send30.Margin = new Padding(3, 2, 3, 2);
+            send30.Location = new Point(18, 121);
             send30.Name = "send30";
-            send30.Size = new Size(144, 36);
+            send30.Size = new Size(165, 48);
             send30.TabIndex = 128;
             send30.Text = "30°C";
             send30.UseVisualStyleBackColor = false;
@@ -354,10 +355,9 @@
             send20.BackColor = Color.FromArgb(91, 126, 60);
             send20.Font = new Font("Arial", 14.25F);
             send20.ForeColor = Color.FromArgb(228, 214, 169);
-            send20.Location = new Point(321, 47);
-            send20.Margin = new Padding(3, 2, 3, 2);
+            send20.Location = new Point(367, 63);
             send20.Name = "send20";
-            send20.Size = new Size(142, 36);
+            send20.Size = new Size(162, 48);
             send20.TabIndex = 128;
             send20.Text = "20°C";
             send20.UseVisualStyleBackColor = false;
@@ -368,10 +368,9 @@
             send0.BackColor = Color.FromArgb(91, 126, 60);
             send0.Font = new Font("Arial", 14.25F);
             send0.ForeColor = Color.FromArgb(228, 214, 169);
-            send0.Location = new Point(15, 47);
-            send0.Margin = new Padding(3, 2, 3, 2);
+            send0.Location = new Point(17, 63);
             send0.Name = "send0";
-            send0.Size = new Size(145, 36);
+            send0.Size = new Size(166, 48);
             send0.TabIndex = 127;
             send0.Text = "0°C";
             send0.UseVisualStyleBackColor = false;
@@ -382,10 +381,9 @@
             send10.BackColor = Color.FromArgb(91, 126, 60);
             send10.Font = new Font("Arial", 14.25F);
             send10.ForeColor = Color.FromArgb(228, 214, 169);
-            send10.Location = new Point(170, 47);
-            send10.Margin = new Padding(3, 2, 3, 2);
+            send10.Location = new Point(194, 63);
             send10.Name = "send10";
-            send10.Size = new Size(142, 36);
+            send10.Size = new Size(162, 48);
             send10.TabIndex = 121;
             send10.Text = "10°C";
             send10.UseVisualStyleBackColor = false;
@@ -397,17 +395,19 @@
             myRoundedPanel5.BorderRadius = 15;
             myRoundedPanel5.Controls.Add(PreCal);
             myRoundedPanel5.Controls.Add(label5);
-            myRoundedPanel5.Location = new Point(522, 404);
+            myRoundedPanel5.Location = new Point(597, 375);
+            myRoundedPanel5.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel5.Name = "myRoundedPanel5";
-            myRoundedPanel5.Size = new Size(146, 74);
+            myRoundedPanel5.Size = new Size(167, 99);
             myRoundedPanel5.TabIndex = 128;
             // 
             // PreCal
             // 
             PreCal.Font = new Font("Arial Narrow", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            PreCal.Location = new Point(14, 39);
+            PreCal.Location = new Point(16, 52);
+            PreCal.Margin = new Padding(3, 4, 3, 4);
             PreCal.Name = "PreCal";
-            PreCal.Size = new Size(118, 28);
+            PreCal.Size = new Size(135, 37);
             PreCal.TabIndex = 131;
             PreCal.Text = "Send Cal";
             PreCal.UseVisualStyleBackColor = true;
@@ -418,70 +418,36 @@
             label5.AutoSize = true;
             label5.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(98, 43, 20);
-            label5.Location = new Point(23, 10);
+            label5.Location = new Point(26, 13);
             label5.Name = "label5";
-            label5.Size = new Size(102, 26);
+            label5.Size = new Size(127, 34);
             label5.TabIndex = 131;
             label5.Text = "Pre CAL";
             // 
-            // myRoundedPanel6
+            // pictureBox1
             // 
-            myRoundedPanel6.BackColor = Color.FromArgb(162, 203, 139);
-            myRoundedPanel6.BorderRadius = 15;
-            myRoundedPanel6.Controls.Add(btnTestCompressorHotFan);
-            myRoundedPanel6.Controls.Add(chkCoolfan);
-            myRoundedPanel6.Controls.Add(label6);
-            myRoundedPanel6.Location = new Point(522, 281);
-            myRoundedPanel6.Name = "myRoundedPanel6";
-            myRoundedPanel6.Size = new Size(146, 107);
-            myRoundedPanel6.TabIndex = 132;
-            // 
-            // btnTestCompressorHotFan
-            // 
-            btnTestCompressorHotFan.Font = new Font("Arial Narrow", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnTestCompressorHotFan.Location = new Point(11, 70);
-            btnTestCompressorHotFan.Name = "btnTestCompressorHotFan";
-            btnTestCompressorHotFan.Size = new Size(125, 28);
-            btnTestCompressorHotFan.TabIndex = 132;
-            btnTestCompressorHotFan.Text = "HotFan, Compressor";
-            btnTestCompressorHotFan.UseVisualStyleBackColor = true;
-            btnTestCompressorHotFan.Click += btnTestCompressorHotFan_Click;
-            // 
-            // chkCoolfan
-            // 
-            chkCoolfan.Font = new Font("Arial Narrow", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkCoolfan.Location = new Point(11, 39);
-            chkCoolfan.Name = "chkCoolfan";
-            chkCoolfan.Size = new Size(125, 28);
-            chkCoolfan.TabIndex = 131;
-            chkCoolfan.Text = "CoolFan";
-            chkCoolfan.UseVisualStyleBackColor = true;
-            chkCoolfan.Click += chkCoolfan_Click;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Font = new Font("Arial", 17.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label6.ForeColor = Color.FromArgb(98, 43, 20);
-            label6.Location = new Point(13, 10);
-            label6.Name = "label6";
-            label6.Size = new Size(119, 26);
-            label6.TabIndex = 131;
-            label6.Text = "Relay Out";
+            pictureBox1.Image = Properties.Resources.primus;
+            pictureBox1.Location = new Point(623, 496);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(121, 142);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.TabIndex = 129;
+            pictureBox1.TabStop = false;
             // 
             // Form2
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 245, 189);
-            ClientSize = new Size(691, 496);
-            Controls.Add(myRoundedPanel6);
+            ClientSize = new Size(790, 661);
+            Controls.Add(pictureBox1);
             Controls.Add(myRoundedPanel5);
             Controls.Add(myRoundedPanel3);
             Controls.Add(myRoundedPanel2);
             Controls.Add(myRoundedPanel1);
             Controls.Add(myRoundedPanel4);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(3, 4, 3, 4);
             Name = "Form2";
             Text = "Control Manual";
             Load += Form2_Load;
@@ -495,8 +461,7 @@
             myRoundedPanel4.PerformLayout();
             myRoundedPanel5.ResumeLayout(false);
             myRoundedPanel5.PerformLayout();
-            myRoundedPanel6.ResumeLayout(false);
-            myRoundedPanel6.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 
@@ -530,9 +495,6 @@
         private CMA003AVer2.MyRoundedPanel myRoundedPanel5;
         private Button PreCal;
         private Label label5;
-        private CMA003AVer2.MyRoundedPanel myRoundedPanel6;
-        private Button chkCoolfan;
-        private Label label6;
-        private Button btnTestCompressorHotFan;
+        private PictureBox pictureBox1;
     }
 }
