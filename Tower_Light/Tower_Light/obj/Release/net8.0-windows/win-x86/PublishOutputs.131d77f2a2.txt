@@ -1,7 +1,0 @@
-C:\Users\zzz\Documents\Visual Studio\Tower Light\Tower_Light.pdb
-C:\Users\zzz\Documents\Visual Studio\Tower Light\D3DCompiler_47_cor3.dll
-C:\Users\zzz\Documents\Visual Studio\Tower Light\PenImc_cor3.dll
-C:\Users\zzz\Documents\Visual Studio\Tower Light\PresentationNative_cor3.dll
-C:\Users\zzz\Documents\Visual Studio\Tower Light\vcruntime140_cor3.dll
-C:\Users\zzz\Documents\Visual Studio\Tower Light\wpfgfx_cor3.dll
-C:\Users\zzz\Documents\Visual Studio\Tower Light\Tower_Light.exe
