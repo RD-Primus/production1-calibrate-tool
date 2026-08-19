@@ -15,18 +15,27 @@
     {
         "Entry"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
         "MsmKey" = "8:_12425A2D16894FE0B78BEFD8B37CD473"
+========
+        "MsmKey" = "8:_07709EA837F041119E8302BEFF096AE5"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
         "MsmKey" = "8:_4913EF1FD51849BEAAA32055AD523C9F"
+========
+        "MsmKey" = "8:_56FCC441BA624B96924855B379B7E2D5"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
         "MsmKey" = "8:_5BB6AF501C0743F9A3D135B5F96ACC89"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -34,6 +43,9 @@
         "Entry"
         {
         "MsmKey" = "8:_9B4A076B5EA544FD82282FD9E14CAEBA"
+========
+        "MsmKey" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -120,7 +132,11 @@
         {
             "LaunchCondition"
             {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
                 "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_E079E1D71673411FB08E6A1EA0603F46"
+========
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_71320BDCFAB34882955FC5CA75A8695B"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
                 {
                 "Name" = "8:.NET Core"
                 "Message" = "8:[VSDNETCOREMSG]"
@@ -134,12 +150,21 @@
         }
         "File"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_12425A2D16894FE0B78BEFD8B37CD473"
             {
             "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\SoftwareTesterTowerLightV1001.pdb"
             "TargetName" = "8:SoftwareTesterTowerLightV1001.pdb"
             "Tag" = "8:"
             "Folder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
+========
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_56FCC441BA624B96924855B379B7E2D5"
+            {
+            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\template.xlsx"
+            "TargetName" = "8:template.xlsx"
+            "Tag" = "8:"
+            "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -154,6 +179,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4913EF1FD51849BEAAA32055AD523C9F"
             {
             "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\Primus_icon.ico"
@@ -200,6 +226,14 @@
             "TargetName" = "8:Template.xlsx"
             "Tag" = "8:"
             "Folder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
+========
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+            {
+            "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
+            "TargetName" = "8:Primus_icon.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -269,17 +303,29 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
         "ProductName" = "8:Software Tester Tower Light V1.001"
         "ProductCode" = "8:{A19B798F-0F4D-4229-8C9D-5163E8B55A71}"
         "PackageCode" = "8:{D0316849-D7A4-4303-BDE1-9B58A4835466}"
         "UpgradeCode" = "8:{3A9C65DD-89DD-4048-A3BC-F88B6F4A0EBF}"
+========
+        "ProductName" = "8:CMA003Test App"
+        "ProductCode" = "8:{43214E52-97F5-4BCE-B7CF-D97D291AE7A1}"
+        "PackageCode" = "8:{19AE5C68-82E7-4FEF-8B08-D11BCEEDF6B2}"
+        "UpgradeCode" = "8:{8119DB27-E196-4756-BCC1-215A4FCDF950}"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
         "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:Primus"
+========
+        "ProductVersion" = "8:1.0.1"
+        "Manufacturer" = "8:ASUS"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:Software Tester Tower Light V1.001"
@@ -391,14 +437,21 @@
         }
         "Shortcut"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7C8EEFB3DF9D47C4873D047618385D87"
             {
             "Name" = "8:Software Tester Tower Light V1.001"
+========
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_41DFA580B1414600A1E15EB822CC913F"
+            {
+            "Name" = "8:CMA003 Test App"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
             "Target" = "8:_5BB6AF501C0743F9A3D135B5F96ACC89"
             "Folder" = "8:_F494DB579CC74691B9BF64BD8DD2A9E8"
             "WorkingFolder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
@@ -408,15 +461,47 @@
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CEC00D3C5723429F80028D3C76F9AEF2"
             {
             "Name" = "8:Software Tester Tower Light V1.001"
+========
+            "Target" = "8:_07709EA837F041119E8302BEFF096AE5"
+            "Folder" = "8:_B885BC31E1614568A46C1D826C4796AB"
+            "WorkingFolder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "Icon" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_4F0F6E264951474A9F4EBD0AE3E2CA91"
+            {
+            "Name" = "8:CMA003 Test App"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
             "Target" = "8:_5BB6AF501C0743F9A3D135B5F96ACC89"
             "Folder" = "8:_F5EA0DD5476946ECB301947C51874165"
             "WorkingFolder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
             "Icon" = "8:_4913EF1FD51849BEAAA32055AD523C9F"
+========
+            "Target" = "8:_07709EA837F041119E8302BEFF096AE5"
+            "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "WorkingFolder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "Icon" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_70480A53584543979A0F99C1F3EB68A6"
+            {
+            "Name" = "8:CMA003 Test App"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_07709EA837F041119E8302BEFF096AE5"
+            "Folder" = "8:_B387B2DA1BD4461197772EA4F4885A2A"
+            "WorkingFolder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "Icon" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
             "Feature" = "8:"
             }
         }
@@ -818,6 +903,37 @@
         }
         "ProjectOutput"
         {
+<<<<<<<< HEAD:Tower_Light/Source Code/Towerlight Setup/Towerlight Setup.vdproj
+========
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_07709EA837F041119E8302BEFF096AE5"
+            {
+            "SourcePath" = "8:..\\CMATestVer1\\obj\\Debug\\net8.0-windows\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{2AD75E8B-FA3D-DB39-2812-108B2535989D}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+>>>>>>>> 14a0aadea55bfc30bab734f1d44bb13d8d3c6bdc:CMA-003/source code/CMA003Test App/CMA003Test App.vdproj
         }
     }
 }
