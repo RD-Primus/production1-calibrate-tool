@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using System.IO;
+using System.Text.Json;
 
 namespace Tower_Light
 {
@@ -88,6 +89,7 @@ namespace Tower_Light
         private double _yieldPercent = 0.0;
 
         private bool _is220VAC = false; // false = 24VDC, true = 220VAC
+        private string _criteriaJsonPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TowerLightTester", "criteria_settings.json");
 
         public Form1()
         {
@@ -747,13 +749,14 @@ namespace Tower_Light
             await AllOff();
 
             // ==========================================
-            // PART 1: Static Test
+            // PART 1: Static Test (ทดสอบทีละชั้น)
             // ==========================================
             int[] cIDs = new int[5];
             string[] cNames = new string[5];
             int[] minAcceptable = new int[5];
             ushort[] stdAdcs = new ushort[5];
 
+            // เตรียมข้อมูลมาตรฐานของแต่ละชั้น
             for (ushort relay = 0; relay < activeTiers; relay++)
             {
                 int cID = ColorToRelay.FirstOrDefault(x => x.Value == relay).Key;
@@ -764,40 +767,39 @@ namespace Tower_Light
                 minAcceptable[relay] = stdAdc - tol;
             }
 
-            if (IsDebugMode) AddLog("Testing all relays simultaneously... waiting 5 seconds.", Color.White);
-
-            for (ushort r = 0; r < activeTiers; r++) { await WriteSingleRegAsync(SLAVE_LAMP, r, 1); }
+            if (IsDebugMode) AddLog("Testing relays sequentially (one by one)...", Color.White);
 
             bool[] isPassedThisRound = new bool[5];
             ushort[] peakAdc = new ushort[5];
-
-            for (int w = 0; w < 20; w++)
-            {
-                await Task.Delay(250);
-                Application.DoEvents();
-
-                bool allActivePassed = true;
-
-                for (int relay = 0; relay < activeTiers; relay++)
-                {
-                    ushort currentAdc = _latestRegs[relay];
-                    if (currentAdc > peakAdc[relay]) peakAdc[relay] = currentAdc;
-                    if (currentAdc >= minAcceptable[relay]) isPassedThisRound[relay] = true;
-                    if (!isPassedThisRound[relay]) allActivePassed = false;
-                }
-
-                if (allActivePassed)
-                {
-                    if (IsDebugMode) AddLog($"[Static Test] ค่า ADC ถึงเกณฑ์แล้ว ออกจากการรอที่รอบ {w + 1}", Color.Gray);
-                    break;
-                }
-            }
-
             List<string> staticErrors = new List<string>();
 
-            for (int relay = 0; relay < activeTiers; relay++)
+            // ลูปทดสอบทีละชั้น
+            for (ushort relay = 0; relay < activeTiers; relay++)
             {
-                bool pass = isPassedThisRound[relay];
+                // 1. สั่งเปิดไฟเฉพาะชั้นปัจจุบัน
+                await WriteSingleRegAsync(SLAVE_LAMP, relay, 1);
+
+                bool passed = false;
+
+                // 2. วนลูปรออ่านค่า ADC ของชั้นนี้ (สูงสุด 15 รอบ รอบละ 200ms = 3 วินาที)
+                for (int w = 0; w < 15; w++)
+                {
+                    await Task.Delay(200);
+                    Application.DoEvents();
+
+                    ushort currentAdc = _latestRegs[relay];
+                    if (currentAdc > peakAdc[relay]) peakAdc[relay] = currentAdc;
+
+                    if (currentAdc >= minAcceptable[relay])
+                    {
+                        passed = true;
+                        break; // ถ้าค่า ADC ถึงเกณฑ์แล้ว ให้ออกจากลูปรอทันที
+                    }
+                }
+
+                isPassedThisRound[relay] = passed;
+
+                // 3. ประเมินผลและอัปเดต UI สำหรับชั้นนี้
                 int cID = cIDs[relay];
                 string cName = cNames[relay];
 
@@ -808,12 +810,12 @@ namespace Tower_Light
                 else if (cID == 4) resultIdx = 3;
                 else if (cID == 5) resultIdx = 4;
 
-                if (resultIdx != -1) _staticResult[resultIdx] = pass ? "PASS" : "FAIL";
+                if (resultIdx != -1) _staticResult[resultIdx] = passed ? "PASS" : "FAIL";
 
-                statLabels[relay].Text = pass ? "PASS" : "FAIL";
-                statLabels[relay].ForeColor = pass ? Color.Green : Color.Red;
+                statLabels[relay].Text = passed ? "PASS" : "FAIL";
+                statLabels[relay].ForeColor = passed ? Color.Green : Color.Red;
 
-                if (pass)
+                if (passed)
                 {
                     if (!IsDebugMode) AddLog($"สี {cName} ผ่านในขั้นตอน Static Test", Color.ForestGreen);
                     else AddLog($"Relay {relay + 1} ({cName}): Peak ADC={peakAdc[relay]} Std={stdAdcs[relay]} -> PASS ✔", Color.ForestGreen);
@@ -825,10 +827,14 @@ namespace Tower_Light
                     staticErrors.Add($"- สี{thaiColor}ไม่ติด");
                     AddLog($"สี {cName} ไม่ผ่านในขั้นตอน Static Test! (ADC={peakAdc[relay]})", Color.Red);
                 }
+
+                // 4. สั่งปิดไฟชั้นปัจจุบัน และหน่วงเวลาเล็กน้อยเพื่อให้แสงเคลียร์ตัวก่อนเริ่มเทสชั้นต่อไป
+                await WriteSingleRegAsync(SLAVE_LAMP, relay, 0);
+                await Task.Delay(300);
             }
 
             if (!allPass && IsDebugMode) AddLog($"❌ Error detected during Static Test! (Continuing...)", Color.Red);
-            await AllOff();
+            await AllOff(); // เคลียร์สถานะทั้งหมดเพื่อความชัวร์ก่อนเข้าสู่โหมด Blink
 
             // ==========================================
             // PART 2: Blink Test (ตรวจสอบ Frequency)
@@ -1059,7 +1065,7 @@ namespace Tower_Light
             StandardLDR.Clear();
 
             Test1_btn.Enabled = true;
-            Test1_btn.Text = "Test 1";
+            Test1_btn.Text = "Test";
             set_btn.Enabled = true;
             set_btn.Text = "Set";
 
@@ -1148,7 +1154,7 @@ namespace Tower_Light
                     {
                         // 🌟 ตั้งค่าบรรทัดเริ่มต้นและบรรทัดสูงสุดของตารางตามรูปภาพ
                         int startRow = 12;
-                        int maxRow = 81;
+                        int maxRow = 76;
 
                         // ดึง Sheet ล่าสุดมาทำงาน
                         var worksheet = workbook.Worksheet(workbook.Worksheets.Count);
@@ -1186,16 +1192,16 @@ namespace Tower_Light
                         worksheet.Cell("A3").Value = $"Product : {txtProduct.Text}";
                         worksheet.Cell("E3").Value = $"Model : {txtModel.Text}";
                         worksheet.Cell("I3").Value = $"Lot : {txtLot.Text}";
-                        worksheet.Cell("K3").Value = $"Lot Size : {txtLotSize.Text} pcs.";
+                        worksheet.Cell("L3").Value = $"Lot Size : {txtLotSize.Text} pcs.";
                         worksheet.Cell("O3").Value = txtDate.Text;
 
                         // --- เขียนข้อมูล Footer (พิกัดตามรูปภาพ บรรทัดที่ 84) ---
-                        worksheet.Cell("L84").Value = txtCheckBy.Text;
-                        worksheet.Cell("R84").Value = txtDocRef.Text;
-                        worksheet.Cell("G84").Value = _testCount;
-                        worksheet.Cell("H84").Value = _goodCount;
-                        worksheet.Cell("I84").Value = _defectCount;
-                        worksheet.Cell("J84").Value = _yieldPercent;
+                        worksheet.Cell("L82").Value = txtCheckBy.Text;
+                        worksheet.Cell("R82").Value = txtDocRef.Text;
+                        worksheet.Cell("G82").Value = _testCount;
+                        worksheet.Cell("H82").Value = _goodCount;
+                        worksheet.Cell("I82").Value = _defectCount;
+                        worksheet.Cell("J82").Value = _yieldPercent;
 
                         // --- เขียนข้อมูล Criteria ---
                         worksheet.Cell("A6").Value = chk3Colors.Checked ? $"☑ {chk3Colors.Text}" : $"☐ {chk3Colors.Text}";
@@ -1346,64 +1352,6 @@ namespace Tower_Light
                 if (stdVals[i] != null) stdVals[i].Visible = isVisible;
             }
         }
-
-        private async void onbtn_Click(object sender, EventArgs e)
-        {
-            if (_serialPort == null || !_serialPort.IsOpen)
-            {
-                MessageBox.Show("กรุณาเปิดการเชื่อมต่อ (Open Port) ก่อนสั่งงาน", "Warning");
-                return;
-            }
-
-            onbtn.Enabled = false;
-
-            try
-            {
-                if (onbtn.Text == "TURN OFF")
-                {
-                    // สถานะปัจจุบัน: สั่งปิดไฟ
-                    await AllOff();
-
-                    onbtn.Text = "TURN ON";
-                    onbtn.BackColor = Color.GreenYellow;
-                    onbtn.ForeColor = Color.Black;
-                }
-                else if (onbtn.Text == "TURN ON")
-                {
-                    // ⭐ [ส่วนที่แก้] ถ้าไฟกระพริบทำงานอยู่ ให้ยกเลิกก่อน
-                    if (_isBlinking)
-                    {
-                        _isBlinking = false;
-                        blinkToggle_btn.Text = "START BLINK";
-                        blinkToggle_btn.BackColor = Color.GreenYellow; // ใส่สีตั้งต้นของปุ่ม Blink
-                        blinkToggle_btn.ForeColor = Color.Black;
-
-                        // เลือกว่าจะเคลียร์กระพริบที่ Address ไหน (4 หรือ 5) บน Slave 2
-                        ushort blinkAddress = _is220VAC ? (ushort)3 : (ushort)4;
-                        await WriteSingleRegAsync(0x02, blinkAddress, 0); // 0 = เคลียร์โหมดกระพริบกลับเป็นติดค้าง
-                    }
-
-                    // สถานะปัจจุบัน: สั่งเปิดไฟค้าง
-                    int activeTiers = GetActiveTiers();
-                    for (ushort r = 0; r < activeTiers; r++)
-                    {
-                        await WriteSingleRegAsync(SLAVE_LAMP, r, 1);
-                    }
-
-                    onbtn.Text = "TURN OFF";
-                    onbtn.BackColor = Color.Red;
-                    onbtn.ForeColor = Color.White;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"เกิดข้อผิดพลาดในการส่งคำสั่ง: {ex.Message}", "Error");
-            }
-            finally
-            {
-                onbtn.Enabled = true;
-            }
-        }
         private void SaveOriginalBounds(Control parent)
         {
             foreach (Control c in parent.Controls)
@@ -1454,6 +1402,7 @@ namespace Tower_Light
             // สั่งให้จดจำขนาดของทุกอย่างในหน้าจอ
             SaveOriginalBounds(this);
             SetTierSelection(3);
+            LoadCriteriaFromJson();
             AttachCriteriaEditEvents();
         }
 
@@ -1486,74 +1435,6 @@ namespace Tower_Light
                 {
                     ClearHighlight(c);
                 }
-            }
-        }
-
-        private async void blinkToggle_btn_Click(object sender, EventArgs e)
-        {
-            if (_serialPort == null || !_serialPort.IsOpen)
-            {
-                MessageBox.Show("กรุณาเปิดการเชื่อมต่อ (Open Port) ก่อนสั่งงาน", "Warning");
-                return;
-            }
-
-            blinkToggle_btn.Enabled = false;
-
-            try
-            {
-                if (!_isBlinking)
-                {
-                    if (onbtn.Text == "TURN OFF")
-                    {
-                        onbtn.Text = "TURN ON";
-                        onbtn.BackColor = Color.GreenYellow;
-                        onbtn.ForeColor = Color.Black;
-                    }
-
-                    // สั่งเปิดไฟแต่ละชั้น
-                    int activeTiers = GetActiveTiers();
-                    for (ushort r = 0; r < activeTiers; r++)
-                    {
-                        await WriteSingleRegAsync(SLAVE_LAMP, r, 1);
-                    }
-
-                    // ⭐ [ส่วนที่แก้] สั่งเปิดไฟกระพริบตามโหมด 24V หรือ 220V
-                    ushort blinkAddress = _is220VAC ? (ushort)3 : (ushort)4;
-                    await WriteSingleRegAsync(0x02, blinkAddress, 1); // 1 = สั่งกระพริบ
-
-                    _isBlinking = true;
-                    blinkToggle_btn.Text = "STOP BLINK";
-                    blinkToggle_btn.BackColor = Color.Red;
-                    blinkToggle_btn.ForeColor = Color.White;
-
-                    _ = MonitorBlinkFrequencyAsync();
-                }
-                else
-                {
-                    // 1. สั่งเปลี่ยนสถานะตัวแปรเป็น false ก่อน
-                    _isBlinking = false;
-
-                    // 2. หน่วงเวลาเคลียร์พอร์ต
-                    await Task.Delay(300);
-
-                    // 3. ⭐ [ส่วนที่แก้] ส่งคำสั่งปิดไฟกระพริบตามโหมดที่เลือก
-                    ushort blinkAddress = _is220VAC ? (ushort)3 : (ushort)4;
-                    await WriteSingleRegAsync(0x02, blinkAddress, 0); // 0 = เลิกกระพริบ
-
-                    await AllOff();
-
-                    blinkToggle_btn.Text = "START BLINK";
-                    blinkToggle_btn.BackColor = Color.GreenYellow;
-                    blinkToggle_btn.ForeColor = Color.Black;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"เกิดข้อผิดพลาดในการส่งคำสั่ง: {ex.Message}", "Error");
-            }
-            finally
-            {
-                blinkToggle_btn.Enabled = true;
             }
         }
         private void SetTierSelection(int tier)
@@ -1698,7 +1579,7 @@ namespace Tower_Light
         private bool IsSystemBusy()
         {
             // เช็คว่าระบบกำลัง Test (ปุ่มถูกปิด), Set (ปุ่มถูกปิด), เปิดไฟค้าง (ปุ่มขึ้นคำว่า TURN OFF) หรือกระพริบอยู่ หรือไม่
-            if (!Test1_btn.Enabled || !set_btn.Enabled || onbtn.Text == "TURN OFF" || _isBlinking)
+            if (!Test1_btn.Enabled || !set_btn.Enabled || _isBlinking)
             {
                 return true;
             }
@@ -1861,11 +1742,464 @@ namespace Tower_Light
                             {
                                 string newText = PromptEditCriteria(clickedChk.Text);
                                 clickedChk.Text = newText; // อัปเดตข้อความใหม่
+                                SaveCriteriaToJson();
                             }
                         }
                     };
                 }
             }
+        }
+        private void SaveCriteriaToJson()
+        {
+            try
+            {
+                // --- ส่วนที่เพิ่มเข้ามาใหม่: ตรวจสอบและสร้างโฟลเดอร์ถ้ายังไม่มี ---
+                // ใส่ ? หลัง string เพื่อรับการเช็ค Nullable
+                string? directoryPath = Path.GetDirectoryName(_criteriaJsonPath);
+
+                // เช็คก่อนว่า directoryPath ไม่ใช่ null และโฟลเดอร์นั้นยังไม่มีอยู่จริง
+                if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+                // --------------------------------------------------------
+
+                // นำข้อความจาก CheckBox ทั้งหมดมาเก็บใน Dictionary
+                var criteriaTexts = new Dictionary<string, string>
+        {
+            { "chk3Colors", chk3Colors.Text },
+            { "chkSwapColors", chkSwapColors.Text },
+            { "chkContinuousBlink", chkContinuousBlink.Text },
+            { "chkShockTest", chkShockTest.Text },
+            { "chkBuzzer1", chkBuzzer1.Text },
+            { "chkLED360", chkLED360.Text },
+            { "chkSupply", chkSupply.Text },
+            { "chkCE", chkCE.Text },
+            { "chkCurrent", chkCurrent.Text },
+            { "chkECN", chkECN.Text }
+        };
+
+                // แปลงเป็น JSON และเขียนลงไฟล์
+                string json = JsonSerializer.Serialize(criteriaTexts, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_criteriaJsonPath, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"ไม่สามารถบันทึกค่า Criteria ได้: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadCriteriaFromJson()
+        {
+            try
+            {
+                // ตรวจสอบว่ามีไฟล์ JSON อยู่หรือไม่
+                if (File.Exists(_criteriaJsonPath))
+                {
+                    string json = File.ReadAllText(_criteriaJsonPath);
+                    var criteriaTexts = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+
+                    if (criteriaTexts != null)
+                    {
+                        // นำข้อความที่โหลดมา อัปเดตกลับเข้าไปใน CheckBox
+                        if (criteriaTexts.ContainsKey("chk3Colors")) chk3Colors.Text = criteriaTexts["chk3Colors"];
+                        if (criteriaTexts.ContainsKey("chkSwapColors")) chkSwapColors.Text = criteriaTexts["chkSwapColors"];
+                        if (criteriaTexts.ContainsKey("chkContinuousBlink")) chkContinuousBlink.Text = criteriaTexts["chkContinuousBlink"];
+                        if (criteriaTexts.ContainsKey("chkShockTest")) chkShockTest.Text = criteriaTexts["chkShockTest"];
+                        if (criteriaTexts.ContainsKey("chkBuzzer1")) chkBuzzer1.Text = criteriaTexts["chkBuzzer1"];
+                        if (criteriaTexts.ContainsKey("chkLED360")) chkLED360.Text = criteriaTexts["chkLED360"];
+                        if (criteriaTexts.ContainsKey("chkSupply")) chkSupply.Text = criteriaTexts["chkSupply"];
+                        if (criteriaTexts.ContainsKey("chkCE")) chkCE.Text = criteriaTexts["chkCE"];
+                        if (criteriaTexts.ContainsKey("chkCurrent")) chkCurrent.Text = criteriaTexts["chkCurrent"];
+                        if (criteriaTexts.ContainsKey("chkECN")) chkECN.Text = criteriaTexts["chkECN"];
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"ไม่สามารถโหลดค่า Criteria ได้: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnManual_Click(object sender, EventArgs e)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+            {
+                MessageBox.Show("กรุณาเปิดการเชื่อมต่อ (Open Port) ก่อนใช้งาน Manual", "Warning");
+                return;
+            }
+            if (btnMode24V.BackColor != Color.LimeGreen && btnMode220V.BackColor != Color.LimeGreen)
+            {
+                MessageBox.Show("กรุณาเลือกโหมดการทำงาน (24V หรือ 220V) ก่อนเริ่มทำการ Set!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (IsSystemBusy())
+            {
+                MessageBox.Show("ระบบกำลังทำงานอื่นอยู่ ไม่สามารถเปิด Manual ได้", "Warning");
+                return;
+            }
+
+            if (_isReading)
+            {
+                _readTimer.Stop();
+                _isReading = false;
+                Read_btn.Text = "Read";
+            }
+
+            // 1. สร้างหน้าต่าง Popup 
+            Form manualForm = new Form
+            {
+                Text = "Manual Control",
+                Size = new Size(350, 550),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = Color.WhiteSmoke
+            };
+
+            int activeTiers = GetActiveTiers();
+            List<Button> tierButtons = new List<Button>();
+            int yPos = 20;
+
+            bool isSendingCommand = false;
+            bool isManualBlinking = false;
+
+            // 🌟 ย้ายการสร้างปุ่ม READ มาไว้ด้านบนสุด เพื่อให้ปุ่มอื่นๆ สามารถเรียกใช้คำสั่ง PerformClick() ได้
+            Button btnManualRead = new Button
+            {
+                Text = "START READ",
+                Size = new Size(230, 40),
+                BackColor = Color.Turquoise,
+                Font = new Font("Tahoma", 10, FontStyle.Bold)
+            };
+            btnManualRead.Click += (s, ev) =>
+            {
+                if (!_isReading)
+                {
+                    _readTimer.Start();
+                    _isReading = true;
+                    btnManualRead.Text = "STOP READ";
+                    btnManualRead.BackColor = Color.Crimson;
+                    btnManualRead.ForeColor = Color.White;
+                    Read_btn.Text = "Stop Read";
+                }
+                else
+                {
+                    _readTimer.Stop();
+                    _isReading = false;
+                    btnManualRead.Text = "START READ";
+                    btnManualRead.BackColor = Color.Turquoise;
+                    btnManualRead.ForeColor = Color.Black;
+                    Read_btn.Text = "Read";
+                }
+            };
+
+            // =====================================
+            // 2. สร้างปุ่มควบคุมแต่ละชั้น 
+            // =====================================
+            for (int i = 0; i < activeTiers; i++)
+            {
+                ushort tierIndex = (ushort)i;
+                Button btnTier = new Button
+                {
+                    Text = $"Tier {i + 1} : TURN ON",
+                    Location = new Point(50, yPos),
+                    Size = new Size(230, 40),
+                    BackColor = Color.GreenYellow,
+                    Font = new Font("Tahoma", 10, FontStyle.Bold)
+                };
+
+                btnTier.Click += async (s, ev) =>
+                {
+                    if (isManualBlinking)
+                    {
+                        MessageBox.Show("กรุณาปิดโหมดไฟกระพริบ (STOP BLINK) ก่อนสั่งเปิด/ปิดไฟแต่ละชั้น", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (isSendingCommand) return;
+                    isSendingCommand = true;
+                    btnTier.Enabled = false;
+
+                    try
+                    {
+                        // 🌟 ถ้ากำลัง READ อยู่ ให้สั่งหยุดก่อน แล้วหน่วงเวลาเคลียร์สาย 100ms
+                        if (_isReading)
+                        {
+                            btnManualRead.PerformClick();
+                            await Task.Delay(100);
+                        }
+
+                        if (btnTier.Text.Contains("TURN ON"))
+                        {
+                            await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 1);
+                            btnTier.Text = $"Tier {tierIndex + 1} : TURN OFF";
+                            btnTier.BackColor = Color.Red;
+                            btnTier.ForeColor = Color.White;
+                        }
+                        else
+                        {
+                            await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 0);
+                            btnTier.Text = $"Tier {tierIndex + 1} : TURN ON";
+                            btnTier.BackColor = Color.GreenYellow;
+                            btnTier.ForeColor = Color.Black;
+                        }
+                    }
+                    finally
+                    {
+                        btnTier.Enabled = true;
+                        isSendingCommand = false;
+                    }
+                };
+
+                tierButtons.Add(btnTier);
+                manualForm.Controls.Add(btnTier);
+                yPos += 50;
+            }
+
+            // =====================================
+            // 3. สร้างปุ่ม Master TURN ON ALL
+            // =====================================
+            yPos += 10;
+            Button btnMasterOn = new Button
+            {
+                Text = "TURN ON ALL",
+                Location = new Point(50, yPos),
+                Size = new Size(230, 40),
+                BackColor = Color.LightSkyBlue,
+                Font = new Font("Tahoma", 10, FontStyle.Bold)
+            };
+            btnMasterOn.Click += async (s, ev) =>
+            {
+                if (isManualBlinking)
+                {
+                    MessageBox.Show("กรุณาปิดโหมดไฟกระพริบ (STOP BLINK) ก่อนสั่งงาน", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (isSendingCommand) return;
+                isSendingCommand = true;
+                btnMasterOn.Enabled = false;
+
+                try
+                {
+                    // 🌟 ถ้ากำลัง READ อยู่ ให้สั่งหยุดก่อน
+                    if (_isReading)
+                    {
+                        btnManualRead.PerformClick();
+                        await Task.Delay(100);
+                    }
+
+                    for (int i = 0; i < activeTiers; i++)
+                    {
+                        ushort tierIndex = (ushort)i;
+                        if (tierButtons[i].Text.Contains("TURN ON"))
+                        {
+                            await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 1);
+                            tierButtons[i].Text = $"Tier {tierIndex + 1} : TURN OFF";
+                            tierButtons[i].BackColor = Color.Red;
+                            tierButtons[i].ForeColor = Color.White;
+                        }
+                    }
+                }
+                finally
+                {
+                    btnMasterOn.Enabled = true;
+                    isSendingCommand = false;
+                }
+            };
+            manualForm.Controls.Add(btnMasterOn);
+
+            // =====================================
+            // 4. ตั้งค่าปุ่ม READ ลงในหน้าจอ (กำหนดตำแหน่ง yPos ตามลำดับ)
+            // =====================================
+            yPos += 50;
+            btnManualRead.Location = new Point(50, yPos);
+            manualForm.Controls.Add(btnManualRead);
+
+            // =====================================
+            // 5. สร้างปุ่ม START BLINK
+            // =====================================
+            yPos += 50;
+            Button btnMasterBlink = new Button
+            {
+                Text = "START BLINK",
+                Location = new Point(50, yPos),
+                Size = new Size(230, 40),
+                BackColor = Color.Orange,
+                Font = new Font("Tahoma", 10, FontStyle.Bold)
+            };
+            btnMasterBlink.Click += async (s, ev) =>
+            {
+                if (isSendingCommand) return;
+                isSendingCommand = true;
+                btnMasterBlink.Enabled = false;
+
+                try
+                {
+                    ushort blinkAddress = _is220VAC ? (ushort)3 : (ushort)4;
+
+                    if (!isManualBlinking)
+                    {
+                        // หยุดโหมด READ ก่อนที่จะเปิดไฟทั้งหมดเพื่อเข้าสู่โหมดกระพริบ
+                        if (_isReading)
+                        {
+                            btnManualRead.PerformClick();
+                            await Task.Delay(100);
+                        }
+
+                        for (int i = 0; i < activeTiers; i++)
+                        {
+                            ushort tierIndex = (ushort)i;
+                            if (tierButtons[i].Text.Contains("TURN ON"))
+                            {
+                                await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 1);
+                                tierButtons[i].Text = $"Tier {tierIndex + 1} : TURN OFF";
+                                tierButtons[i].BackColor = Color.Red;
+                                tierButtons[i].ForeColor = Color.White;
+                            }
+                        }
+
+                        await Task.Delay(200);
+
+                        await WriteSingleRegAsync(0x02, blinkAddress, 1);
+                        isManualBlinking = true;
+                        btnMasterBlink.Text = "STOP BLINK";
+                        btnMasterBlink.BackColor = Color.Red;
+                        btnMasterBlink.ForeColor = Color.White;
+
+                        _isBlinking = true;
+                        _ = MonitorBlinkFrequencyAsync();
+
+                        // สั่งให้อ่านค่าแบบอัตโนมัติ (กดปุ่ม READ จำลอง)
+                        if (!_isReading)
+                        {
+                            btnManualRead.PerformClick();
+                        }
+                    }
+                    else
+                    {
+                        if (_isReading)
+                        {
+                            btnManualRead.PerformClick();
+                            await Task.Delay(100);
+                        }
+
+                        _isBlinking = false;
+                        await Task.Delay(100);
+                        await WriteSingleRegAsync(0x02, blinkAddress, 0);
+                        isManualBlinking = false;
+                        btnMasterBlink.Text = "START BLINK";
+                        btnMasterBlink.BackColor = Color.Orange;
+                        btnMasterBlink.ForeColor = Color.Black;
+
+                        await AllOff();
+                        foreach (var btn in tierButtons)
+                        {
+                            int idx = tierButtons.IndexOf(btn);
+                            btn.Text = $"Tier {idx + 1} : TURN ON";
+                            btn.BackColor = Color.GreenYellow;
+                            btn.ForeColor = Color.Black;
+                        }
+                    }
+                }
+                finally
+                {
+                    btnMasterBlink.Enabled = true;
+                    isSendingCommand = false;
+                }
+            };
+            manualForm.Controls.Add(btnMasterBlink);
+
+            // =====================================
+            // 6. สร้างปุ่ม TURN OFF ALL
+            // =====================================
+            yPos += 60;
+            Button btnMasterOff = new Button
+            {
+                Text = "TURN OFF ALL",
+                Location = new Point(50, yPos),
+                Size = new Size(110, 45),
+                BackColor = Color.DimGray,
+                ForeColor = Color.White,
+                Font = new Font("Tahoma", 9, FontStyle.Bold)
+            };
+            btnMasterOff.Click += async (s, ev) =>
+            {
+                if (isSendingCommand) return;
+                isSendingCommand = true;
+                btnMasterOff.Enabled = false;
+
+                try
+                {
+                    if (isManualBlinking)
+                    {
+                        _isBlinking = false;
+                        ushort blinkAddress = _is220VAC ? (ushort)3 : (ushort)4;
+                        await WriteSingleRegAsync(0x02, blinkAddress, 0);
+                        isManualBlinking = false;
+                        btnMasterBlink.Text = "START BLINK";
+                        btnMasterBlink.BackColor = Color.Orange;
+                        btnMasterBlink.ForeColor = Color.Black;
+                    }
+
+                    if (_isReading)
+                    {
+                        btnManualRead.PerformClick();
+                        await Task.Delay(100); // Wait for read to truly stop
+                    }
+
+                    await AllOff();
+
+                    foreach (var btn in tierButtons)
+                    {
+                        int idx = tierButtons.IndexOf(btn);
+                        btn.Text = $"Tier {idx + 1} : TURN ON";
+                        btn.BackColor = Color.GreenYellow;
+                        btn.ForeColor = Color.Black;
+                    }
+                }
+                finally
+                {
+                    btnMasterOff.Enabled = true;
+                    isSendingCommand = false;
+                }
+            };
+            manualForm.Controls.Add(btnMasterOff);
+
+            // 7. สร้างปุ่ม Close
+            Button btnClose = new Button
+            {
+                Text = "CLOSE",
+                Location = new Point(170, yPos),
+                Size = new Size(110, 45),
+                BackColor = Color.DarkRed,
+                ForeColor = Color.White,
+                Font = new Font("Tahoma", 9, FontStyle.Bold)
+            };
+            manualForm.Controls.Add(btnClose);
+
+            // 8. จัดการเหตุการณ์การปิดหน้าต่าง (ป้องกันการออกถ้าไฟยังติดอยู่)
+            manualForm.FormClosing += (s, ev) =>
+            {
+                bool isAnyOn = isManualBlinking || tierButtons.Any(b => b.Text.Contains("TURN OFF"));
+
+                if (isAnyOn)
+                {
+                    MessageBox.Show("คุณไม่สามารถออกจากหน้านี้ได้\nกรุณากดปุ่ม 'TURN OFF ALL' ก่อนทำการ Close", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    ev.Cancel = true;
+                }
+            };
+
+            btnClose.Click += (s, ev) =>
+            {
+                manualForm.Close();
+            };
+
+            // 9. แสดง Popup บนหน้าจอ
+            manualForm.ShowDialog();
         }
     }
 }

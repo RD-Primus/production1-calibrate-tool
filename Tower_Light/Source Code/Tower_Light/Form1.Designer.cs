@@ -98,10 +98,9 @@
             panel14 = new Panel();
             label6 = new Label();
             panel9 = new Panel();
+            btnManual = new Button();
             label11 = new Label();
             txtCheckBy = new TextBox();
-            blinkToggle_btn = new Button();
-            onbtn = new Button();
             panel15 = new Panel();
             label1 = new Label();
             clearlog_btn = new Button();
@@ -869,7 +868,7 @@
             Test1_btn.ForeColor = SystemColors.Window;
             Test1_btn.Location = new Point(24, 98);
             Test1_btn.Name = "Test1_btn";
-            Test1_btn.Size = new Size(290, 64);
+            Test1_btn.Size = new Size(290, 78);
             Test1_btn.TabIndex = 19;
             Test1_btn.Text = "Test";
             Test1_btn.UseVisualStyleBackColor = false;
@@ -915,10 +914,9 @@
             // 
             panel9.BackColor = SystemColors.Window;
             panel9.BorderStyle = BorderStyle.FixedSingle;
+            panel9.Controls.Add(btnManual);
             panel9.Controls.Add(label11);
             panel9.Controls.Add(txtCheckBy);
-            panel9.Controls.Add(blinkToggle_btn);
-            panel9.Controls.Add(onbtn);
             panel9.Controls.Add(panel15);
             panel9.Controls.Add(set_btn);
             panel9.Controls.Add(Test1_btn);
@@ -927,6 +925,20 @@
             panel9.Size = new Size(334, 275);
             panel9.TabIndex = 31;
             panel9.Paint += panel9_Paint;
+            // 
+            // btnManual
+            // 
+            btnManual.BackColor = Color.DarkGoldenrod;
+            btnManual.FlatStyle = FlatStyle.Popup;
+            btnManual.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnManual.ForeColor = SystemColors.Window;
+            btnManual.Location = new Point(24, 181);
+            btnManual.Name = "btnManual";
+            btnManual.Size = new Size(290, 38);
+            btnManual.TabIndex = 44;
+            btnManual.Text = "Manual";
+            btnManual.UseVisualStyleBackColor = false;
+            btnManual.Click += btnManual_Click;
             // 
             // label11
             // 
@@ -945,34 +957,6 @@
             txtCheckBy.Name = "txtCheckBy";
             txtCheckBy.Size = new Size(179, 34);
             txtCheckBy.TabIndex = 42;
-            // 
-            // blinkToggle_btn
-            // 
-            blinkToggle_btn.BackColor = Color.GreenYellow;
-            blinkToggle_btn.FlatStyle = FlatStyle.Popup;
-            blinkToggle_btn.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            blinkToggle_btn.ForeColor = SystemColors.ControlText;
-            blinkToggle_btn.Location = new Point(173, 168);
-            blinkToggle_btn.Name = "blinkToggle_btn";
-            blinkToggle_btn.Size = new Size(141, 45);
-            blinkToggle_btn.TabIndex = 33;
-            blinkToggle_btn.Text = "START BLINK";
-            blinkToggle_btn.UseVisualStyleBackColor = false;
-            blinkToggle_btn.Click += blinkToggle_btn_Click;
-            // 
-            // onbtn
-            // 
-            onbtn.BackColor = Color.GreenYellow;
-            onbtn.FlatStyle = FlatStyle.Popup;
-            onbtn.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            onbtn.ForeColor = SystemColors.ControlText;
-            onbtn.Location = new Point(24, 168);
-            onbtn.Name = "onbtn";
-            onbtn.Size = new Size(144, 45);
-            onbtn.TabIndex = 32;
-            onbtn.Text = "TURN ON";
-            onbtn.UseVisualStyleBackColor = false;
-            onbtn.Click += onbtn_Click;
             // 
             // panel15
             // 
@@ -1598,9 +1582,9 @@
             chkBuzzer1.AutoSize = true;
             chkBuzzer1.Location = new Point(3, 99);
             chkBuzzer1.Name = "chkBuzzer1";
-            chkBuzzer1.Size = new Size(287, 24);
+            chkBuzzer1.Size = new Size(289, 24);
             chkBuzzer1.TabIndex = 4;
-            chkBuzzer1.Text = "การทำงานเสียงเตือนของ Busser (90db Up)";
+            chkBuzzer1.Text = "การทำงานเสียงเตือนของ Buzzer (90db Up)";
             chkBuzzer1.UseVisualStyleBackColor = true;
             // 
             // chkShockTest
@@ -1648,7 +1632,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.InactiveCaption;
-            ClientSize = new Size(999, 682);
+            ClientSize = new Size(998, 682);
             Controls.Add(panelCriteria);
             Controls.Add(panel17);
             Controls.Add(panel9);
@@ -1785,8 +1769,6 @@
         private CheckBox chkBuzzer;
         private CheckBox chkFlash;
         private Label label12;
-        private Button onbtn;
-        private Button blinkToggle_btn;
         private Button btnTier1;
         private Button btnTier5;
         private Button btnTier4;
@@ -1835,5 +1817,6 @@
         private CheckBox chkContinuousBlink;
         private CheckBox chkSwapColors;
         private CheckBox chk3Colors;
+        private Button btnManual;
     }
 }
