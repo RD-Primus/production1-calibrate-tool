@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="Towerlight Setup/Towerlight Setup.vdproj" Type="Installer">
-    <Build />
-  </Project>
-  <Project Path="Tower_Light/SoftwareTesterTowerLightV1001.csproj" />
-</Solution>
