@@ -1196,12 +1196,12 @@ namespace Tower_Light
                         worksheet.Cell("O3").Value = txtDate.Text;
 
                         // --- เขียนข้อมูล Footer (พิกัดตามรูปภาพ บรรทัดที่ 84) ---
-                        worksheet.Cell("L82").Value = txtCheckBy.Text;
-                        worksheet.Cell("R82").Value = txtDocRef.Text;
-                        worksheet.Cell("G82").Value = _testCount;
-                        worksheet.Cell("H82").Value = _goodCount;
-                        worksheet.Cell("I82").Value = _defectCount;
-                        worksheet.Cell("J82").Value = _yieldPercent;
+                        worksheet.Cell("L81").Value = txtCheckBy.Text;
+                        worksheet.Cell("R81").Value = txtDocRef.Text;
+                        worksheet.Cell("G81").Value = _testCount;
+                        worksheet.Cell("H81").Value = _goodCount;
+                        worksheet.Cell("I81").Value = _defectCount;
+                        worksheet.Cell("J81").Value = _yieldPercent;
 
                         // --- เขียนข้อมูล Criteria ---
                         worksheet.Cell("A6").Value = chk3Colors.Checked ? $"☑ {chk3Colors.Text}" : $"☐ {chk3Colors.Text}";
@@ -1960,7 +1960,7 @@ namespace Tower_Light
             }
 
             // =====================================
-            // 3. สร้างปุ่ม Master TURN ON ALL
+            // 3. สร้างปุ่ม Master TURN ON ALL / TURN OFF ALL
             // =====================================
             yPos += 10;
             Button btnMasterOn = new Button
@@ -1992,16 +1992,46 @@ namespace Tower_Light
                         await Task.Delay(100);
                     }
 
-                    for (int i = 0; i < activeTiers; i++)
+                    // เช็คสถานะปัจจุบันของปุ่ม
+                    if (btnMasterOn.Text == "TURN ON ALL")
                     {
-                        ushort tierIndex = (ushort)i;
-                        if (tierButtons[i].Text.Contains("TURN ON"))
+                        // ----- สั่งเปิดไฟทั้งหมด -----
+                        for (int i = 0; i < activeTiers; i++)
                         {
-                            await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 1);
-                            tierButtons[i].Text = $"Tier {tierIndex + 1} : TURN OFF";
-                            tierButtons[i].BackColor = Color.Red;
-                            tierButtons[i].ForeColor = Color.White;
+                            ushort tierIndex = (ushort)i;
+                            if (tierButtons[i].Text.Contains("TURN ON"))
+                            {
+                                await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 1);
+                                tierButtons[i].Text = $"Tier {tierIndex + 1} : TURN OFF";
+                                tierButtons[i].BackColor = Color.Red;
+                                tierButtons[i].ForeColor = Color.White;
+                            }
                         }
+
+                        // อัปเดตปุ่มเป็นโหมด TURN OFF ALL
+                        btnMasterOn.Text = "TURN OFF ALL";
+                        btnMasterOn.BackColor = Color.DimGray;
+                        btnMasterOn.ForeColor = Color.White;
+                    }
+                    else
+                    {
+                        // ----- สั่งปิดไฟทั้งหมด -----
+                        for (int i = 0; i < activeTiers; i++)
+                        {
+                            ushort tierIndex = (ushort)i;
+                            if (tierButtons[i].Text.Contains("TURN OFF"))
+                            {
+                                await WriteSingleRegAsync(SLAVE_LAMP, tierIndex, 0);
+                                tierButtons[i].Text = $"Tier {tierIndex + 1} : TURN ON";
+                                tierButtons[i].BackColor = Color.GreenYellow;
+                                tierButtons[i].ForeColor = Color.Black;
+                            }
+                        }
+
+                        // อัปเดตปุ่มกลับเป็นโหมด TURN ON ALL
+                        btnMasterOn.Text = "TURN ON ALL";
+                        btnMasterOn.BackColor = Color.LightSkyBlue;
+                        btnMasterOn.ForeColor = Color.Black;
                     }
                 }
                 finally
