@@ -1642,7 +1642,7 @@
             Controls.Add(panel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
-            Text = "Software Tester Tower Light V1.001";
+            Text = "Software Tester Tower Light V1.002";
             Load += Form1_Load;
             Resize += Form1_Resize;
             panel1.ResumeLayout(false);
