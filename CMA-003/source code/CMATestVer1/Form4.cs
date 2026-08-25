@@ -60,10 +60,15 @@ namespace CMATestVer1
                 "เจอ 0 → กดปุ่ม F"
             };
 
+        //-- Write Queue (กัน DataReceived thread ไป Write ตรงๆ)
+        private readonly Queue<byte[]> _writeQueue = new Queue<byte[]>();
+        private readonly object _writeQueueLock = new object();
+        private System.Windows.Forms.Timer _writeQueueTimer;
+
 
         //-- from Ref
         private Form1 _parentForm;
-
+        public bool AutoCloseOnComplete { get; set; } = true;
 
         public Form4(SerialPort sharedPort, Form1 parentForm)
         {
@@ -88,16 +93,25 @@ namespace CMATestVer1
             _countdownTick.Interval = 1000;
             _countdownTick.Tick += CountdownTick_Tick;
 
+            // ★ เพิ่ม timer สำหรับ flush write queue
+            _writeQueueTimer = new System.Windows.Forms.Timer();
+            _writeQueueTimer.Interval = 20;   // เดินถี่พอที่จะไม่หน่วง response time
+            _writeQueueTimer.Tick += WriteQueueTimer_Tick;
+            _writeQueueTimer.Start();
+
             InitStepLeds();
 
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            _writeQueueTimer?.Stop();   
+
             if (_serialPort != null)
             {
-                _serialPort.DataReceived -= DataReceivedHandler;   // unsubscribe ตัวเองเสมอ ไม่ว่าจะปิดจากทางไหน
+                _serialPort.DataReceived -= DataReceivedHandler;
             }
+            _parentForm?.OnForm4Closed();
             base.OnFormClosed(e);
         }
 
@@ -127,6 +141,9 @@ namespace CMATestVer1
 
             currentState = AppState.Idle;
             await Task.Delay(300);
+
+            if (!IsSafeToInvoke()) return; // ★ เช็คว่า Form4 ยังไม่ถูกปิดไปก่อน
+
             SendDisplay120();
 
             await ResetAndInitializeAsync();
@@ -161,14 +178,101 @@ namespace CMATestVer1
 
             TimeoutTimer.Interval = 10000;
             TimeoutTimer.Start();
-            StartCountdown(10);
+            StartCountdown(15);
         }
+        private async void btnRefreshDisplay_Click(object sender, EventArgs e)
+        {
+            // เตือนก่อนถ้ากำลังทดสอบอยู่
+            if (currentState != AppState.Idle)
+            {
+                var confirm = BigMessageBox.Show("กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?", "ตรวจตอบ", MessageBoxIcon.Warning, MessageBoxButtons.YesNo, fontSize: 14f);
+
+                if (confirm == DialogResult.No) return;
+            }
+
+            // เรียกการตั้งต้นใหม่เหมือนตอนเปิด Form
+            await ResetAndInitializeAsync();
+        }
+        private async Task ResetAndInitializeAsync()
+        {
+            if (!IsSafeToInvoke()) return;   // ★ เช็คตั้งแต่เริ่มเข้าฟังก์ชัน
+
+            // 1. หยุด Timer ทั้งหมด
+            TimeoutTimer.Stop();
+            silenceTimer.Stop();
+            StopCountdown();
+
+            // 2. Re-subscribe DataReceived เสมอ (ป้องกันกรณี Event หลุดจากการทดสอบครั้งก่อน)
+            if (_serialPort != null)
+            {
+                _serialPort.DataReceived -= DataReceivedHandler;
+                _serialPort.DataReceived += DataReceivedHandler;
+            }
+
+            // 3. Reset ตัวแปรเก็บผลการทดสอบทั้งหมด
+            isFunction1Success = false;
+            isArrowDownSilenceSuccess = false;
+            isFunction2ResumeSuccess = false;
+            isArrowUpSilenceSuccess = false;
+            isFunction3ResumeSuccess = false;
+            _failedSteps.Clear();
+            currentState = AppState.Idle;
+
+            // 4. Reset หน้าจอ UI (ไฟ LED และช่อง Log)
+            ResetAllSteps();
+            RecieverBox.Clear();
+            RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] 🔄 เริ่มต้นระบบใหม่ (Re-initialized)\r\n");
+
+            // 5. เคลียร์ข้อมูลค้างใน Buffer ทั้ง C# และ Hardware SerialPort
+            lock (_lock)
+            {
+                rxBuffer.Clear();
+            }
+
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                try
+                {
+                    _serialPort.DiscardInBuffer();
+                    _serialPort.DiscardOutBuffer();
+                }
+                catch { }
+            }
+
+            // 6. หน่วงเวลา 300ms ให้ Port นิ่ง แล้วส่งสัญญาณ 120
+            await Task.Delay(300);
+            SendDisplay120();
+        }
+
+        private void EnqueueWrite(byte[] frame)
+        {
+            lock (_writeQueueLock)
+            {
+                _writeQueue.Enqueue(frame);
+            }
+        }
+
 
 
         private bool IsSafeToInvoke()
         {
             return !this.IsDisposed && this.IsHandleCreated;
         }
+        private void SafeBeginInvoke(Action action)
+        {
+            if (!IsSafeToInvoke()) return;
+            try { this.BeginInvoke(action); }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
+        }
+        private void SafeInvoke(Action action)
+        {
+            if (!IsSafeToInvoke()) return;
+            try { this.Invoke(action); }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
+        }
+
 
         //-- อ่านข้อมูล
         public void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
@@ -188,7 +292,6 @@ namespace CMATestVer1
             }
             catch { }
         }
-
         private void ParseModbusRTU()
         {
             lock (_lock)
@@ -210,65 +313,55 @@ namespace CMATestVer1
                         byte[] fullFrame = rxBuffer.GetRange(0, 41).ToArray();
                         rxBuffer.RemoveRange(0, 41);
 
-                        //แจ้ง Form1 ว่า _DisPort ยังมีสัญญาณตอบกลับจริง
                         _parentForm?.OnDisPortFrameReceived();
 
-                        if (!IsSafeToInvoke()) continue;
-
-                        try
+                        SafeBeginInvoke(() =>   // ✅ เปลี่ยนจาก if(!IsSafeToInvoke) + try/catch เดิม
                         {
-                            this.BeginInvoke(new Action(() =>
+                            if (currentState == AppState.WaitingForFunction1)
                             {
-                                // ขั้น 1 → กด F ครั้งที่ 1
-                                if (currentState == AppState.WaitingForFunction1)
-                                {
-                                    isFunction1Success = true;
-                                    currentState = AppState.ExpectingSilenceDown;
+                                isFunction1Success = true;
+                                currentState = AppState.ExpectingSilenceDown;
 
-                                    ResetTimeoutTimer();
-                                    SetStep(0, StepState.Pass);
-                                    SetStep(1, StepState.Running);
+                                ResetTimeoutTimer();
+                                SetStep(0, StepState.Pass);
+                                SetStep(1, StepState.Running);
 
-                                    RecieverBox.AppendText($"\r\n[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 1: กด F ค้างไว้สำเร็จ\r\n");
-                                    RecieverBox.AppendText("[ขั้นตอนที่ 2] เจอ I n P\r\n");
-                                    RecieverBox.AppendText("  → กดปุ่มลด (รอสัญญาณนิ่ง)...\r\n");
+                                RecieverBox.AppendText($"\r\n[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 1: กด F ค้างไว้สำเร็จ\r\n");
+                                RecieverBox.AppendText("[ขั้นตอนที่ 2] เจอ I n P\r\n");
+                                RecieverBox.AppendText("  → กดปุ่มลด (รอสัญญาณนิ่ง)...\r\n");
 
-                                    silenceTimer.Stop();
-                                    silenceTimer.Start();
-                                    ResetTimeoutTimer();
-                                }
-                                // ขั้น 3 → กด F ครั้งที่ 2
-                                else if (currentState == AppState.WaitingForFunction2)
-                                {
-                                    isFunction2ResumeSuccess = true;
-                                    currentState = AppState.ExpectingSilenceUp;
+                                silenceTimer.Stop();
+                                silenceTimer.Start();
+                                ResetTimeoutTimer();
+                            }
+                            else if (currentState == AppState.WaitingForFunction2)
+                            {
+                                isFunction2ResumeSuccess = true;
+                                currentState = AppState.ExpectingSilenceUp;
 
-                                    ResetTimeoutTimer();
-                                    SetStep(2, StepState.Pass);
-                                    SetStep(3, StepState.Running);
+                                ResetTimeoutTimer();
+                                SetStep(2, StepState.Pass);
+                                SetStep(3, StepState.Running);
 
-                                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 3: กด F สำเร็จ\r\n");
-                                    RecieverBox.AppendText("[ขั้นตอนที่ 4] เจอ PUS\r\n");
-                                    RecieverBox.AppendText("  → กดปุ่มเพิ่ม (รอสัญญาณนิ่ง)...\r\n");
+                                RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 3: กด F สำเร็จ\r\n");
+                                RecieverBox.AppendText("[ขั้นตอนที่ 4] เจอ PUS\r\n");
+                                RecieverBox.AppendText("  → กดปุ่มเพิ่ม (รอสัญญาณนิ่ง)...\r\n");
 
-                                    silenceTimer.Stop();
-                                    silenceTimer.Start();
-                                    ResetTimeoutTimer();
-                                }
-                                // ขั้น 5 → กด F ครั้งที่ 3
-                                else if (currentState == AppState.WaitingForFunction3)
-                                {
-                                    isFunction3ResumeSuccess = true;
-                                    currentState = AppState.Idle;
+                                silenceTimer.Stop();
+                                silenceTimer.Start();
+                                ResetTimeoutTimer();
+                            }
+                            else if (currentState == AppState.WaitingForFunction3)
+                            {
+                                isFunction3ResumeSuccess = true;
+                                currentState = AppState.Idle;
 
-                                    SetStep(4, StepState.Pass);
+                                SetStep(4, StepState.Pass);
 
-                                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 5: กด F สำเร็จ\r\n");
-                                    ReportTestResult();
-                                }
-                            }));
-                        }
-                        catch (InvalidOperationException) { }   // ครอบคลุม ObjectDisposedException ด้วยในตัว
+                                RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 5: กด F สำเร็จ\r\n");
+                                ReportTestResult();
+                            }
+                        });
 
                         continue;
                     }
@@ -283,31 +376,23 @@ namespace CMATestVer1
 
                         _parentForm?.OnDisPortFrameReceived();
 
-                        if (!IsSafeToInvoke()) continue;
-
-                        try
+                        SafeBeginInvoke(() =>   // ✅ เปลี่ยนแบบเดียวกัน
                         {
-                            this.BeginInvoke(new Action(() =>
+                            if (currentState == AppState.ExpectingSilenceDown ||
+                                currentState == AppState.ExpectingSilenceUp)
                             {
-                                if (currentState == AppState.ExpectingSilenceDown ||
-                                    currentState == AppState.ExpectingSilenceUp)
-                                {
-                                    silenceTimer.Stop();
-                                    silenceTimer.Start();
-                                }
-                            }));
-                        }
-                        catch (InvalidOperationException) { }   // ครอบคลุม ObjectDisposedException ด้วยในตัว
+                                silenceTimer.Stop();
+                                silenceTimer.Start();
+                            }
+                        });
 
                         continue;
                     }
-                    else
-                    {
-                        rxBuffer.RemoveAt(0);
-                    }
+
                 }
             }
         }
+
 
         //-- โชว์ 120
         private void ProcessModbusFunction03Response(byte[] requestFrame)
@@ -316,17 +401,14 @@ namespace CMATestVer1
             {
                 if (_serialPort == null || !_serialPort.IsOpen) return;
 
-
                 int numberOfRegisters = (requestFrame[4] << 8) | requestFrame[5];
-                int byteCount = numberOfRegisters * 2; // 1 ช่องเก็บข้อมูลขนาด 2 ไบต์
-
+                int byteCount = numberOfRegisters * 2;
 
                 byte[] responseWithoutCRC = new byte[3 + byteCount];
                 responseWithoutCRC[0] = 0x01;
                 responseWithoutCRC[1] = 0x03;
                 responseWithoutCRC[2] = (byte)byteCount;
 
-                // เติมข้อมูลจำลอง 
                 if (byteCount >= 2)
                 {
                     responseWithoutCRC[3] = 0x00;
@@ -342,16 +424,11 @@ namespace CMATestVer1
 
                 byte[] finalResponse = new byte[responseWithoutCRC.Length + 2];
                 Array.Copy(responseWithoutCRC, finalResponse, responseWithoutCRC.Length);
-
-
                 finalResponse[finalResponse.Length - 2] = (byte)(crc & 0xFF);
                 finalResponse[finalResponse.Length - 1] = (byte)((crc >> 8) & 0xFF);
 
-                // เขียนตอบกลับเข้าสู่ SerialPort ช่องทางที่ Form1 ถืออยู่
-                lock (_lock)
-                {
-                    _serialPort.Write(finalResponse, 0, finalResponse.Length);
-                }
+                // ★ เปลี่ยนจาก lock(_lock) { _serialPort.Write(...) } ตรงๆ
+                EnqueueWrite(finalResponse);
             }
             catch { }
         }
@@ -361,7 +438,6 @@ namespace CMATestVer1
 
             try
             {
-                // Response frame: ID=01, FC=03, ByteCount=04, 0x0078=120, 0x0019=25, + CRC
                 byte[] response = new byte[] { 0x01, 0x03, 0x04, 0x00, 0x78, 0x00, 0x19 };
                 ushort crc = CalculateCRC(response, response.Length);
 
@@ -370,10 +446,8 @@ namespace CMATestVer1
                 finalFrame[finalFrame.Length - 2] = (byte)(crc & 0xFF);
                 finalFrame[finalFrame.Length - 1] = (byte)((crc >> 8) & 0xFF);
 
-                lock (_lock)
-                {
-                    _serialPort.Write(finalFrame, 0, finalFrame.Length);
-                }
+                // ★ เปลี่ยนจาก lock(_lock) { _serialPort.Write(...) } ตรงๆ
+                EnqueueWrite(finalFrame);
             }
             catch { }
         }
@@ -479,58 +553,68 @@ namespace CMATestVer1
                     break;
             }
         }
-
         private void SilenceTimer_Tick(object? sender, EventArgs e)
         {
             silenceTimer.Stop();
 
-            if (!IsSafeToInvoke()) return;   // ✅ เพิ่มบรรทัดนี้
+            if (!IsSafeToInvoke()) return;
 
-            // ขั้น 2 สำเร็จ → เจอ I n P กดปุ่มลดแล้ว
             if (currentState == AppState.ExpectingSilenceDown)
             {
                 isArrowDownSilenceSuccess = true;
                 currentState = AppState.WaitingForFunction2;
 
-                try
+                SafeInvoke(() =>
                 {
-                    this.Invoke(new MethodInvoker(() =>
-                    {
-                        ResetTimeoutTimer();
-                        SetStep(1, StepState.Pass);
-                        SetStep(2, StepState.Running);
+                    ResetTimeoutTimer();
+                    SetStep(1, StepState.Pass);
+                    SetStep(2, StepState.Running);
 
-                        RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 2: กดปุ่มลดสำเร็จ\r\n");
-                        RecieverBox.AppendText("[ขั้นตอนที่ 3] เจอ 0\r\n");
-                        RecieverBox.AppendText("  → กดปุ่ม F...\r\n");
-                    }));
-                }
-                catch (InvalidOperationException) { }
+                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 2: กดปุ่มลดสำเร็จ\r\n");
+                    RecieverBox.AppendText("[ขั้นตอนที่ 3] เจอ 0\r\n");
+                    RecieverBox.AppendText("  → กดปุ่ม F...\r\n");
+                });
             }
-
-            // ขั้น 4 สำเร็จ → เจอ PUS กดปุ่มเพิ่มแล้ว
             else if (currentState == AppState.ExpectingSilenceUp)
             {
                 isArrowUpSilenceSuccess = true;
                 currentState = AppState.WaitingForFunction3;
 
-                try
+                SafeInvoke(() =>
                 {
-                    this.Invoke(new MethodInvoker(() =>
-                    {
-                        ResetTimeoutTimer();
-                        SetStep(3, StepState.Pass);
-                        SetStep(4, StepState.Running);
+                    ResetTimeoutTimer();
+                    SetStep(3, StepState.Pass);
+                    SetStep(4, StepState.Running);
 
-                        RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 4: กดปุ่มเพิ่มสำเร็จ\r\n");
-                        RecieverBox.AppendText("[ขั้นตอนที่ 5] เจอ 0\r\n");
-                        RecieverBox.AppendText("  → กดปุ่ม F เพื่อจบการทดสอบ...\r\n");
-                    }));
-                }
-                catch (InvalidOperationException) { }
+                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 4: กดปุ่มเพิ่มสำเร็จ\r\n");
+                    RecieverBox.AppendText("[ขั้นตอนที่ 5] เจอ 0\r\n");
+                    RecieverBox.AppendText("  → กดปุ่ม F เพื่อจบการทดสอบ...\r\n");
+                });
             }
         }
+        private void WriteQueueTimer_Tick(object sender, EventArgs e)
+        {
+            byte[]? frame = null;
 
+            lock (_writeQueueLock)
+            {
+                if (_writeQueue.Count > 0)
+                {
+                    frame = _writeQueue.Dequeue();
+                }
+            }
+
+            if (frame == null) return;
+
+            try
+            {
+                if (_serialPort != null && _serialPort.IsOpen)
+                {
+                    _serialPort.Write(frame, 0, frame.Length);   // ★ Write เกิดขึ้นบน UI thread เท่านั้น
+                }
+            }
+            catch { }
+        }
 
 
         //-- โชว์ Step Process
@@ -553,6 +637,7 @@ namespace CMATestVer1
 
 
 
+
         //-- นาฬิกาจับเวลา
         private void CountdownTick_Tick(object? sender, EventArgs e)
         {
@@ -568,7 +653,7 @@ namespace CMATestVer1
             countdown.ForeColor = _countdownSeconds <= 5 ? Color.Red : Color.DarkGreen;
             countdown.Text = $"⏱ {_countdownSeconds} วินาที";
         }
-        private void StartCountdown(int seconds = 8) // ✅ default ลดเหลือ 10 (ใช้กับ step 2-5)
+        private void StartCountdown(int seconds = 8) 
         {
             _countdownSeconds = seconds;
             countdown.ForeColor = Color.DarkGreen;
@@ -585,10 +670,11 @@ namespace CMATestVer1
         {
             TimeoutTimer.Stop();
             TimeoutTimer.Interval = seconds * 1000; // ✅ ตั้ง timeout จริงให้ตรงกับตัวเลขที่โชว์
-            TimeoutTimer.Start(); // ← เริ่มนับใหม่จาก 0 ทุก step
+            TimeoutTimer.Start(); 
 
             StartCountdown();
         }
+
 
 
 
@@ -621,8 +707,8 @@ namespace CMATestVer1
             if (allPassed)
             {
                 RecieverBox.AppendText($" ผลการตรวจสอบ :  SUCCESS \r\n");
-               // MessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: SUCCESS ✓",
-                                //"Test Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // MessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: SUCCESS ✓",
+                //"Test Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -633,18 +719,25 @@ namespace CMATestVer1
             string finalStatus = allPassed ? "PASS" : "FAIL";
             _parentForm?.OnForm4TestComplete(finalStatus);
 
-            this.Close();
+            if (AutoCloseOnComplete)   // ★ เปลี่ยนจาก this.Close(); ตรงๆ
+            {
+                this.Close();
+            }
         }
+
+
 
 
         //-- step process
         private void DrawStepLed(PictureBox pb, StepState state)
         {
-            if (pb.IsDisposed || !pb.IsHandleCreated && pb.InvokeRequired) return;   // ✅ กันไว้
+            if (pb.IsDisposed) return;   // ✅ เขียนใหม่ให้อ่านง่ายขึ้น (ของเดิม operator precedence สับสน)
 
             if (pb.InvokeRequired)
             {
+                if (!IsSafeToInvoke()) return;   // ✅ เพิ่ม guard ของฟอร์มด้วย ไม่ใช่แค่ของ pb
                 try { pb.Invoke(new Action(() => DrawStepLed(pb, state))); }
+                catch (ObjectDisposedException) { }    // ✅ เพิ่ม
                 catch (InvalidOperationException) { }
                 return;
             }
@@ -704,69 +797,8 @@ namespace CMATestVer1
         }
 
 
+
+
         private void label1_Click(object sender, EventArgs e) { }
-
-        private async Task ResetAndInitializeAsync()
-        {
-            // 1. หยุด Timer ทั้งหมด
-            TimeoutTimer.Stop();
-            silenceTimer.Stop();
-            StopCountdown();
-
-            // 2. Re-subscribe DataReceived เสมอ (ป้องกันกรณี Event หลุดจากการทดสอบครั้งก่อน)
-            if (_serialPort != null)
-            {
-                _serialPort.DataReceived -= DataReceivedHandler;
-                _serialPort.DataReceived += DataReceivedHandler;
-            }
-
-            // 3. Reset ตัวแปรเก็บผลการทดสอบทั้งหมด
-            isFunction1Success = false;
-            isArrowDownSilenceSuccess = false;
-            isFunction2ResumeSuccess = false;
-            isArrowUpSilenceSuccess = false;
-            isFunction3ResumeSuccess = false;
-            _failedSteps.Clear();
-            currentState = AppState.Idle;
-
-            // 4. Reset หน้าจอ UI (ไฟ LED และช่อง Log)
-            ResetAllSteps();
-            RecieverBox.Clear();
-            RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] 🔄 เริ่มต้นระบบใหม่ (Re-initialized)\r\n");
-
-            // 5. เคลียร์ข้อมูลค้างใน Buffer ทั้ง C# และ Hardware SerialPort
-            lock (_lock)
-            {
-                rxBuffer.Clear();
-            }
-
-            if (_serialPort != null && _serialPort.IsOpen)
-            {
-                try
-                {
-                    _serialPort.DiscardInBuffer();
-                    _serialPort.DiscardOutBuffer();
-                }
-                catch { }
-            }
-
-            // 6. หน่วงเวลา 300ms ให้ Port นิ่ง แล้วส่งสัญญาณ 120
-            await Task.Delay(300);
-            SendDisplay120();
-        }
-
-        private async void btnRefreshDisplay_Click(object sender, EventArgs e)
-        {
-            // เตือนก่อนถ้ากำลังทดสอบอยู่
-            if (currentState != AppState.Idle)
-            {
-                var confirm = BigMessageBox.Show("กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?", "ตรวจตอบ", MessageBoxIcon.Warning, MessageBoxButtons.YesNo, fontSize: 14f);
-
-                if (confirm == DialogResult.No) return;
-            }
-
-            // เรียกการตั้งต้นใหม่เหมือนตอนเปิด Form
-            await ResetAndInitializeAsync();
-        }
     }
 }

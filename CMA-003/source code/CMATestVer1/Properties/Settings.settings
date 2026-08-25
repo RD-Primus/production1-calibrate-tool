@@ -14,5 +14,8 @@
     <Setting Name="SavedECN" Type="System.String" Scope="User">
       <Value Profile="(Default)">RD-CN-18-0023</Value>
     </Setting>
+    <Setting Name="SavedREV" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F-PD-07 Rev.6</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

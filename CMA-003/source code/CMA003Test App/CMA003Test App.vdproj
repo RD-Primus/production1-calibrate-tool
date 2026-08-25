@@ -15,12 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_56FCC441BA624B96924855B379B7E2D5"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_99269DA48D78432088FB6274A79CF3E0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -28,6 +22,12 @@
         "Entry"
         {
         "MsmKey" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_E4AD200AD0EA48BC9647DA7E321C654D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -128,10 +128,10 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_56FCC441BA624B96924855B379B7E2D5"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
             {
-            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\template.xlsx"
-            "TargetName" = "8:template.xlsx"
+            "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
+            "TargetName" = "8:Primus_icon.ico"
             "Tag" = "8:"
             "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
             "Condition" = "8:"
@@ -148,10 +148,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E4AD200AD0EA48BC9647DA7E321C654D"
             {
-            "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
-            "TargetName" = "8:Primus_icon.ico"
+            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\template.xlsx"
+            "TargetName" = "8:template.xlsx"
             "Tag" = "8:"
             "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
             "Condition" = "8:"
@@ -225,7 +225,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:CMA003Test App"
         "ProductCode" = "8:{43214E52-97F5-4BCE-B7CF-D97D291AE7A1}"
-        "PackageCode" = "8:{3D4D03A2-DCDE-422C-898D-4BDA1AE47C98}"
+        "PackageCode" = "8:{42E01A56-90CB-475E-99C7-E6EEA3846B70}"
         "UpgradeCode" = "8:{8119DB27-E196-4756-BCC1-215A4FCDF950}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

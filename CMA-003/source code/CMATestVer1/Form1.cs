@@ -36,6 +36,7 @@ namespace CMATestVer1
         private readonly Dictionary<(byte slaveId, int addr), short> _lastRegisterValues
             = new Dictionary<(byte, int), short>();
         private readonly object _regLock = new object();
+        private readonly Dictionary<int, TextBox> _regisTextBoxCache = new Dictionary<int, TextBox>();
 
         private bool TryGetLastRegister(byte slaveId, int addr, out short value)
         {
@@ -86,6 +87,8 @@ namespace CMATestVer1
         private int _autoOpenCountdown = 0;
         private Form4? _form4Instance = null;
         private bool _isForm4ResultReady = false; // ความพร้อมของผลลัพธ์ Form4
+        private enum Form4TriggerMode { AutoFlow, StandaloneWithSN, StandaloneNoSN }
+        private Form4TriggerMode _form4TriggerMode = Form4TriggerMode.AutoFlow;
 
 
         //-- สำหรับการเขียน
@@ -116,6 +119,10 @@ namespace CMATestVer1
         {
             InitializeComponent();
             _token = token;
+            InitAutoScale();
+
+            BigMessageBox.MainOwner = this;
+            _logBuffer.CreateControl();
 
             tabControl2.SelectedIndex = 0;
 
@@ -139,6 +146,7 @@ namespace CMATestVer1
             backgroundWorkerOhm.RunWorkerCompleted += backgroundWorker1_RunWorkerCompleted;
 
             InitStepLeds();
+            CacheRegisTextBoxes();
             txtSerialNumber.Focus();
 
             // ใน Constructor เพิ่ม
@@ -189,6 +197,8 @@ namespace CMATestVer1
                     _ohmPort.Parity = Parity.None;
                     _ohmPort.DataBits = 8;
                     _ohmPort.StopBits = StopBits.One;
+                    _ohmPort.WriteTimeout = 500;   // ★ เพิ่ม
+                    _ohmPort.ReadTimeout = 500;    // ★ เพิ่ม
                     _ohmPort.Open();
 
                     _DisPort.PortName = portDis.SelectedItem.ToString()!;
@@ -196,6 +206,8 @@ namespace CMATestVer1
                     _DisPort.Parity = Parity.None;
                     _DisPort.DataBits = 8;
                     _DisPort.StopBits = StopBits.One;
+                    _DisPort.WriteTimeout = 500;   // ★ เพิ่ม
+                    _DisPort.ReadTimeout = 500;    // ★ เพิ่ม
                     _DisPort.Open();
 
                     //subscribe เพื่อ track timeout ตั้งแต่ connect (แยกจาก handler ของ Form4)
@@ -288,9 +300,11 @@ namespace CMATestVer1
 
                 // ── Reset data source + โหลดข้อมูลใหม่ ───────────────
                 _lastDatabaseData = null;
-                cmbDisplaySource.SelectedIndex = -1;
+
+                cmbDisplaySource.SelectedIndex = 0;
                 cmbLot.SelectedIndex = -1;
                 cmbLot.Text = "";
+
 
                 Get_compoart_list();
                 LoadLotHistory();
@@ -355,10 +369,10 @@ namespace CMATestVer1
                 }
             }
 
-            RxBox.Clear();
+            ClearRxLog();
 
-            chkCal.Checked = false;
-            chkTest.Checked = false;
+            //chkCal.Checked = false;
+            //chkTest.Checked = false;
 
             txtSerialNumber.ReadOnly = false;
             txtSerialNumber.BackColor = SystemColors.Window;
@@ -375,9 +389,11 @@ namespace CMATestVer1
             lblConnStatusValue.ForeColor = connected ? Color.FromArgb(0, 140, 0) : Color.Red;
 
             btnConnect.Text = connected ? "Disconnect" : "Connect";
+            //btnConnect.ForeColor = connected ? Color.Red : Color.Black;
             //btnConnect.BackColor = connected ? Color.LightGreen : Color.LightCoral;
-        }
 
+            UpdateOpenForm4ButtonState();   // ★ เพิ่ม
+        }
         private void Get_compoart_list()
         {
             PortBox.Items.Clear();
@@ -397,9 +413,9 @@ namespace CMATestVer1
                 }
             }
 
-            PortBox.SelectedIndex = 0;
-            SerialboxOhm.SelectedIndex = 0;
-            portDis.SelectedIndex = 0;
+            PortBox.SelectedIndex = -1;
+            SerialboxOhm.SelectedIndex = -1;
+            portDis.SelectedIndex = -1;
 
             PortBox.Text = "";
             SerialboxOhm.Text = "";
@@ -420,13 +436,11 @@ namespace CMATestVer1
 
             timer1.Stop();
 
-            // 1. ถ้าระบบหลักทำงานค้างอยู่ ให้สั่งยกเลิกทันที
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorkerOhm.IsBusy)
             {
-                backgroundWorker1.CancelAsync();
+                backgroundWorkerOhm.CancelAsync();
             }
 
-            // 2. ถ้า Form4 เปิดค้างอยู่ให้ปิดตัวลงทันทีเพราะสายหลุดแล้ว
             if (_form4Instance != null && !_form4Instance.IsDisposed)
             {
                 try
@@ -441,11 +455,15 @@ namespace CMATestVer1
                 _form4Instance = null;
             }
 
-            //unsubscribe handler ของ Form1 เองด้วย
             try { if (_DisPort != null) _DisPort.DataReceived -= DisPort_TimeoutTracker; } catch { }
 
-            // ปิดพอร์ตก่อนเพื่อให้ DataReceivedHandler หยุดทำงาน
-            try { if (_serialPort?.IsOpen == true) _serialPort.Close(); } catch { }
+            // ★ ห่อ Close() ของ _serialPort ด้วย _lock ตัวเดียวกับที่ SendFrame ใช้
+            // เพื่อการันตีว่าไม่มี Write() กำลังทำงานอยู่พอดีตอน Close()
+            lock (_lock)
+            {
+                try { if (_serialPort?.IsOpen == true) _serialPort.Close(); } catch { }
+            }
+
             try { if (_ohmPort?.IsOpen == true) _ohmPort.Close(); } catch { }
             try { if (_DisPort?.IsOpen == true) _DisPort.Close(); } catch { }
 
@@ -456,7 +474,6 @@ namespace CMATestVer1
 
             ResetRuntimeStateAndUI();
 
-            // 3. รีเซ็ตปุ่มกลับมาพร้อมทำงานรอบถัดไป
             btnRun.Text = "Run";
             btnRun.Enabled = true;
             bntStop.Enabled = false;
@@ -484,9 +501,11 @@ namespace CMATestVer1
         private void btnClr_Click(object sender, EventArgs e)
         {
             RxBox.Clear();
+            _logBuffer.Clear();
         }
 
 
+        
         //-- ส่วนของการส่งข้อมูล
         private double _currentPv;
         private double _currentSV;
@@ -496,6 +515,7 @@ namespace CMATestVer1
         private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             if (_serialPort == null || !_serialPort.IsOpen) return;
+            if (!IsSafeToInvoke()) return;
 
             try
             {
@@ -509,7 +529,8 @@ namespace CMATestVer1
 
                 ParseModbusRTU();
             }
-            catch { /* พอร์ตปิดระหว่างอ่าน — ไม่ต้องทำอะไร */ }
+            catch (ObjectDisposedException) { }   // กันเวลาบัง blanket catch หลุด edge case
+            catch { }
         }
         private void DisPort_TimeoutTracker(object sender, SerialDataReceivedEventArgs e)
         {
@@ -571,47 +592,48 @@ namespace CMATestVer1
                 UpdatePH01UI(frame);
             }
         }
-
         private void UpdatePH01UI(byte[] frame)
         {
-            lock (_id3TimeLock) { _lastID3FrameTime = DateTime.Now; }
-
             if (frame.Length >= 5 && frame[1] == 0x03)
             {
                 int byteCount = frame[2];
                 int numRegs = byteCount / 2;
 
-                this.BeginInvoke(new MethodInvoker(() =>
+                // ★ อัปเดตค่า status แบบ synchronous ทันที ไม่ต้องรอคิว UI thread
+                for (int i = 0; i < numRegs; i++)
                 {
-                    for (int i = 0; i < numRegs; i++)
+                    short value = (short)(frame[3 + (i * 2)] << 8 | frame[4 + (i * 2)]);
+
+                    switch (i)
                     {
-                        short value = (short)(frame[3 + (i * 2)] << 8 | frame[4 + (i * 2)]);
-
-                        switch (i)
-                        {
-                            case 0:
-                                _alarm2IsOn = (value != 0);
-                                break;
-
-                            case 1:
-                                _alarm1IsOn = (value != 0);
-                                break;
-                            case 3:
-                                ID3_reg3IsOn = (value != 0);
-                                DrawLedBulb(picCoolFan, ID3_reg3IsOn, Color.Red);
-                                break;
-                            case 4:
-                                ID3_reg4IsOn = (value != 0);
-                                DrawLedBulb(picHotFan, ID3_reg4IsOn, Color.Red);
-                                break;
-                            case 5:
-                                ID3_reg5IsOn = (value != 0);
-                                DrawLedBulb(picCom, ID3_reg5IsOn, Color.Red);
-                                break;
-                        }
-
+                        case 0:
+                            _alarm2IsOn = (value != 0);
+                            break;
+                        case 1:
+                            _alarm1IsOn = (value != 0);
+                            break;
+                        case 3:
+                            ID3_reg3IsOn = (value != 0);
+                            break;
+                        case 4:
+                            ID3_reg4IsOn = (value != 0);
+                            break;
+                        case 5:
+                            ID3_reg5IsOn = (value != 0);
+                            break;
                     }
-                }));
+                }
+
+                // ★ ประทับเวลาหลังจากค่าจริงอัปเดตครบแล้วเท่านั้น
+                lock (_id3TimeLock) { _lastID3FrameTime = DateTime.Now; }
+
+                // ส่วนวาด LED ที่ต้องแตะ UI control ค่อยส่งเข้า UI thread แยกต่างหาก
+                SafeBeginInvoke(() =>
+                {
+                    DrawLedBulb(picCoolFan, ID3_reg3IsOn, Color.Red);
+                    DrawLedBulb(picHotFan, ID3_reg4IsOn, Color.Red);
+                    DrawLedBulb(picCom, ID3_reg5IsOn, Color.Red);
+                });
             }
             else if (frame[1] == 0x06)
             {
@@ -640,11 +662,11 @@ namespace CMATestVer1
                     }
                 }
 
-                this.BeginInvoke(new MethodInvoker(() =>
+                SafeBeginInvoke(() =>
                 {
                     DrawLedBulb(picWL, ID2_reg0IsOn, Color.Red);
                     DrawLedBulb(picHp, ID2_reg1IsOn, Color.Red);
-                }));
+                });
             }
             else if (frame[1] == 0x06)
             {
@@ -664,7 +686,7 @@ namespace CMATestVer1
                 int byteCount = frame[2];
                 int numRegs = byteCount / 2;
 
-                this.BeginInvoke(new MethodInvoker(() =>
+                SafeBeginInvoke(() =>
                 {
                     for (int i = 0; i < numRegs; i++)
                     {
@@ -673,10 +695,7 @@ namespace CMATestVer1
 
                         lock (_regLock) { _lastRegisterValues[((byte)1, actualRegister)] = value; }
 
-                        string targetName = "Regis" + actualRegister;
-                        Control[] found = this.Controls.Find(targetName, true);
-
-                        if (found.Length > 0 && found[0] is TextBox txt)
+                        if (_regisTextBoxCache.TryGetValue(actualRegister, out TextBox? txt) && txt != null)
                         {
                             if (!txt.Focused)
                             {
@@ -731,7 +750,7 @@ namespace CMATestVer1
                                 break;
                         }
                     }
-                }));
+                });
             }
             else if (frame[1] == 0x06)
             {
@@ -739,16 +758,11 @@ namespace CMATestVer1
                 int val = (frame[4] << 8) | frame[5];
 
                 lock (_regLock) { _lastRegisterValues[((byte)1, addr)] = (short)val; }
-
-                // ✅ reset _isWriting เฉพาะตอนได้ ack เขียนจริงๆ เท่านั้น
                 _isWriting = false;
 
-                this.Invoke(new MethodInvoker(() =>
+                SafeBeginInvoke(() =>
                 {
-                    string targetName = "Regis" + addr;
-                    Control[] found = this.Controls.Find(targetName, true);
-
-                    if (found.Length > 0 && found[0] is TextBox txt)
+                    if (_regisTextBoxCache.TryGetValue(addr, out TextBox? txt) && txt != null)
                     {
                         if (addr == 1)
                         {
@@ -761,7 +775,7 @@ namespace CMATestVer1
 
                         txt.ForeColor = Color.Blue;
                     }
-                }));
+                });
             }
             else if (frame[1] == 0x55)
             {
@@ -770,37 +784,41 @@ namespace CMATestVer1
         }
         private void SendFrame(byte[] data)
         {
+            bool portClosed = false;
+
             lock (_lock)
             {
                 if (_serialPort == null || !_serialPort.IsOpen)
                 {
-                    HandleDisconnect("Port is closed.");
-                    return;
+                    portClosed = true;
                 }
-
-                try
+                else
                 {
-                    byte[] crc = CalculateCRC(data);
-                    byte[] frame = new byte[data.Length + 2];
-
-                    Array.Copy(data, frame, data.Length);
-
-                    frame[data.Length] = crc[0];
-                    frame[data.Length + 1] = crc[1];
-
-
-                    if (_serialPort.IsOpen)
+                    try
                     {
-                        _serialPort.Write(frame, 0, frame.Length);
+                        byte[] crc = CalculateCRC(data);
+                        byte[] frame = new byte[data.Length + 2];
+                        Array.Copy(data, frame, data.Length);
+                        frame[data.Length] = crc[0];
+                        frame[data.Length + 1] = crc[1];
+
+                        if (_serialPort.IsOpen)
+                        {
+                            _serialPort.Write(frame, 0, frame.Length);
+                        }
                     }
-
-
+                    catch (Exception ex)
+                    {
+                        portClosed = true;
+                        SafeBeginInvoke(() => HandleDisconnect("Write Error: " + ex.Message));
+                        return;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    // ใช้ BeginInvoke แทน Invoke เพื่อไม่ให้ block thread นี้
-                    this.BeginInvoke(new Action(() => HandleDisconnect("Write Error: " + ex.Message)));
-                }
+            }
+
+            if (portClosed)
+            {
+                SafeBeginInvoke(() => HandleDisconnect("Port is closed."));
             }
         }
         private byte[] CalculateCRC(byte[] data)
@@ -823,6 +841,24 @@ namespace CMATestVer1
             return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
         }
 
+        private bool IsSafeToInvoke()
+        {
+            return !this.IsDisposed && this.IsHandleCreated;
+        }
+        private void SafeBeginInvoke(Action action)
+        {
+            if (!IsSafeToInvoke()) return;
+            try { this.BeginInvoke(action); }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
+        }
+        private void SafeInvoke(Action action)
+        {
+            if (!IsSafeToInvoke()) return;
+            try { this.Invoke(action); }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
+        }
 
 
         //-- timer
@@ -909,25 +945,11 @@ namespace CMATestVer1
             finally
             {
                 _timerBusy = false;
+                UpdateOpenForm4ButtonState();
             }
         }
 
-        private void OpenForm4Deferred()
-        {
-            if (_form4Instance != null && !_form4Instance.IsDisposed)
-            {
-                if (_DisPort != null)
-                {
-                    _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
-                }
-                _form4Instance.Close();
-                _form4Instance = null;
-            }
-
-            _form4Instance = new Form4(_DisPort!, this);
-            _form4Instance.Owner = this;
-            _form4Instance.Show();
-        }
+        
 
 
         //-- ส่วนของการสั่งอ่านและเขียน
@@ -993,43 +1015,6 @@ namespace CMATestVer1
             frame[5] = (byte)(value & 0xFF);
 
             SendFrame(frame);
-        }
-
-
-        private void CommonRegis_Enter(object sender, EventArgs e)
-        {
-            if (sender is TextBox txt)
-            {
-                _originalText = txt.Text; // จำค่าเดิมเอาไว้ก่อน
-            }
-        }
-        private void CommonRegis_TextChanged(object sender, EventArgs e)
-        {
-            if (sender is TextBox txt)
-            {
-                // ถ้าพิมพ์แล้วค่าเหมือนเดิมเป๊ะ ไม่ต้องปรับเป็น Dirty (ป้องกันกรณีกด Backspace แล้วพิมพ์ตัวเดิม)
-                if (txt.Text == _originalText)
-                {
-                    _dirtyRegis.Remove(txt.Name);
-                }
-                else
-                {
-                    _dirtyRegis.Add(txt.Name);
-                }
-            }
-        }
-        private void CommonRegis_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-                WriteRegisValue(sender);
-                this.ActiveControl = null; // ← ทำให้ focus ออก = trigger Leave ด้วย
-            }
-        }
-        private void CommonRegis_Leave(object sender, EventArgs e)
-        {
-
         }
 
         // เขียน Register
@@ -1137,24 +1122,60 @@ namespace CMATestVer1
             }
         }
 
+        private void CommonRegis_Enter(object sender, EventArgs e)
+        {
+            if (sender is TextBox txt)
+            {
+                _originalText = txt.Text; // จำค่าเดิมเอาไว้ก่อน
+            }
+        }
+        private void CommonRegis_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is TextBox txt)
+            {
+                // ถ้าพิมพ์แล้วค่าเหมือนเดิมเป๊ะ ไม่ต้องปรับเป็น Dirty (ป้องกันกรณีกด Backspace แล้วพิมพ์ตัวเดิม)
+                if (txt.Text == _originalText)
+                {
+                    _dirtyRegis.Remove(txt.Name);
+                }
+                else
+                {
+                    _dirtyRegis.Add(txt.Name);
+                }
+            }
+        }
+        private void CommonRegis_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                WriteRegisValue(sender);
+                this.ActiveControl = null; // ← ทำให้ focus ออก = trigger Leave ด้วย
+            }
+        }
+        private void CommonRegis_Leave(object sender, EventArgs e){}
+
+
+
 
 
         //-- ส่วนของการสั่งให้ทำงาน Run, Stop
         private enum WorkerMode { Calibrate, Test, CalAndTest, CalAndSaveExcel }
         private WorkerMode _currentMode;
-
         private int _testStepResumed = 0;
         private bool _calDone = false;
 
         private async void btnRun_Click(object sender, EventArgs e)
         {
+            if (backgroundWorkerOhm.IsBusy || !btnRun.Enabled) return;
+
             txtSerialNumber.BackColor = SystemColors.Window;
             txtSerialNumber.ReadOnly = true; // ล็อคระหว่าง Run
 
             if (!_serialPort.IsOpen || !_ohmPort.IsOpen)
             {
                 BigMessageBox.Show("กรุณาเชื่อมต่อพอร์ตให้ครบ", "Warning", MessageBoxIcon.Warning, fontSize: 14f);
-                txtSerialNumber.ReadOnly = false; // ปลดล็อกกลับคืน
+                txtSerialNumber.ReadOnly = false;
                 return;
             }
 
@@ -1163,7 +1184,7 @@ namespace CMATestVer1
             if (isTestMode && string.IsNullOrWhiteSpace(txtSerialNumber.Text))
             {
                 BigMessageBox.Show("กรุณาใส่ Serial Number ก่อนกด Run!", "Warning", MessageBoxIcon.Warning, fontSize: 14f);
-                txtSerialNumber.ReadOnly = false; // ปลดล็อกกลับคืน
+                txtSerialNumber.ReadOnly = false;
                 txtSerialNumber.Focus();
                 return;
             }
@@ -1171,10 +1192,9 @@ namespace CMATestVer1
             if (!chkCal.Checked && !chkTest.Checked)
             {
                 BigMessageBox.Show("กรุณาเลือกอย่างน้อย 1 กระบวนการ (Cal/Test)", "Warning", MessageBoxIcon.Warning, fontSize: 14f);
-                txtSerialNumber.ReadOnly = false; // ปลดล็อกกลับคืน
+                txtSerialNumber.ReadOnly = false;
                 return;
             }
-
 
             if (chkCal.Checked && chkTest.Checked)
                 _currentMode = WorkerMode.CalAndTest;
@@ -1191,28 +1211,29 @@ namespace CMATestVer1
                 _ => ""
             };
 
-            //var confirm = MessageBox.Show($"เริ่ม {modeText} ใช่หรือไม่?", "Confirm", MessageBoxButtons.YesNo);
+            // 1. เปลี่ยนการเช็กเป็น != DialogResult.Yes เพื่อป้องกันการกดปิดกากบาท (X) หรือ Cancel หลุดเข้าไปทำงาน
             var confirm = BigMessageBox.Show($"เริ่ม {modeText} ใช่หรือไม่?", "Confirm", MessageBoxIcon.Question, MessageBoxButtons.YesNo, fontSize: 14f);
-
-            if (confirm == DialogResult.No)
+            if (confirm != DialogResult.Yes)
             {
                 txtSerialNumber.ReadOnly = false;
                 return;
             }
 
+            btnRun.Text = "Running...";
+            btnRun.Enabled = false;
+
             _autoOpenCountdown = isTestMode ? 8 : 0;
             _runStopwatch.Restart();
 
             bool isCalibrateMode = (_currentMode == WorkerMode.Calibrate || _currentMode == WorkerMode.CalAndTest);
-
             bool hasCalPending = isCalibrateMode && _sequenceStep > 0 && !_calDone;
             bool hasTestPending = isTestMode && _testStepResumed > 0 && _testStepResumed < 8;
 
             List<string> sequenceValues = new List<string>
-                   {
-                        "100", "150", "300", "600", "1000", "1200", "1600",
-                        "1800", "2000", "2600", "4000", "6000", "10000", "30000"
-                   };
+                {
+                    "100", "150", "300", "600", "1000", "1200", "1600",
+                    "1800", "2000", "2600", "4000", "6000", "10000", "30000"
+                };
 
             if (hasCalPending || hasTestPending)
             {
@@ -1220,26 +1241,16 @@ namespace CMATestVer1
                 if (hasCalPending) detail += $"• Cal: ค้างอยู่ที่จุดที่ {_sequenceStep}/{sequenceValues.Count}\n";
                 if (hasTestPending) detail += $"• Test: ค้างอยู่ที่ Step {_testStepResumed}\n";
 
-                //var resume = MessageBox.Show(
-                //    $"มีงานค้างอยู่:\n{detail}\n" +
-                //    $"กด Yes = ทำต่อจากที่หยุด\n" +
-                //    $"กด No  = เริ่มใหม่ทั้งหมด",
-                //    "Resume หรือ Restart?",
-                //    MessageBoxButtons.YesNo,
-                //    MessageBoxIcon.Question);
-
                 var resume = BigMessageBox.Show(
                     $"มีงานค้างอยู่:\n{detail}\n" +
                     $"กด Yes = ทำต่อจากที่หยุด\n" +
                     $"กด No  = เริ่มใหม่ทั้งหมด",
-                    "Resume หรือ Restart?", 
+                    "Resume หรือ Restart?",
                     MessageBoxIcon.Question, MessageBoxButtons.YesNo, fontSize: 14f);
 
                 if (resume == DialogResult.Yes)
                 {
-                    //RxBox.Clear();
                     LogToRx("ทำต่อจากที่หยุด...");
-
                 }
                 else
                 {
@@ -1249,7 +1260,7 @@ namespace CMATestVer1
                     _testStepResumed = 0;
                     _calDone = false;
                     Array.Clear(finalAdcArray, 0, finalAdcArray.Length);
-                    RxBox.Clear();
+                    ClearRxLog(); // ล้าง Log เก่าออกเมื่อเลือกเริ่มใหม่
                     LogToRx("เริ่มใหม่ทั้งหมด");
                 }
             }
@@ -1261,29 +1272,26 @@ namespace CMATestVer1
                 _testStepResumed = 0;
                 _calDone = false;
                 Array.Clear(finalAdcArray, 0, finalAdcArray.Length);
-                RxBox.Clear();
+                ClearRxLog();
             }
 
             progressBar1.Value = 0;
             await Task.Delay(500);
 
-            btnRun.Text = "Running...";
-            btnRun.Enabled = false;
             bntStop.Enabled = true;
             btnRun.BackColor = Color.Orange;
 
-            RxBox.Clear();
+            // 2. ลบคำสั่ง ClearRxLog(); บรรทัดนี้ออก เพราะจะไปลบข้อความ "ทำต่อจากที่หยุด..." ทิ้งทันที
 
             _isForm4ResultReady = false;
+            _form4TestAlreadyDone = false;
+            _form4ManuallyClosed = false;
+            _pendingForm4ResultAfterRun = false;
             backgroundWorkerOhm.RunWorkerAsync(sequenceValues);
-
         }
         private void bntStop_Click(object sender, EventArgs e)
         {
             if (!backgroundWorkerOhm.IsBusy) return;
-
-            //var confirm = MessageBox.Show("ต้องการหยุดกระบวนการใช่หรือไม่?", "Confirm", MessageBoxButtons.YesNo);
-
             var confirm = BigMessageBox.Show("ต้องการหยุดกระบวนการใช่หรือไม่?", "Confirm",
                 MessageBoxIcon.Question, MessageBoxButtons.YesNo, fontSize: 14f);
 
@@ -1293,6 +1301,7 @@ namespace CMATestVer1
             LogToRx("กำลังหยุดกระบวนการ...", Color.Orange);
             bntStop.Enabled = false;
         }
+
 
 
 
@@ -1344,7 +1353,27 @@ namespace CMATestVer1
                 {
                     SendOhm(ohmValue);
                     System.Threading.Thread.Sleep(500);
-                    CollectDataToArray(ohmValue);
+
+                    var adcResult = CollectDataToArray(ohmValue);
+
+                    if (backgroundWorkerOhm.CancellationPending) { e.Cancel = true; return; }
+
+                    if (adcResult != AdcReadResult.Ok)
+                    {
+                        string faultMsg = adcResult switch
+                        {
+                            AdcReadResult.NoData => $"ไม่ได้รับข้อมูล ADC จากบอร์ดที่จุด {ohmValue} Ohm\nกรุณาตรวจสอบการเชื่อมต่อบอร์ด",
+                            AdcReadResult.Shorted => $"ตรวจพบ ADC = 0 ที่จุด {ohmValue} Ohm\nOhm Source อาจช็อต กรุณาตรวจสอบ",
+                            AdcReadResult.Open => $"ตรวจพบ ADC = FFFF ที่จุด {ohmValue} Ohm\nสาย Ohm Source อาจหลวมหรือหลุด กรุณาตรวจสอบ",
+                            _ => "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุระหว่าง Calibrate"
+                        };
+
+                        LogToRx($"[STOP] {faultMsg}", Color.Red);
+                        SafeBeginInvoke(() => BigMessageBox.Show(faultMsg, "Calibration หยุดทำงาน", MessageBoxIcon.Error, MessageBoxButtons.OK, fontSize: 14f));
+
+                        e.Cancel = true;
+                        return;
+                    }
                 }
 
                 _sequenceStep = idx + 1;
@@ -1369,10 +1398,6 @@ namespace CMATestVer1
 
             e.Result = "SUCCESS";
         }
-
-        private int _calAttemptCount = 0;
-        private const int MaxCalAttempts = 3;
-        private bool _ohmCheckFailed = false; // true เฉพาะตอน fail ที่จุด 200/2000/8000 Ohm
         private void DoTest(DoWorkEventArgs e, int progressStart = 0, int progressEnd = 100)
         {
             LogToRx("--- เริ่มกระบวนการ Test ---");
@@ -1406,9 +1431,7 @@ namespace CMATestVer1
 
                 backgroundWorkerOhm.ReportProgress(Pct(10));
                 if (!VerifyOhmValueSync(200, 99.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
-
-
-
+                if (!CancellableSleep(100)) { e.Cancel = true; return; }
                 _testStepResumed = 3;
             }
 
@@ -1416,6 +1439,7 @@ namespace CMATestVer1
             {
                 backgroundWorkerOhm.ReportProgress(Pct(15));
                 if (!VerifyOhmValueSync(818, 50.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!CancellableSleep(100)) { e.Cancel = true; return; }
                 _testStepResumed = 4;
             }
 
@@ -1423,6 +1447,7 @@ namespace CMATestVer1
             {
                 backgroundWorkerOhm.ReportProgress(Pct(20));
                 if (!VerifyOhmValueSync(1150, 40.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!CancellableSleep(100)) { e.Cancel = true; return; }
                 _testStepResumed = 5;
             }
 
@@ -1430,6 +1455,7 @@ namespace CMATestVer1
             {
                 backgroundWorkerOhm.ReportProgress(Pct(25));
                 if (!VerifyOhmValueSync(1653, 30.0)) { _ohmCheckFailed = true; e.Result = "FAILED"; return; }
+                if (!CancellableSleep(100)) { e.Cancel = true; return; }
                 _testStepResumed = 6;
             }
 
@@ -1486,6 +1512,7 @@ namespace CMATestVer1
                 if (!CheckRegisterStatus(2, 1, 1, true, "ไฟ HP")) { e.Result = "FAILED"; return; }
                 if (!WriteAndVerifyFlag(2, 0, 1, () => ID2_reg0IsOn, true)) { ReportStepFailure(e); return; }
 
+                if (!WriteRegister(1, 12, 1)) { ReportStepFailure(e); return; }  //CLA
                 if (!CancellableSleep(1000)) { e.Cancel = true; return; }
                 SetStep(3, StepState.Pass);
                 _testStepResumed = 11;
@@ -1568,50 +1595,283 @@ namespace CMATestVer1
             e.Result = "SUCCESS";
         }
 
-        private bool CheckCompressorAndHotFan(int timeoutSeconds = 20)
+
+
+
+        //-- ส่วนของการทำงานเบื้องหลัง
+        private void backgroundWorker1_DoWork(object? sender, DoWorkEventArgs e)
         {
-            LogToRx("กำลังตรวจสอบ Compressor และ HotFan");
-
-            bool isCompressorOn = false;
-            bool isHotFanOn = false;
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-
-            while (sw.Elapsed.TotalSeconds < timeoutSeconds)
+            switch (_currentMode)
             {
-                if (ID3_reg5IsOn) isCompressorOn = true;
-                if (ID3_reg4IsOn) isHotFanOn = true;
+                case WorkerMode.Calibrate:
+                    DoCalibrate(e, 0, 100);
+                    break;
 
-                if (isCompressorOn && isHotFanOn) break;
+                case WorkerMode.CalAndSaveExcel:
+                    DoCalibrate(e, 0, 100);
+                    break;
 
-                if (backgroundWorkerOhm.CancellationPending) return false;
-                if (!CancellableSleep(200)) return false;
+                case WorkerMode.Test:
+                    DoTest(e, 0, 100);
+                    break;
+
+                case WorkerMode.CalAndTest:
+                    DoCalAndTestWithRetry(e);
+                    break;
             }
-
-            if (isCompressorOn)
+        }
+        private void backgroundWorker1_ProgressChanged(object? sender, ProgressChangedEventArgs e)
+        {
+            if (progressBar1.InvokeRequired)
             {
-                _Compressor = "OK";
-                LogToRx("[PASS] Compressor ทำงาน", Color.Green);
-            }
-            else
-            {
-                _Compressor = "FAIL";
-                LogToRx("[FAIL] Compressor ไม่ทำงาน!", Color.Red);
-            }
-
-            if (isHotFanOn)
-            {
-                _HotFan = "OK";
-                LogToRx("[PASS] HotFan ทำงาน", Color.Green);
+                progressBar1.Invoke(new Action(() => progressBar1.Value = e.ProgressPercentage));
             }
             else
             {
-                _HotFan = "FAIL";
-                LogToRx("[FAIL] HotFan ไม่ทำงาน!", Color.Red);
+                progressBar1.Value = e.ProgressPercentage;
             }
+        }
+        private void backgroundWorker1_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        {
+            btnRun.Text = "Run";
+            btnRun.Enabled = true;
+            bntStop.Enabled = false;
+            btnRun.BackColor = Color.Gold;
 
-            return isCompressorOn && isHotFanOn;
+            UpdateOpenForm4ButtonState();
+
+            btnCalSave.Text = "ทดสอบ";
+            btnCalSave.Enabled = true;
+            btnRun.Enabled = true;
+
+            txtSerialNumber.ReadOnly = false;
+            //txtSerialNumber.Clear();      
+            txtSerialNumber.Focus();
+
+            progressBar1.Value = 100;
+
+            _runStopwatch.Stop();
+
+            ExecuteWriteSingleRegister(2, 0, 0);
+            System.Threading.Thread.Sleep(100);
+            ExecuteWriteSingleRegister(2, 1, 0);
+
+            var t = _runStopwatch.Elapsed;
+            lblElapsedTime.Text = $"{t.Minutes:D2}:{t.Seconds:D2}";
+
+            string modeLabel = _currentMode switch
+            {
+                WorkerMode.Calibrate => "Calibration",
+                WorkerMode.Test => "Test",
+                WorkerMode.CalAndTest => "Cal + Test",
+                WorkerMode.CalAndSaveExcel => "Calibration & Save",
+                _ => ""
+            };
+
+            bool hasTest = (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
+
+            if (e.Cancelled)
+            {
+                CloseForm4IfOpen();
+                LogToRx($"{modeLabel}: หยุดการทำงานชั่วคราว");
+            }
+            else if (e.Error != null)
+            {
+                CloseForm4IfOpen();
+                BigMessageBox.Show("เกิดข้อผิดพลาด: " + e.Error.Message, "Error", MessageBoxIcon.Error, MessageBoxButtons.OK, fontSize: 14f);
+            }
+            else if (e.Result?.ToString() == "SUCCESS")
+            {
+                if (_currentMode == WorkerMode.CalAndSaveExcel)
+                {
+                    SaveAdcToExcel(finalAdcArray);
+                    BigMessageBox.Show("Calibration และบันทึกข้อมูลลง Excel สำเร็จ!", "Success", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
+                    return;
+                }
+
+                _sequenceStep = 0;
+                _testStepResumed = 0;
+                _calDone = false;
+
+                //chkCal.Checked = false;
+                //chkTest.Checked = false;
+
+                LogToRx($"{modeLabel}: เสร็จสิ้นสมบูรณ์", Color.Green);
+                BigMessageBox.Show($"{modeLabel} เสร็จสิ้น!", "Success", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
+
+                if (hasTest)
+                {
+                    if (_isForm4ResultReady)
+                    {
+                        bool btnAllPass = (_btnFunctionResult == "OK" || _btnFunctionResult == "-")
+                                       && (_btnDownResult == "OK" || _btnDownResult == "-")
+                                       && (_btnUpResult == "OK" || _btnUpResult == "-");
+                        string finalStatus = btnAllPass ? "PASS" : "FAIL";
+                        SaveTestDataToExcel(finalStatus);
+                    }
+                    else
+                    {
+                        _pendingForm4ResultAfterRun = true;
+                        LogToRx("รอผลการทดสอบปุ่มจาก Form4 เพื่อบันทึกข้อมูล...", Color.Orange);
+                    }
+                }
+            }
+            else
+            {
+                CloseForm4IfOpen();
+                LogToRx($"{modeLabel}: ล้มเหลว");
+                BigMessageBox.Show($"ไม่สามารถ {modeLabel} ได้ตามเกณฑ์ที่กำหนด", "Failed", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
+                if (hasTest) SaveTestDataToExcel("FAIL");
+            }
         }
 
+
+
+
+        
+        //เตรียมค่า ADC สำหรับ Cal
+        private enum AdcReadResult { Ok, NoData, Shorted, Open }
+        public void SendOhm(double ohmValue) // 1. เปลี่ยนตรงนี้จาก int เป็น double
+        {
+            if (_ohmPort == null || !_ohmPort.IsOpen)
+            {
+                SafeBeginInvoke(() => BigMessageBox.Show("กรุณาเชื่อมต่อพอร์ต Ohm ก่อนครับ", "Warning", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f));
+                return;
+            }
+
+            try
+            {
+                int multiplier = chkMultiplyBy100.Checked ? 100 : 10;
+
+                // 2. คูณเสร็จแล้วใช้ Math.Round ปัดเศษให้เป็นจำนวนเต็ม ก่อนจะแปลงเป็น int
+                int result = (int)Math.Round(ohmValue * multiplier);
+
+                // --- ส่วนการแปลง Hex และส่งข้อมูลด้านล่างนี้ใช้เหมือนเดิมได้เลยครับ ---
+                string resultHex = result.ToString("X").PadLeft(8, '0');
+                string reversedStr = resultHex.Substring(6, 2) + resultHex.Substring(4, 2) +
+                                     resultHex.Substring(2, 2) + resultHex.Substring(0, 2);
+                reversedStr = reversedStr.PadRight(10, '0');
+
+                byte[] byteArray = Enumerable.Range(0, reversedStr.Length / 2)
+                                     .Select(x => Convert.ToByte(reversedStr.Substring(x * 2, 2), 16))
+                                     .ToArray();
+
+                byte[] finalFrame = new byte[] { 0x50 }.Concat(byteArray).ToArray();
+
+                _ohmPort.DiscardOutBuffer();
+                _ohmPort.Write(finalFrame, 0, finalFrame.Length);
+
+            }
+            catch (Exception ex)
+            {
+                this.BeginInvoke(new Action(() => HandleDisconnect("Ohm Port Write Error: " + ex.Message)));
+            }
+        }
+        private AdcReadResult CollectDataToArray(int currentOhm)
+        {
+            int waitSteps = (currentOhm == 100) ? 60 : 50;
+
+            for (int i = 0; i < waitSteps; i++)
+            {
+                if (backgroundWorkerOhm.CancellationPending) return AdcReadResult.Ok; // ให้ loop เดิมจัดการ cancel เอง
+                System.Threading.Thread.Sleep(100);
+            }
+
+            double lastValue = 0;
+            bool hasData = false; // ★ เพิ่ม: แยกกรณี buffer ว่างจริงๆ ออกจากค่า 0 จริง
+
+            lock (_tempAdcBuffer)
+            {
+                if (_tempAdcBuffer.Count > 0)
+                {
+                    lastValue = _tempAdcBuffer[_tempAdcBuffer.Count - 1];
+                    hasData = true;
+                    _tempAdcBuffer.Clear();
+                }
+            }
+
+            // ★ กรณี A: ไม่มีข้อมูล ADC เข้ามาเลย (บอร์ดไม่ตอบ/ไม่เกี่ยวกับ Ohm Source)
+            if (!hasData)
+            {
+                return AdcReadResult.NoData;
+            }
+
+            int adcIntValue = (int)lastValue;
+
+            // ★ กรณี B: ADC = 0 -> Ohm Source ช็อต
+            if (adcIntValue == 0)
+            {
+                return AdcReadResult.Shorted;
+            }
+
+            // ★ กรณี C: ADC = 0xFFFF (65535) -> สาย Ohm Source หลวมหรือหลุด
+            if (adcIntValue == 0xFFFF)
+            {
+                return AdcReadResult.Open;
+            }
+
+            // ── ค่าปกติ: เก็บลง array เหมือนเดิม ──────────────────────
+            if (_sequenceStep < finalAdcArray.Length)
+            {
+                finalAdcArray[_sequenceStep] = lastValue;
+
+                SafeInvoke(() =>
+                {
+                    string timeStamp = DateTime.Now.ToString("HH:mm:ss");
+                    LogToRx($"ADC: {adcIntValue:X4} ({adcIntValue})|Ohm: {currentOhm}", Color.Black);
+                });
+
+                _sequenceStep++;
+            }
+
+            return AdcReadResult.Ok;
+        }
+        private byte[] PrepareCalibrationFrame()
+        {
+            string generatedHex = "";
+            string displayLog = "\r\n--- Final CalData to be Sent (Reversed & Modified) ---\r\n";
+
+            for (int i = 13; i >= 0; i--)
+            {
+                short valueToConvert = (short)finalAdcArray[i];
+
+                string hexPart = valueToConvert.ToString("X4");
+                generatedHex += hexPart;
+
+                displayLog += $"Index [{i:D2}] -> {hexPart}\r\n";
+            }
+
+            displayLog += "------------------------------------------------------\r\n";
+
+            LogToRx(displayLog);
+
+
+            byte[] header = { 0x01, 0x55, 0x00, 0x00, 0x00, 0x10, 0x20, 0x50, 0x41, 0x53, 0x53 };
+            byte[] calData = HexStringToByteArray(generatedHex);
+
+            byte[] fullFrame = new byte[header.Length + calData.Length];
+            Array.Copy(header, 0, fullFrame, 0, header.Length);
+            Array.Copy(calData, 0, fullFrame, header.Length, calData.Length);
+
+            return fullFrame;
+        }
+        private byte[] HexStringToByteArray(string hex)
+        {
+            hex = hex.Replace(" ", "").Replace("-", "");
+            try
+            {
+                byte[] buffer = new byte[hex.Length / 2];
+                for (int i = 0; i < hex.Length; i += 2)
+                {
+                    buffer[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+                }
+                return buffer;
+            }
+            catch
+            {
+                throw new Exception("รูปแบบ Hex ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง");
+            }
+        }
         private void DoCalAndTestWithRetry(DoWorkEventArgs e)
         {
             _calAttemptCount = 0;
@@ -1670,6 +1930,55 @@ namespace CMATestVer1
                 return;
             }
         }
+
+
+        //---สั่งทดสอบ
+        private int _calAttemptCount = 0;
+        private const int MaxCalAttempts = 3;
+        private bool _ohmCheckFailed = false;
+        private bool CheckCompressorAndHotFan(int timeoutSeconds = 20)
+        {
+            LogToRx("กำลังตรวจสอบ Compressor และ HotFan");
+
+            bool isCompressorOn = false;
+            bool isHotFanOn = false;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            while (sw.Elapsed.TotalSeconds < timeoutSeconds)
+            {
+                if (ID3_reg5IsOn) isCompressorOn = true;
+                if (ID3_reg4IsOn) isHotFanOn = true;
+
+                if (isCompressorOn && isHotFanOn) break;
+
+                if (backgroundWorkerOhm.CancellationPending) return false;
+                if (!CancellableSleep(200)) return false;
+            }
+
+            if (isCompressorOn)
+            {
+                _Compressor = "OK";
+                LogToRx("[PASS] Compressor ทำงาน", Color.Green);
+            }
+            else
+            {
+                _Compressor = "FAIL";
+                LogToRx("[FAIL] Compressor ไม่ทำงาน!", Color.Red);
+            }
+
+            if (isHotFanOn)
+            {
+                _HotFan = "OK";
+                LogToRx("[PASS] HotFan ทำงาน", Color.Green);
+            }
+            else
+            {
+                _HotFan = "FAIL";
+                LogToRx("[FAIL] HotFan ไม่ทำงาน!", Color.Red);
+            }
+
+            return isCompressorOn && isHotFanOn;
+        }
         private bool WriteRegister(byte id, ushort addr, short val, int delayMs = 300, int maxRetry = 8)
         {
             for (int attempt = 0; attempt < maxRetry; attempt++)
@@ -1677,6 +1986,7 @@ namespace CMATestVer1
                 if (backgroundWorkerOhm.CancellationPending) { _isWriting = false; return false; }
 
                 _isWriting = true;
+                _isWritingStartTime = DateTime.Now;
                 ExecuteWriteSingleRegister(id, addr, val);
 
                 // ✅ เพิ่มเวลารอหลังเขียน ให้มีเวลาพอสำหรับ ack/poll กลับมาก่อนเช็ค
@@ -1717,6 +2027,7 @@ namespace CMATestVer1
                 if (backgroundWorkerOhm.CancellationPending) return false;
 
                 _isWriting = true;                          // ✅
+                _isWritingStartTime = DateTime.Now;
                 ExecuteWriteSingleRegister(id, addr, val);
                 if (!CancellableSleep(delayMs)) return false;
                 _isWriting = false;                          // ✅
@@ -1727,269 +2038,6 @@ namespace CMATestVer1
         }
 
 
-        //-- ส่วนของการทำงานเบื้องหลัง
-        private void backgroundWorker1_DoWork(object? sender, DoWorkEventArgs e)
-        {
-            switch (_currentMode)
-            {
-                case WorkerMode.Calibrate:
-                    DoCalibrate(e, 0, 100);
-                    break;
-
-                case WorkerMode.CalAndSaveExcel:
-                    DoCalibrate(e, 0, 100);
-                    break;
-
-                case WorkerMode.Test:
-                    DoTest(e, 0, 100);
-                    break;
-
-                case WorkerMode.CalAndTest:
-                    DoCalAndTestWithRetry(e);
-                    break;
-            }
-        }
-        private void backgroundWorker1_ProgressChanged(object? sender, ProgressChangedEventArgs e)
-        {
-            if (progressBar1.InvokeRequired)
-            {
-                progressBar1.Invoke(new Action(() => progressBar1.Value = e.ProgressPercentage));
-            }
-            else
-            {
-                progressBar1.Value = e.ProgressPercentage;
-            }
-        }
-        private void CloseForm4IfOpen()
-        {
-            if (_form4Instance != null && !_form4Instance.IsDisposed)
-            {
-                try
-                {
-                    if (_DisPort != null)
-                    {
-                        _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
-                    }
-                    _form4Instance.Close();
-                }
-                catch { }
-            }
-            _form4Instance = null;
-            _autoOpenCountdown = 0;
-        }
-        private void backgroundWorker1_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
-        {
-            btnRun.Text = "Run";
-            btnRun.Enabled = true;
-            bntStop.Enabled = false;
-            btnRun.BackColor = Color.Gold;
-
-            btnCalSave.Text = "ทดสอบ";
-            btnCalSave.Enabled = true;
-            btnRun.Enabled = true;
-
-            txtSerialNumber.ReadOnly = false;
-            //txtSerialNumber.Clear();      
-            txtSerialNumber.Focus();
-
-            progressBar1.Value = 100;
-
-            _runStopwatch.Stop();
-
-            ExecuteWriteSingleRegister(2, 0, 0);
-            System.Threading.Thread.Sleep(100);
-            ExecuteWriteSingleRegister(2, 1, 0);
-
-            var t = _runStopwatch.Elapsed;
-            lblElapsedTime.Text = $"{t.Minutes:D2}:{t.Seconds:D2}";
-
-            string modeLabel = _currentMode switch
-            {
-                WorkerMode.Calibrate => "Calibration",
-                WorkerMode.Test => "Test",
-                WorkerMode.CalAndTest => "Cal + Test",
-                WorkerMode.CalAndSaveExcel => "Calibration & Save",
-                _ => ""
-            };
-
-            bool hasTest = (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
-
-            if (e.Cancelled)
-            {
-                CloseForm4IfOpen();
-                LogToRx($"{modeLabel}: หยุดการทำงานชั่วคราว");
-            }
-            else if (e.Error != null)
-            {
-                CloseForm4IfOpen();
-                BigMessageBox.Show("เกิดข้อผิดพลาด: " + e.Error.Message, "Error", MessageBoxIcon.Error, MessageBoxButtons.OK, fontSize: 14f);
-            }
-            else if (e.Result?.ToString() == "SUCCESS")
-            {
-                if (_currentMode == WorkerMode.CalAndSaveExcel)
-                {
-                    SaveAdcToExcel(finalAdcArray);
-                    BigMessageBox.Show("Calibration และบันทึกข้อมูลลง Excel สำเร็จ!", "Success", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
-                    return;
-                }
-
-                _sequenceStep = 0;
-                _testStepResumed = 0;
-                _calDone = false;
-
-                chkCal.Checked = false;
-                chkTest.Checked = false;
-
-                LogToRx($"{modeLabel}: เสร็จสิ้นสมบูรณ์", Color.Green);
-                BigMessageBox.Show($"{modeLabel} เสร็จสิ้น!", "Success", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
-
-                if (hasTest)
-                {
-                    if (_isForm4ResultReady)
-                    {
-                        bool btnAllPass = (_btnFunctionResult == "OK" || _btnFunctionResult == "-")
-                                       && (_btnDownResult == "OK" || _btnDownResult == "-")
-                                       && (_btnUpResult == "OK" || _btnUpResult == "-");
-                        string finalStatus = btnAllPass ? "PASS" : "FAIL";
-                        SaveTestDataToExcel(finalStatus);
-                    }
-                    else
-                    {
-                        LogToRx("รอผลการทดสอบปุ่มจาก Form4 เพื่อบันทึกข้อมูล...", Color.Orange);
-                    }
-                }
-            }
-            else
-            {
-                CloseForm4IfOpen();
-                LogToRx($"{modeLabel}: ล้มเหลว");
-                BigMessageBox.Show($"ไม่สามารถ {modeLabel} ได้ตามเกณฑ์ที่กำหนด", "Failed", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
-                if (hasTest) SaveTestDataToExcel("FAIL");
-            }
-        }
-
-
-        //--- ส่วนประกอบในการสั่ง Calibrate
-        public void SendOhm(double ohmValue) // 1. เปลี่ยนตรงนี้จาก int เป็น double
-        {
-            if (_ohmPort == null || !_ohmPort.IsOpen)
-            {
-                MessageBox.Show("กรุณาเชื่อมต่อพอร์ต Ohm ก่อนครับ", "Warning");
-                return;
-            }
-
-            try
-            {
-                int multiplier = chkMultiplyBy100.Checked ? 100 : 10;
-
-                // 2. คูณเสร็จแล้วใช้ Math.Round ปัดเศษให้เป็นจำนวนเต็ม ก่อนจะแปลงเป็น int
-                int result = (int)Math.Round(ohmValue * multiplier);
-
-                // --- ส่วนการแปลง Hex และส่งข้อมูลด้านล่างนี้ใช้เหมือนเดิมได้เลยครับ ---
-                string resultHex = result.ToString("X").PadLeft(8, '0');
-                string reversedStr = resultHex.Substring(6, 2) + resultHex.Substring(4, 2) +
-                                     resultHex.Substring(2, 2) + resultHex.Substring(0, 2);
-                reversedStr = reversedStr.PadRight(10, '0');
-
-                byte[] byteArray = Enumerable.Range(0, reversedStr.Length / 2)
-                                     .Select(x => Convert.ToByte(reversedStr.Substring(x * 2, 2), 16))
-                                     .ToArray();
-
-                byte[] finalFrame = new byte[] { 0x50 }.Concat(byteArray).ToArray();
-
-                _ohmPort.DiscardOutBuffer();
-                _ohmPort.Write(finalFrame, 0, finalFrame.Length);
-
-            }
-            catch (Exception ex)
-            {
-                this.BeginInvoke(new Action(() => HandleDisconnect("Ohm Port Write Error: " + ex.Message)));
-            }
-        }
-        private void CollectDataToArray(int currentOhm)
-        {
-            int waitSteps = (currentOhm == 100) ? 60 : 50;
-
-            for (int i = 0; i < waitSteps; i++)
-            {
-                if (backgroundWorkerOhm.CancellationPending) return;
-                System.Threading.Thread.Sleep(100);
-            }
-
-            double lastValue = 0;
-            lock (_tempAdcBuffer)
-            {
-                if (_tempAdcBuffer.Count > 0)
-                {
-                    lastValue = _tempAdcBuffer[_tempAdcBuffer.Count - 1];
-                    _tempAdcBuffer.Clear();
-                }
-            }
-
-            if (_sequenceStep < finalAdcArray.Length)
-            {
-                finalAdcArray[_sequenceStep] = lastValue;
-
-                this.Invoke(new MethodInvoker(() =>
-                {
-                    string timeStamp = DateTime.Now.ToString("HH:mm:ss");
-                    int maskedAdc = (int)lastValue;
-                    RxBox.AppendText($"[{timeStamp}] ADC: {maskedAdc:X3}|Ohm: {currentOhm}\r\n");
-                    RxBox.ScrollToCaret();
-                }));
-
-                _sequenceStep++;
-            }
-        }
-        private byte[] PrepareCalibrationFrame()
-        {
-            string generatedHex = "";
-            string displayLog = "\r\n--- Final CalData to be Sent (Reversed & Modified) ---\r\n";
-
-            for (int i = 13; i >= 0; i--)
-            {
-                short valueToConvert = (short)finalAdcArray[i];
-
-                string hexPart = valueToConvert.ToString("X4");
-                generatedHex += hexPart;
-
-                displayLog += $"Index [{i:D2}] -> {hexPart}\r\n";
-            }
-
-            displayLog += "------------------------------------------------------\r\n";
-
-            LogToRx(displayLog);
-
-
-            byte[] header = { 0x01, 0x55, 0x00, 0x00, 0x00, 0x10, 0x20, 0x50, 0x41, 0x53, 0x53 };
-            byte[] calData = HexStringToByteArray(generatedHex);
-
-            byte[] fullFrame = new byte[header.Length + calData.Length];
-            Array.Copy(header, 0, fullFrame, 0, header.Length);
-            Array.Copy(calData, 0, fullFrame, header.Length, calData.Length);
-
-            return fullFrame;
-        }
-        private byte[] HexStringToByteArray(string hex)
-        {
-            hex = hex.Replace(" ", "").Replace("-", "");
-            try
-            {
-                byte[] buffer = new byte[hex.Length / 2];
-                for (int i = 0; i < hex.Length; i += 2)
-                {
-                    buffer[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-                }
-                return buffer;
-            }
-            catch
-            {
-                throw new Exception("รูปแบบ Hex ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง");
-            }
-        }
-
-
-
         //--- ส่วนของการตรวจสอบ
         private string _verify200Result = "-";
         private string _verify2000Result = "-";
@@ -1998,6 +2046,17 @@ namespace CMATestVer1
         private string _verify30Result = "-";
         private string _verify40Result = "-";
         private string _verify50Result = "-";
+
+        private string _wlResult = "-";
+        private string _hpResult = "-";
+        private string _wl_AL2Result = "-";
+        private string _hp_AL2Result = "-";
+
+        private string _alarm1Result = "-";
+        private string _Compressor = "-";
+        private string _HotFan = "-";
+        private string _CoolFan = "-";
+        private string _RelayResult = "-";
         private bool VerifyOhmValueSync(int ohm, double expectedPv)
         {
             LogToRx($"กำลังทดสอบที่: {ohm} Ohm (เป้าหมาย PV: {expectedPv})...");
@@ -2026,51 +2085,36 @@ namespace CMATestVer1
             if (ohm == 200) _verify200Result = result;
             if (ohm == 2000) _verify2000Result = result;
             if (ohm == 8000) _verify8000Result = result;
-            if (ohm == 2489) _verify20Result = result;
-            if (ohm == 1703) _verify30Result = result;
-            if (ohm == 1158) _verify40Result = result;
-            if (ohm == 821) _verify50Result = result;
+            if (ohm == 2435) _verify20Result = result;
+            if (ohm == 1653) _verify30Result = result;
+            if (ohm == 1150) _verify40Result = result;
+            if (ohm == 818) _verify50Result = result;
             return isPass;
         }
-
-        private bool RunTempSweepFinal(int waitMs = 5000)
-        {
-            for (int i = 0; i < TempSweepPoints.Length; i++)
-            {
-                var (ohm, targetTemp) = TempSweepPoints[i];
-
-                LogToRx($"[FINAL SWEEP] จ่าย {ohm} Ohm (เป้าหมาย {targetTemp}°C) รอ {waitMs / 1000} วิ...");
-                SendOhm(ohm);
-
-                if (!CancellableSleep(waitMs)) return false;
-
-                _tempSweepResults[i] = _currentPv.ToString("F1");
-                LogToRx($"[FINAL SWEEP] {targetTemp}°C -> Register0 = {_tempSweepResults[i]} °C", Color.Blue);
-            }
-            return true;
-        }
-
-        private string _wlResult = "-";
-        private string _hpResult = "-";
-        private string _wl_AL2Result = "-";
-        private string _hp_AL2Result = "-";
         private bool CheckRegisterStatus(byte targetID, int address, int value, bool expectedStatus, string label)
         {
             LogToRx($"กำลังตรวจสอบ {label}");
 
-            // จำเวลาตอนเริ่มฟังก์ชันนี้ไว้ก่อน ใช้เป็นจุดอ้างอิง
-            DateTime checkStartTime = DateTime.Now;
-
             bool currentStatus = false;
             int maxAttempts = 12;
+
+            int writeCount = 0;
+            bool isAlarmLatchLabel = (label == "ไฟ WL" || label == "ไฟ HP"); // ★ เพิ่ม
 
             for (int i = 0; i < maxAttempts; i++)
             {
                 if (backgroundWorkerOhm.CancellationPending) return false;   // เช็ค cancel ก่อนทุกรอบ
 
-                if (i % 3 == 0)   // ยิงซ้ำทุก 3 รอบ (1.5 วิ) กันเฟรมหลุด
+                if (i % 3 == 0)
                 {
                     ExecuteWriteSingleRegister(targetID, (ushort)address, (short)value);
+                    writeCount++;   // ★ เพิ่ม
+
+                    if (isAlarmLatchLabel && writeCount == 3)   // ★ เพิ่ม: ครบ 3 ครั้งพอดี (i=6)
+                    {
+                        //LogToRx($"⚠ {label} ยิงคำสั่งครบ 3 ครั้ง สั่ง Clear Alarm อัตโนมัติ", Color.Orange);
+                        WriteRegister(1, 12, 1);
+                    }
                 }
 
                 if (!CancellableSleep(500)) return false;
@@ -2095,15 +2139,18 @@ namespace CMATestVer1
 
             LogToRx($"[PASS] {label} ทำงาน", Color.Green);
 
-            // ✅ เพิ่มส่วนนี้: รอให้ ID3 ส่ง frame ใหม่เข้ามาจริงๆ ก่อนอ่าน _alarm2IsOn
-            // ป้องกันอ่านค่าค้างจาก poll cycle ก่อนหน้า (สูงสุด 5 วิ)
+            // ★ ย้ายมาจับเวลาตรงนี้แทน — หลังยืนยัน WL/HP เปลี่ยนสถานะสำเร็จแล้วจริง ๆ
+            DateTime confirmedChangeTime = DateTime.Now;
+
+            Thread.Sleep(200);
+
             DateTime waitStart = DateTime.Now;
             while ((DateTime.Now - waitStart).TotalMilliseconds < 5000)
             {
                 DateTime lastFrame;
                 lock (_id3TimeLock) { lastFrame = _lastID3FrameTime; }
 
-                if (lastFrame > checkStartTime) break;   // มี frame ใหม่มาแล้วหลังจากเริ่มเช็ค
+                if (lastFrame > confirmedChangeTime) break;   // ★ เทียบกับเวลาที่เพิ่งยืนยันเสร็จ ไม่ใช่ตอนต้นฟังก์ชัน
                 if (backgroundWorkerOhm.CancellationPending) return false;
                 Thread.Sleep(100);
             }
@@ -2142,12 +2189,6 @@ namespace CMATestVer1
 
             return true;
         }
-
-        private string _alarm1Result = "-";
-        private string _Compressor = "-";
-        private string _HotFan = "-";
-        private string _CoolFan = "-";
-        private string _RelayResult = "-";
         private bool CheckRegisterStatus_ALL(byte targetID, int address, bool expectedStatus, string label)
         {
             LogToRx($"กำลังตรวจสอบ {label}");
@@ -2204,6 +2245,14 @@ namespace CMATestVer1
 
 
         //-- ส่วนของการแสดงผล RXBOX
+        private readonly RichTextBox _logBuffer = new RichTextBox(); // Memory Buffer ไว้เก็บ Log สมบูรณ์ใน RAM (สร้างขึ้นนอก UI จึงไม่โดน Windows ลบค่าสี)
+        private class LogItem
+        {
+            public string Message { get; set; } = string.Empty;
+            public Color Color { get; set; }
+        }
+        private readonly List<LogItem> _logHistory = new List<LogItem>();
+
         private void LogToRx(string message, Color? color = null)
         {
             if (RxBox.InvokeRequired)
@@ -2214,24 +2263,47 @@ namespace CMATestVer1
 
             string timeStamp = DateTime.Now.ToString("HH:mm:ss");
             string fullMessage = $"[{timeStamp}] {message}\r\n";
+            Color targetColor = color ?? RxBox.ForeColor;
+
+            _logHistory.Add(new LogItem { Message = fullMessage, Color = targetColor });
+
             RxBox.SelectionStart = RxBox.TextLength;
             RxBox.SelectionLength = 0;
-            RxBox.SelectionColor = color ?? RxBox.ForeColor; // ถ้าไม่ระบุสี ใช้สีปกติ
+            RxBox.SelectionFont = RxBox.Font;
+            RxBox.SelectionColor = targetColor;
             RxBox.AppendText(fullMessage);
-            RxBox.SelectionColor = RxBox.ForeColor; // reset กลับ
             RxBox.ScrollToCaret();
         }
-        private bool CancellableSleep(int milliseconds)
+        protected override void OnResize(EventArgs e)
         {
-            int steps = milliseconds / 100;
-            for (int i = 0; i < steps; i++)
-            {
-                if (backgroundWorkerOhm.CancellationPending) return false; // สั่งหยุด
-                Thread.Sleep(100);
-            }
-            return true; // ครบเวลาปกติ
-        }
+            base.OnResize(e);
 
+            if (this.WindowState != FormWindowState.Minimized && _logHistory.Count > 0)
+            {
+                RxBox.Clear();
+                foreach (var item in _logHistory)
+                {
+                    RxBox.SelectionStart = RxBox.TextLength;
+                    RxBox.SelectionLength = 0;
+                    RxBox.SelectionFont = RxBox.Font; 
+                    RxBox.SelectionColor = item.Color;
+                    RxBox.AppendText(item.Message);
+                }
+                RxBox.ScrollToCaret();
+            }
+        }
+        private void ClearRxLog()
+        {
+            if (RxBox.InvokeRequired)
+            {
+                RxBox.Invoke(new MethodInvoker(ClearRxLog));
+                return;
+            }
+
+            RxBox.Clear();
+            _logBuffer.Clear();
+        }
+ 
 
 
         //-- ปุ่มการทำงานใน From 2 (Control)
@@ -2240,7 +2312,6 @@ namespace CMATestVer1
             Form2 f2 = new Form2(this);
             f2.Show();
         }
-
         private async Task CheckOhm(int ohm, double expectedPv)
         {
             try
@@ -2272,6 +2343,7 @@ namespace CMATestVer1
                 LogToRx($"Error: {ex.Message}", Color.Red);
             }
         }
+
         public async void btn2000_Click(object sender, EventArgs e) => await CheckOhm(2000, 25.6);
         public async void btn200_Click(object sender, EventArgs e) => await CheckOhm(200, 99.2);
         public async void btn8000_Click(object sender, EventArgs e) => await CheckOhm(8000, -6.4);
@@ -2293,7 +2365,8 @@ namespace CMATestVer1
 
 
 
-        //-- การตั้งค่าFrom 1
+
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -2309,6 +2382,8 @@ namespace CMATestVer1
             txtExcelPath.Text = _customResultFolder ?? "กรุณาเลือกโฟลเดอร์ผ่านปุ่ม Select Folder";
 
             LoadLotHistory();
+
+
 
             string? savedLot = Properties.Settings.Default.SavedLot?.Trim();
             if (!string.IsNullOrEmpty(savedLot) && !string.IsNullOrEmpty(ResultFolder))
@@ -2326,6 +2401,9 @@ namespace CMATestVer1
 
             txtECN.Text = Properties.Settings.Default.SavedECN?.Trim() ?? "RD-CN-18-0023";
 
+            string savedRev = Properties.Settings.Default.SavedREV;
+            txtRev.Text = string.IsNullOrEmpty(savedRev) ? "F-PD-07 Rev.6" : savedRev;
+
             cmbDisplaySource.Text = "EXCEL";
 
             LoadExcelToDataGrid();
@@ -2342,43 +2420,26 @@ namespace CMATestVer1
             cmbMonth.SelectedIndex = -1;
             cmbYear.SelectedIndex = -1;
         }
-
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             Application.Exit();
         }
 
-        private void btnSelectFolder_Click(object sender, EventArgs e)
-        {
-            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
-            {
-                fbd.Description = "กรุณาเลือกโฟลเดอร์สำหรับบันทึกผลการทดสอบ (Excel)";
-                if (fbd.ShowDialog() == DialogResult.OK)
-                {
-                    _customResultFolder = fbd.SelectedPath;
-                    txtExcelPath.Text = _customResultFolder;
 
-                    Properties.Settings.Default.SavedResultFolder = _customResultFolder;
-                    Properties.Settings.Default.Save();
-
-                    RefreshFolderData();
-                }
-            }
-        }
-        private void RefreshFolderData()
-        {
-            if (string.IsNullOrEmpty(_customResultFolder)) return;
-
-            // อัปเดต ComboBox แสดงรายการไฟล์ในโฟลเดอร์ที่เลือก
-            LoadLotHistory();
-        }
 
 
 
         //-- ส่วนของการเก็บผลการ test ลง Excel
         private string? _customResultFolder = null;
-        public string? ResultFolder => _customResultFolder;
+        
+        private string _lastTestStatus = "-";
+        public string _btnFunctionResult = "-";
+        public string _btnDownResult = "-";
+        public string _btnUpResult = "-";
+        public string _ledResult = "-";
+        private bool _isFirstChar = true; // รอรับตัวแรกจากสแกนใหม่
 
+        public string? ResultFolder => _customResultFolder;
         private bool EnsureFolderSelected()
         {
             if (string.IsNullOrEmpty(_customResultFolder) || !Directory.Exists(_customResultFolder))
@@ -2393,23 +2454,6 @@ namespace CMATestVer1
             }
             return true;
         }
-
-
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
-            //Directory.CreateDirectory(ResultFolder!);
-            //System.Diagnostics.Process.Start("explorer.exe", ResultFolder!);
-        }
-
-        private void btnDelLot_Click(object sender, EventArgs e)
-        {
-            txtLot.Text = "";
-            Properties.Settings.Default.SavedLot = "";
-            Properties.Settings.Default.Save();
-
-            //MessageBox.Show("ลบข้อมูล LOT เรียบร้อยแล้ว", "ข้อมูลอัปเดต");
-        }
-
         private bool IsSerialNumberDuplicate(string sn, string lotNumber)
         {
             if (string.IsNullOrEmpty(ResultFolder)) return false;
@@ -2455,16 +2499,6 @@ namespace CMATestVer1
             return false;
         }
         private void picCir_DoubleClick(object sender, EventArgs e) { LoadExcelToDataGrid(); }
-
-
-
-        private string _lastTestStatus = "-";
-        public string _btnFunctionResult = "-";
-        public string _btnDownResult = "-";
-        public string _btnUpResult = "-";
-        public string _ledResult = "-";
-        private bool _isFirstChar = true; // รอรับตัวแรกจากสแกนใหม่
-
         private void SaveTestDataToExcel(string testStatus)
         {
             // 🟢 1. บังคับเช็คว่าเลือก Folder หรือยัง
@@ -2521,54 +2555,61 @@ namespace CMATestVer1
                     DateTime now = DateTime.Now;
                     int buddhistYear2Digit = (now.Year + 543) % 100;
                     string thaiDateStr = $"{now.Day}/{now.Month}/{buddhistYear2Digit:00}";
-                    sheet.Cell("AB3").Value = thaiDateStr;                      //Date
+                    sheet.Cell("AB3").Value = thaiDateStr;                      // Date
                     sheet.Cell("U6").Value = $"ECN NO: {txtECN.Text.Trim()}";   // ECN
 
-                    int[] pageBreakRows = new int[] { 30, 49, 68, 87, 106 };
+                    string revInput = txtRev.Text.Trim();
+                    string revText = revInput.StartsWith("F-PD-07") ? revInput : $"F-PD-07 Rev.{revInput}";
 
-                    int nextRow = 12;
-                    int duplicateRow = -1;
-                    bool nextRowFound = false;
-
-                    int lastRow = sheet.LastRowUsed()?.RowNumber() ?? 11;
-
-                    for (int r = 12; r <= Math.Max(lastRow, 12); r++)
+                    string[] revCells = new string[] { "AB31", "AB51", "AB71", "AB91", "AB111", "AB127" };
+                    foreach (string cell in revCells)
                     {
-                        if (pageBreakRows.Contains(r)) continue;
+                        sheet.Cell(cell).Value = revText;
+                    }
 
+                    int targetRow = -1;
+                    int duplicateRow = -1;
+
+                    // 🟢 3. ค้นหาแถวที่จะบันทึกข้อมูล (เช็กแถว 12 ถึง 129)
+                    for (int r = 12; r < 130; r++)
+                    {
+                        string colA = sheet.Cell(r, 1).GetString().Trim();
                         string existingSN = sheet.Cell(r, 28).GetString().Trim();
-                        bool hasValidSN = !string.IsNullOrEmpty(existingSN) && !IsPlaceholderSN(existingSN);
 
-                        if (hasValidSN && existingSN.Equals(serialNumber, StringComparison.OrdinalIgnoreCase))
+                        // ยึด Column A เป็นหลัก: ต้องเป็นตัวเลขลำดับเท่านั้น (ข้ามแถวว่าง และแถว Footer คั่นหน้า)
+                        if (!int.TryParse(colA, out _))
+                        {
+                            continue;
+                        }
+
+                        bool hasSN = !string.IsNullOrEmpty(existingSN) && !IsPlaceholderSN(existingSN);
+
+                        // เช็ก S/N ซ้ำ: ถ้าตรงกับเครื่องที่กำลังทดสอบ ให้บันทึกทับแถวนี้
+                        if (hasSN && existingSN.Equals(serialNumber, StringComparison.OrdinalIgnoreCase))
                         {
                             duplicateRow = r;
                             break;
                         }
 
-                        if (!hasValidSN && !nextRowFound)
+                        // แถวที่มีเลข Column A แต่ช่อง S/N ยังว่างอยู่ (แถวว่างแรกสุด)
+                        if (!hasSN && targetRow == -1)
                         {
-                            nextRow = r;
-                            nextRowFound = true;
+                            targetRow = r;
                         }
                     }
 
-                    if (duplicateRow != -1)
-                    {
-                        nextRow = duplicateRow;
-                    }
-                    else if (lastRow >= 12 && !string.IsNullOrEmpty(sheet.Cell(lastRow, 28).GetString()))
-                    {
-                        nextRow = lastRow + 1;
-                    }
+                    int nextRow = (duplicateRow != -1) ? duplicateRow : targetRow;
 
-                    if (pageBreakRows.Contains(nextRow))
+                    if (nextRow == -1)
                     {
-                        nextRow++;
+                        BigMessageBox.Show("ไม่พบช่องว่างสำหรับบันทึกข้อมูลในไฟล์ Excel!", "Error", MessageBoxIcon.Error, MessageBoxButtons.OK, fontSize: 14f);
+                        return;
                     }
 
-                    int pageBreaksBefore = pageBreakRows.Count(b => b < nextRow);
-                    int no = (nextRow - 11) - pageBreaksBefore;
+                    // ดึงเลขลำดับ No จาก Column A มาบันทึกกลับ
+                    int no = int.TryParse(sheet.Cell(nextRow, 1).GetString().Trim(), out int currentNo) ? currentNo : 0;
 
+                    // 🟢 4. บันทึกข้อมูลลง Cell
                     SetCellWithFont(sheet, nextRow, 1, no);
                     SetCellWithFont(sheet, nextRow, 3, _RelayResult);
                     SetCellWithFont(sheet, nextRow, 5, _wlResult);
@@ -2584,11 +2625,6 @@ namespace CMATestVer1
                     SetCellWithFont(sheet, nextRow, 16, _verify2000Result);
                     SetCellWithFont(sheet, nextRow, 17, _verify8000Result);
 
-                    //SetCellWithFont(sheet, nextRow, 18, _tempSweepResults[1]); // 20°C
-                    //SetCellWithFont(sheet, nextRow, 19, _tempSweepResults[2]); // 30°C
-                    //SetCellWithFont(sheet, nextRow, 20, _tempSweepResults[3]); // 40°C
-                    //SetCellWithFont(sheet, nextRow, 21, _tempSweepResults[4]); // 50°C
-
                     SetCellWithFont(sheet, nextRow, 18, _verify20Result); // 20°C
                     SetCellWithFont(sheet, nextRow, 19, _verify30Result); // 30°C
                     SetCellWithFont(sheet, nextRow, 20, _verify40Result); // 40°C
@@ -2602,54 +2638,42 @@ namespace CMATestVer1
                     if (testStatus == "PASS")
                     {
                         SetCellWithFont(sheet, nextRow, 26, "OK");   // Z = ปกติ
-                        SetCellWithFont(sheet, nextRow, 27, "");     // AA = ไม่ปกติ (เคลียร์ว่าง)
+                        SetCellWithFont(sheet, nextRow, 27, "");     // AA = ไม่ปกติ
                     }
                     else
                     {
-                        SetCellWithFont(sheet, nextRow, 26, "");     // Z = ปกติ (เคลียร์ว่าง)
+                        SetCellWithFont(sheet, nextRow, 26, "");     // Z = ปกติ
                         SetCellWithFont(sheet, nextRow, 27, "OK");   // AA = ไม่ปกติ
                     }
                     SetCellWithFont(sheet, nextRow, 28, serialNumber); // AB = S/N
 
-
+                    // 🟢 5. คำนวณสรุปผล Q'ty / Good / Defect / Yield (เช็กเฉพาะแถวที่มีเลขลำดับ Column A และบันทึก S/N แล้ว)
                     int actualCount = 0;
                     int goodCount = 0;
                     int defectCount = 0;
-                    int checkRow = 12;
 
-                    while (true)
+                    for (int checkRow = 12; checkRow < 130; checkRow++)
                     {
-                        if (pageBreakRows.Contains(checkRow)) { checkRow++; continue; }
-
+                        string colA = sheet.Cell(checkRow, 1).GetString().Trim();
                         string snCheck = sheet.Cell(checkRow, 28).GetString().Trim();
-                        bool hasValidSN = !string.IsNullOrEmpty(snCheck) && !IsPlaceholderSN(snCheck);
 
-                        if (!hasValidSN && string.IsNullOrWhiteSpace(sheet.Cell(checkRow, 1).GetString()))
+                        if (!int.TryParse(colA, out _) || string.IsNullOrEmpty(snCheck) || IsPlaceholderSN(snCheck))
                         {
-                            break;
-                        }
-
-                        if (!hasValidSN)
-                        {
-                            checkRow++;
                             continue;
                         }
 
                         actualCount++;
 
-                        // นับ Good/Defect จากคอลัมน์ Z(26)=ปกติ, AA(27)=ไม่ปกติ
                         string zCheck = sheet.Cell(checkRow, 26).GetString().Trim().ToUpper();
                         string aaCheck = sheet.Cell(checkRow, 27).GetString().Trim().ToUpper();
 
                         if (zCheck == "OK") goodCount++;
                         else if (aaCheck == "OK") defectCount++;
-
-                        checkRow++;
                     }
 
                     sheet.Cell("U3").Value = actualCount;
 
-                    // ── เขียนสรุป Q'ty / Good / Defect / % Yield ──
+                    // เขียนสรุปท้ายไฟล์ Excel (แถว 130)
                     double yieldPercent = actualCount > 0 ? Math.Round((double)goodCount / actualCount * 100.0, 2) : 0;
 
                     sheet.Cell("F130").Value = actualCount;
@@ -2663,7 +2687,6 @@ namespace CMATestVer1
 
                 LoadLotHistory();
                 LoadExcelToDataGrid(_excelFilePath);
-                //_ = PostResultAsync(testStatus); //  post ผลลง Server
 
                 LogToRx($"S/N: {serialNumber} | LOT: {lotNumber} บันทึกเรียบร้อย", Color.Green);
 
@@ -2680,33 +2703,226 @@ namespace CMATestVer1
                     "Error", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
             }
         }
+        private void btnSelectFolder_Click(object sender, EventArgs e)
+        {
+            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
+            {
+                fbd.Description = "กรุณาเลือกโฟลเดอร์สำหรับบันทึกผลการทดสอบ (Excel)";
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    _customResultFolder = fbd.SelectedPath;
+                    txtExcelPath.Text = _customResultFolder;
+
+                    Properties.Settings.Default.SavedResultFolder = _customResultFolder;
+                    Properties.Settings.Default.Save();
+
+                    RefreshFolderData();
+                }
+            }
+        }
+        private void RefreshFolderData()
+        {
+            if (string.IsNullOrEmpty(_customResultFolder)) return;
+
+            // อัปเดต ComboBox แสดงรายการไฟล์ในโฟลเดอร์ที่เลือก
+            LoadLotHistory();
+        }
+        private void SetCellWithFont(IXLWorksheet sheet, int row, int col, object value)
+        {
+            var cell = sheet.Cell(row, col);
+            cell.Value = XLCellValue.FromObject(value);
+            cell.Style.Font.FontName = "Cordia New";
+            cell.Style.Font.FontSize = 10;
+        }
+
+
+
+
+
+        //เรียกจาก Form4 ทุกครั้งที่ได้รับ frame จาก _DisPort เพื่อ reset timeout
+        private bool _form4TestAlreadyDone = false;
+        private bool _form4ManuallyClosed = false;
+        private bool _pendingForm4ResultAfterRun = false;
+        private void CloseForm4IfOpen()
+        {
+            if (_form4Instance != null && !_form4Instance.IsDisposed)
+            {
+                try
+                {
+                    if (_DisPort != null)
+                    {
+                        _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
+                    }
+                    _form4Instance.Close();
+                }
+                catch { }
+            }
+            _form4Instance = null;
+            _autoOpenCountdown = 0;
+        }
+        private void UpdateOpenForm4ButtonState()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(UpdateOpenForm4ButtonState));
+                return;
+            }
+
+            bool portsReady = _serialPort.IsOpen && _ohmPort.IsOpen && _DisPort.IsOpen;
+
+            if (!portsReady)
+            {
+                btnOpenForm4.Enabled = false;
+                return;
+            }
+
+            bool isRunning = backgroundWorkerOhm.IsBusy;
+            bool involvesTest = _currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest;
+
+            if (isRunning && !involvesTest)
+            {
+                // ★ กำลังรัน Calibrate อย่างเดียว หรือ CalAndSaveExcel -> ปิดปุ่มไปเลย ไม่มีข้อยกเว้น
+                btnOpenForm4.Enabled = false;
+                return;
+            }
+
+            if (isRunning && involvesTest)
+            {
+                // อยู่ระหว่าง Test/CalAndTest -> ตามพฤติกรรมเดิม (เผื่อเผลอปิด Form4 ที่เปิดอัตโนมัติ)
+                btnOpenForm4.Enabled = _form4ManuallyClosed;
+                return;
+            }
+
+            // ไม่ได้กำลังรัน (idle) -> เปิด standalone ได้ตามปกติ
+            btnOpenForm4.Enabled = true;
+        }
+        private void OpenForm4Deferred()
+        {
+            if (_form4Instance != null && !_form4Instance.IsDisposed)
+            {
+                if (_DisPort != null)
+                {
+                    _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
+                }
+                _form4Instance.Close();
+            }
+
+            _form4Instance = new Form4(_DisPort!, this);
+            _form4Instance.AutoCloseOnComplete = true;   // ★ flow อัตโนมัติปิดเองเหมือนเดิม
+            _form4Instance.Owner = this;
+            _form4Instance.Show();
+
+            UpdateOpenForm4ButtonState();   // ★
+        }
+        public void OnForm4Closed()
+        {
+            bool duringCalTest = backgroundWorkerOhm.IsBusy &&
+                                  (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
+
+            if (duringCalTest && !_form4TestAlreadyDone)
+            {
+                _form4ManuallyClosed = true;   // ★ ยังไม่ทันจบ test แล้วหายไป = โดนกากบาท
+            }
+
+            UpdateOpenForm4ButtonState();
+        }
         public void OnForm4TestComplete(string form4Status)
         {
             _isForm4ResultReady = true;
-
-            // ตรวจสอบสถานะว่า BackgroundWorker หลักทำงานจบไปแล้วหรือยัง
-            // (เช็คว่าปุ่มกลับมาเป็น "Run" และผู้ใช้ไม่ได้กด Stop กะทันหัน)
-            if (btnRun.Text == "Run" && chkTest.Checked == false)
+            _pendingForm4ResultAfterRun = false;
+            switch (_form4TriggerMode)
             {
+                case Form4TriggerMode.StandaloneWithSN:
+                    this.Invoke(new Action(() => SaveTestDataToExcel(form4Status)));
+                    _form4TriggerMode = Form4TriggerMode.AutoFlow;
+                    break;
 
-                this.Invoke(new Action(() =>
-                {
-                    bool btnAllPass = (_btnFunctionResult == "OK" || _btnFunctionResult == "-")
-                                   && (_btnDownResult == "OK" || _btnDownResult == "-")
-                                   && (_btnUpResult == "OK" || _btnUpResult == "-");
+                case Form4TriggerMode.StandaloneNoSN:
+                    this.Invoke(new Action(() =>
+                        LogToRx("ทดสอบปุ่ม (Standalone) เสร็จสิ้น - ไม่มี S/N จึงไม่บันทึกผลลง Excel", Color.Green)));
+                    _form4TriggerMode = Form4TriggerMode.AutoFlow;
+                    break;
 
-                    string finalExcelStatus = (btnAllPass && form4Status == "PASS") ? "PASS" : "FAIL";
-                    SaveTestDataToExcel(finalExcelStatus);
-                }));
+                case Form4TriggerMode.AutoFlow:
+                default:
+                    _form4TestAlreadyDone = true;      // ★ เพิ่ม
+                    UpdateOpenForm4ButtonState();      // ★ เพิ่ม รีเฟรชปุ่มทันที
+                    if (btnRun.Text == "Run")//&& chkTest.Checked == false)
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            bool btnAllPass = (_btnFunctionResult == "OK" || _btnFunctionResult == "-")
+                                           && (_btnDownResult == "OK" || _btnDownResult == "-")
+                                           && (_btnUpResult == "OK" || _btnUpResult == "-");
+
+                            string finalExcelStatus = (btnAllPass && form4Status == "PASS") ? "PASS" : "FAIL";
+                            SaveTestDataToExcel(finalExcelStatus);
+                        }));
+                    }
+                    break;
             }
         }
-
-        //เรียกจาก Form4 ทุกครั้งที่ได้รับ frame จาก _DisPort เพื่อ reset timeout
         public void OnDisPortFrameReceived()
         {
             lock (_disPortTimeLock) { _lastDisPortFrameTime = DateTime.Now; }
         }
+        private void btnOpenForm4_Click(object sender, EventArgs e)
+        {
+            if (!_serialPort.IsOpen || !_ohmPort.IsOpen || !_DisPort.IsOpen)
+            {
+                BigMessageBox.Show("กรุณาเชื่อมต่อพอร์ตให้ครบก่อนเปิด Form4!", "Warning",
+                    MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
+                return;
+            }
 
+            bool duringCalTest = backgroundWorkerOhm.IsBusy &&
+                                  (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
+
+            if (duringCalTest || _pendingForm4ResultAfterRun)
+            {
+                // ★ แก้: รวมเคส worker จบไปแล้วแต่ยังรอผล Form4 อยู่ด้วย
+                if (_form4Instance == null || _form4Instance.IsDisposed)
+                {
+                    _form4TriggerMode = Form4TriggerMode.AutoFlow;
+                    _form4ManuallyClosed = false;
+                    OpenForm4Deferred();
+                }
+                return;
+            }
+
+            // กรณี 3: ไม่ได้อยู่ระหว่าง Cal+Test -> เปิดแบบ standalone
+            string sn = txtSerialNumber.Text.Trim();
+
+            if (!string.IsNullOrEmpty(sn))
+            {
+                _form4TriggerMode = Form4TriggerMode.StandaloneWithSN;
+                LoadExistingResultsForSN(sn, txtLot.Text.Trim());
+            }
+            else
+            {
+                _form4TriggerMode = Form4TriggerMode.StandaloneNoSN;
+            }
+
+            if (_form4Instance != null && !_form4Instance.IsDisposed)
+            {
+                if (_DisPort != null) _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
+                _form4Instance.Close();
+            }
+
+            _form4Instance = new Form4(_DisPort!, this);
+            _form4Instance.AutoCloseOnComplete = false;   // ★ standalone -> ไม่ปิดเอง
+            _form4Instance.Owner = this;
+            _form4Instance.Show();
+
+            UpdateOpenForm4ButtonState();
+        }
+
+        
+
+
+
+
+        //
         private void txtSerialNumber_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -2757,12 +2973,15 @@ namespace CMATestVer1
                 _isFirstChar = false;
             }
         }
-        private void SetCellWithFont(IXLWorksheet sheet, int row, int col, object value)
+        private void txtRev_TextChanged(object sender, EventArgs e)
         {
-            var cell = sheet.Cell(row, col);
-            cell.Value = XLCellValue.FromObject(value);
-            cell.Style.Font.FontName = "Cordia New";
-            cell.Style.Font.FontSize = 10;
+            Properties.Settings.Default.SavedREV = txtRev.Text.Trim();
+
+        }
+        private void txtECN_TextChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.SavedECN = txtECN.Text.Trim();
+            Properties.Settings.Default.Save();
         }
 
 
@@ -2780,7 +2999,6 @@ namespace CMATestVer1
             Properties.Settings.Default.SavedLot = txtLot.Text.Trim();
             Properties.Settings.Default.Save();
         }
-
         private void cmbDisplaySource_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedSource = cmbDisplaySource.Text.Trim();
@@ -2829,9 +3047,9 @@ namespace CMATestVer1
                 LoadExcelToDataGrid(filePath);
             }
         }
+
         private void LoadExcelToDataGrid(string? filePath = null)
         {
-
             if (!string.IsNullOrEmpty(filePath))
             {
                 _historyExcelFilePath = filePath;
@@ -2862,45 +3080,41 @@ namespace CMATestVer1
 
                 string excelLotFromHeader = sheet.Cell("P3").GetString().Trim();
                 string excelLotSizeFromHeader = sheet.Cell("U3").GetString().Trim();
-                string excelDateFromHeader = sheet.Cell("AA3").GetString().Trim();
+                string excelDateFromHeader = sheet.Cell("AB3").GetString().Trim();
 
                 var rows = new List<TestResultExcel>();
                 int row = 12;
                 int lotCount = 0;
                 int passCount = 0;
                 int failCount = 0;
-                int noCounter = 0;
-
-                int[] pageBreakRows = new int[] { 31, 51, 71, 81, 91,111 };
 
                 string selectedLotOnUI = cmbLot.Text.Trim();
+                int maxRow = Math.Min(sheet.LastRowUsed()?.RowNumber() ?? 12, 129);
 
-                while (true)
+                while (row <= maxRow)
                 {
-                    if (pageBreakRows.Contains(row))
+                    // 1. เช็กว่า Column A (คอลัมน์ 1) เป็นตัวเลขลำดับหรือไม่
+                    string colA = sheet.Cell(row, 1).GetString().Trim();
+                    bool isNumericRow = int.TryParse(colA, out int rowNumber);
+
+                    if (!isNumericRow)
                     {
                         row++;
                         continue;
                     }
 
-                    // เงื่อนไขหยุด: ยึดจาก S/N (col 28) เป็นหลักอย่างเดียว
-                    string sn = sheet.Cell(row, 28).GetString().Trim();
-                    bool isValidSN = !string.IsNullOrWhiteSpace(sn) && !IsPlaceholderSN(sn);
+                    // 🟢 2. เช็กว่าช่อง S/N (Column 28) มีข้อมูลการทดสอบจริงหรือไม่
+                    string currentSn = sheet.Cell(row, 28).GetString().Trim();
+                    bool isValidSN = !string.IsNullOrWhiteSpace(currentSn) && !IsPlaceholderSN(currentSn);
 
-                    // เงื่อนไขหยุด: ไม่มี SN ที่ใช้ได้ และไม่มีข้อมูลในคอลัมน์ No. เลย
-                    if (!isValidSN && string.IsNullOrWhiteSpace(sheet.Cell(row, 1).GetString()))
-                    {
-                        break;
-                    }
-
-                    // แถวนี้ยังไม่มี SN จริง (อาจเป็น placeholder หรือว่างเปล่า) ข้ามไป
+                    // 🟢 ถ้ายังไม่มี S/N (แถวว่างยังไม่ได้ Test) ให้ข้ามแถวนี้ไปเลย
                     if (!isValidSN)
                     {
                         row++;
                         continue;
                     }
 
-                    noCounter++;
+                    // นับเฉพาะแถวที่มี S/N ทดสอบจริงแล้วเท่านั้น
                     lotCount++;
 
                     // ── ตรวจสถานะจาก 2 คอลัมน์แยกกัน: Z(26)=ปกติ, AA(27)=ไม่ปกติ ──
@@ -2923,38 +3137,36 @@ namespace CMATestVer1
                         statusValue = "";
                     }
 
-                    string currentSn = sheet.Cell(row, 28).GetString().Trim();
-
                     rows.Add(new TestResultExcel
                     {
-                        No = noCounter,       // A: ลำดับ
-                        RelayLED = sheet.Cell(row, 3).GetString(),         // B: (ฝากค่าสลับหรือเทียบเคียงกับตัวแปรเก่า)
-                        WL = sheet.Cell(row, 5).GetString(),               // C: WL
-                        WL_AL2 = sheet.Cell(row, 6).GetString(),           // D: WL/AL2
-                        HP = sheet.Cell(row, 8).GetString(),               // E: HP
-                        HP_AL2 = sheet.Cell(row, 9).GetString(),           // F: HP/AL2
-                        Alarm1 = sheet.Cell(row, 11).GetString(),          // G: Alarm1
+                        No = rowNumber,                                    // A: ลำดับ
+                        RelayLED = sheet.Cell(row, 3).GetString(),         // B
+                        WL = sheet.Cell(row, 5).GetString(),               // C
+                        WL_AL2 = sheet.Cell(row, 6).GetString(),           // D
+                        HP = sheet.Cell(row, 8).GetString(),               // E
+                        HP_AL2 = sheet.Cell(row, 9).GetString(),           // F
+                        Alarm1 = sheet.Cell(row, 11).GetString(),          // G
 
-                        hotFAN = sheet.Cell(row, 12).GetString(),          // H: Compressor
-                        coolFAN = sheet.Cell(row, 13).GetString(),         // H: Compressor
-                        Compressor = sheet.Cell(row, 14).GetString(),      // H: Compressor
+                        hotFAN = sheet.Cell(row, 12).GetString(),          // H
+                        coolFAN = sheet.Cell(row, 13).GetString(),         // H
+                        Compressor = sheet.Cell(row, 14).GetString(),      // H
 
-                        Ohm200 = sheet.Cell(row, 15).GetString(),          // I: จ่าย 200
-                        Ohm2000 = sheet.Cell(row, 16).GetString(),         // J: จ่าย 2000
-                        Ohm8000 = sheet.Cell(row, 17).GetString(),         // K: จ่าย 8000
+                        Ohm200 = sheet.Cell(row, 15).GetString(),          // I
+                        Ohm2000 = sheet.Cell(row, 16).GetString(),         // J
+                        Ohm8000 = sheet.Cell(row, 17).GetString(),         // K
 
-                        test20 = sheet.Cell(row, 18).GetString(),          // H: Compressor
-                        test30 = sheet.Cell(row, 19).GetString(),          // I: จ่าย 200
-                        test40 = sheet.Cell(row, 20).GetString(),          // J: จ่าย 2000
-                        test50 = sheet.Cell(row, 21).GetString(),          // K: จ่าย 8000
+                        test20 = sheet.Cell(row, 18).GetString(),
+                        test30 = sheet.Cell(row, 19).GetString(),
+                        test40 = sheet.Cell(row, 20).GetString(),
+                        test50 = sheet.Cell(row, 21).GetString(),
 
-                        BtnFunction = sheet.Cell(row, 22).GetString(),     // L: ปุ่ม F
-                        BtnDown = sheet.Cell(row, 23).GetString(),         // M: ปุ่ม ลด
-                        BtnUp = sheet.Cell(row, 24).GetString(),           // N: ปุ่ม เพิ่ม
-                        LedCheck = sheet.Cell(row, 25).GetString(),        // O: LED ติดครบ
-                        Status = statusValue,                              // T: Status
-                        LOT = excelLotFromHeader,                          // ดึงจาก K3 มาใส่ใน Object
-                        SerialNumber = sn                                  // U: S/N
+                        BtnFunction = sheet.Cell(row, 22).GetString(),     // L
+                        BtnDown = sheet.Cell(row, 23).GetString(),         // M
+                        BtnUp = sheet.Cell(row, 24).GetString(),           // N
+                        LedCheck = sheet.Cell(row, 25).GetString(),        // O
+                        Status = statusValue,                              // Status
+                        LOT = excelLotFromHeader,                          // Header
+                        SerialNumber = currentSn                           // U: S/N
                     });
 
                     row++;
@@ -2982,6 +3194,7 @@ namespace CMATestVer1
                 LogToRx($"โหลด DataGrid ล้มเหลว: {ex.Message}", Color.Red);
             }
         }
+
         private void LoadLotHistory()
         {
             if (string.IsNullOrEmpty(ResultFolder) || !Directory.Exists(ResultFolder)) return;
@@ -3050,6 +3263,8 @@ namespace CMATestVer1
 
             return false;
         }
+
+        private string[] _tempSweepResults = new string[5] { "-", "-", "-", "-", "-" }; // index 0=10°C, 1=20°C, 2=30°C, 3=40°C, 4=50°C
         private void ResetTestResults()
         {
             // ล้างค่าผลการตรวจเช็คทางไฟฟ้า/สถานะ ให้เป็นค่าว่างหรือเครื่องหมายขีดก่อนเริ่มเทสตัวใหม่
@@ -3060,6 +3275,8 @@ namespace CMATestVer1
             _hp_AL2Result = "-";
             _alarm1Result = "-";
             _Compressor = "-";
+            _HotFan = "-";          // ★ เพิ่ม
+            _CoolFan = "-";         // ★ เพิ่ม
 
             _btnFunctionResult = "-";
             _btnDownResult = "-";
@@ -3071,11 +3288,66 @@ namespace CMATestVer1
             _verify200Result = "-";
             _verify2000Result = "-";
             _verify8000Result = "-";
+            _verify20Result = "-";  // ★ เพิ่ม
+            _verify30Result = "-";  // ★ เพิ่ม
+            _verify40Result = "-";  // ★ เพิ่ม
+            _verify50Result = "-";  // ★ เพิ่ม
 
             _register0FinalResult = "-";
 
             for (int i = 0; i < _tempSweepResults.Length; i++)
                 _tempSweepResults[i] = "-";
+        }
+        private void LoadExistingResultsForSN(string sn, string lotNumber)
+        {
+            ResetTestResults();   // baseline "-" ทั้งหมดก่อน (เผื่อไม่เจอแถวเดิม)
+
+            if (string.IsNullOrEmpty(lotNumber) || string.IsNullOrEmpty(ResultFolder)) return;
+
+            string safeFileName = lotNumber.Replace("/", "-");
+            string lotFilePath = Path.Combine(ResultFolder, safeFileName + ".xlsx");
+
+            if (!File.Exists(lotFilePath)) return;
+
+            try
+            {
+                using var workbook = new XLWorkbook(lotFilePath);
+                var sheet = workbook.Worksheet(1);
+
+                int lastRow = sheet.LastRowUsed()?.RowNumber() ?? 11;
+
+                for (int row = 12; row <= lastRow; row++)
+                {
+                    string existingSN = sheet.Cell(row, 28).GetString().Trim();
+                    if (string.IsNullOrEmpty(existingSN) || IsPlaceholderSN(existingSN)) continue;
+
+                    if (existingSN.Equals(sn, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // ★ โหลดค่าเดิมกลับมา ยกเว้นช่องปุ่ม (จะถูกทับด้วยผลทดสอบรอบนี้)
+                        _RelayResult = sheet.Cell(row, 3).GetString();
+                        _wlResult = sheet.Cell(row, 5).GetString();
+                        _wl_AL2Result = sheet.Cell(row, 6).GetString();
+                        _hpResult = sheet.Cell(row, 8).GetString();
+                        _hp_AL2Result = sheet.Cell(row, 9).GetString();
+                        _alarm1Result = sheet.Cell(row, 11).GetString();
+                        _HotFan = sheet.Cell(row, 12).GetString();
+                        _CoolFan = sheet.Cell(row, 13).GetString();
+                        _Compressor = sheet.Cell(row, 14).GetString();
+                        _verify200Result = sheet.Cell(row, 15).GetString();
+                        _verify2000Result = sheet.Cell(row, 16).GetString();
+                        _verify8000Result = sheet.Cell(row, 17).GetString();
+                        _verify20Result = sheet.Cell(row, 18).GetString();
+                        _verify30Result = sheet.Cell(row, 19).GetString();
+                        _verify40Result = sheet.Cell(row, 20).GetString();
+                        _verify50Result = sheet.Cell(row, 21).GetString();
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogToRx($"โหลดผลเดิมของ S/N {sn} ไม่สำเร็จ: {ex.Message}", Color.Red);
+            }
         }
         private void dataGridView1_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
@@ -3091,7 +3363,6 @@ namespace CMATestVer1
 
             }
         }
-
         private void FormatDataGridView()
         {
             if (dataGridView1.Columns.Count == 0) return;
@@ -3106,6 +3377,9 @@ namespace CMATestVer1
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }
+
+        
+
 
 
 
@@ -3323,7 +3597,7 @@ namespace CMATestVer1
             string serialNumber = txtSerialNumber.Text.Trim();
             if (string.IsNullOrEmpty(serialNumber))
             {
-                BigMessageBox.Show("กรุณาสแกน Serial Number ก่อนส่งข้อมูลขึ้นระบบ!", "Warning", 
+                BigMessageBox.Show("กรุณาสแกน Serial Number ก่อนส่งข้อมูลขึ้นระบบ!", "Warning",
                     MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
                 return;
             }
@@ -3522,6 +3796,102 @@ namespace CMATestVer1
             for (int i = 0; i < _stepLeds.Length; i++)
                 SetStep(i, StepState.Waiting);
         }
+        private void CacheRegisTextBoxes()
+        {
+            for (int i = 0; i <= 26; i++)
+            {
+                Control[] found = this.Controls.Find("Regis" + i, true);
+                if (found.Length > 0 && found[0] is TextBox txt)
+                    _regisTextBoxCache[i] = txt;
+            }
+        }
+
+
+
+
+        //-- ส่วนของการ Scale UI ตามขนาดหน้าจอ
+        private Size _baseClientSize;
+        private readonly Dictionary<Control, Rectangle> _originalBounds = new Dictionary<Control, Rectangle>();
+        private readonly Dictionary<Control, float> _originalFontSize = new Dictionary<Control, float>();
+        private bool _isScaling = false;
+        private void InitAutoScale()
+        {
+            _baseClientSize = this.ClientSize;   // จำขนาดตอนเปิดโปรแกรมครั้งแรกไว้เป็น baseline
+            CacheOriginalLayout(this);
+            this.Resize += Form1_AutoScale_Resize;
+        }
+        private void CacheOriginalLayout(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                _originalBounds[c] = c.Bounds;
+                _originalFontSize[c] = c.Font.Size;
+
+                if (c.HasChildren)
+                    CacheOriginalLayout(c);
+            }
+        }
+        private const float ScalePadding = 1.0f;
+        private void Form1_AutoScale_Resize(object? sender, EventArgs e)
+        {
+            if (_isScaling) return;
+            if (_baseClientSize.Width <= 0 || _baseClientSize.Height <= 0) return;
+            if (this.WindowState == FormWindowState.Minimized) return;
+
+            _isScaling = true;
+            try
+            {
+                float scaleX = (float)this.ClientSize.Width / _baseClientSize.Width;
+                float scaleY = (float)this.ClientSize.Height / _baseClientSize.Height;
+                float scale = Math.Min(scaleX, scaleY) * ScalePadding;   // ★ เพิ่ม * ScalePadding ตรงนี้
+
+                int scaledWidth = (int)(_baseClientSize.Width * scale);
+                int scaledHeight = (int)(_baseClientSize.Height * scale);
+                int offsetX = (this.ClientSize.Width - scaledWidth) / 2;
+                int offsetY = (this.ClientSize.Height - scaledHeight) / 2;
+
+                this.SuspendLayout();
+                ApplyScale(this, scale, offsetX, offsetY);
+                this.ResumeLayout(true);
+            }
+            finally
+            {
+                _isScaling = false;
+            }
+        }
+        private void ApplyScale(Control parent, float scale, int offsetX, int offsetY)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (_originalBounds.TryGetValue(c, out Rectangle orig))
+                {
+                    // ★ offset ใส่เฉพาะ control ระดับบนสุด (ลูกของ Form โดยตรง)
+                    // ส่วน control ที่ซ้อนอยู่ใน panel ไม่ต้องบวก offset ซ้ำ เพราะตำแหน่งเป็น relative ต่อ parent panel อยู่แล้ว
+                    int x = (int)(orig.X * scale);
+                    int y = (int)(orig.Y * scale);
+
+                    if (parent == this)   // ★ เฉพาะชั้นบนสุดเท่านั้นที่ต้อง +offset เพื่อจัดกึ่งกลาง
+                    {
+                        x += offsetX;
+                        y += offsetY;
+                    }
+
+                    c.Bounds = new Rectangle(x, y,
+                        (int)(orig.Width * scale),
+                        (int)(orig.Height * scale));
+                }
+
+                if (_originalFontSize.TryGetValue(c, out float origFontSize))
+                {
+                    float newSize = Math.Max(6f, origFontSize * scale);
+                    c.Font = new Font(c.Font.FontFamily, newSize, c.Font.Style);
+                }
+
+                if (c.HasChildren)
+                    ApplyScale(c, scale, offsetX, offsetY);   // ชั้นลึกกว่าไม่ใช้ offset ซ้ำ เพราะเช็ค parent == this ด้านบนแล้ว
+            }
+        }
+
 
 
 
@@ -3560,7 +3930,7 @@ namespace CMATestVer1
             _sequenceStep = 0;
             _calDone = false;
             Array.Clear(finalAdcArray, 0, finalAdcArray.Length);
-            RxBox.Clear();
+            ClearRxLog();
 
             List<string> sequenceValues = new List<string>
         {
@@ -3638,7 +4008,7 @@ namespace CMATestVer1
 
                 if (nextRunNumber > 20)
                 {
-                    BigMessageBox.Show("ตารางเทมเพลตเต็มแล้ว (บันทึกครบ 20 ครั้งแล้ว)!","แจ้งเตือน", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
+                    BigMessageBox.Show("ตารางเทมเพลตเต็มแล้ว (บันทึกครบ 20 ครั้งแล้ว)!", "แจ้งเตือน", MessageBoxIcon.Information, MessageBoxButtons.OK, fontSize: 14f);
                     workbook.Dispose();
                     return;
                 }
@@ -3667,7 +4037,6 @@ namespace CMATestVer1
 
                         // จัดรูปแบบข้อความให้อยู่ในบล็อกเดียวกัน เช่น "0x00AF (175)"
                         string hexAndDecValue = $"{adcIntValue.ToString("X4")} ({adcIntValue})";
-
                         // หยอดข้อความที่ผสมแล้วลงช่อง ADC ใน Excel
                         worksheet.Cell(currentWriteRow, targetAdcCol).Value = hexAndDecValue;
                     }
@@ -3731,26 +4100,20 @@ namespace CMATestVer1
 
         }
 
-        //check 5temp impostend
-        private string[] _tempSweepResults = new string[5] { "-", "-", "-", "-", "-" }; // index 0=10°C, 1=20°C, 2=30°C, 3=40°C, 4=50°C
-        private static readonly (int Ohm, int TargetTemp)[] TempSweepPoints = new (int, int)[]
-        {
-            (3684, 10),(2489, 20),(1703, 30),(1158, 40),(821,  50)
-        };
 
-        public void btnTestCoolFan_Click(object sender, EventArgs e)
+
+
+        //--ยกเลิกการทำงาน
+        private bool CancellableSleep(int milliseconds)
         {
-            if (ID3_reg3IsOn)
-                LogToRx("[PASS] Cool Fan ทำงานอยู่ (สถานะ: ON)", Color.Green);
-            else
-                LogToRx("[FAIL] Cool Fan ไม่ทำงาน (สถานะ: OFF)", Color.Red);
+            int steps = milliseconds / 100;
+            for (int i = 0; i < steps; i++)
+            {
+                if (backgroundWorkerOhm.CancellationPending) return false; // สั่งหยุด
+                Thread.Sleep(100);
+            }
+            return true; // ครบเวลาปกติ
         }
 
-
-        private void txtECN_TextChanged(object sender, EventArgs e)
-        {
-            Properties.Settings.Default.SavedECN = txtECN.Text.Trim();
-            Properties.Settings.Default.Save();
-        }
     }
 }

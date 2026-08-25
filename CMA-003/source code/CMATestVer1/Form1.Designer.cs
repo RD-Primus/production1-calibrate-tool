@@ -39,6 +39,8 @@
             label29 = new Label();
             label41 = new Label();
             myRoundedPanel12 = new CMA003AVer2.MyRoundedPanel();
+            txtRev = new TextBox();
+            label73 = new Label();
             customLine7 = new CMA003AVer2.CustomLine();
             txtECN = new TextBox();
             label40 = new Label();
@@ -104,9 +106,11 @@
             PortBox = new ComboBox();
             myRoundedPanel15 = new CMA003AVer2.MyRoundedPanel();
             myRoundedPanel56 = new CMA003AVer2.MyRoundedPanel();
-            lblElapsedTime = new Label();
             label7 = new Label();
+            lblElapsedTime = new Label();
             pictureBox1 = new PictureBox();
+            btnOpenForm4 = new Button();
+            bntStop = new Button();
             label50 = new Label();
             label38 = new Label();
             label3 = new Label();
@@ -116,7 +120,6 @@
             chkCal = new CheckBox();
             customLine4 = new CMA003AVer2.CustomLine();
             btnRun = new Button();
-            bntStop = new Button();
             tabControl2 = new TabControl();
             tabPage4 = new TabPage();
             myRoundedPanel71 = new CMA003AVer2.MyRoundedPanel();
@@ -270,6 +273,7 @@
             picStep3 = new PictureBox();
             label64 = new Label();
             myRoundedPanel6 = new CMA003AVer2.MyRoundedPanel();
+            label47 = new Label();
             myRoundedPanel12.SuspendLayout();
             myRoundedPanel61.SuspendLayout();
             tabPage3.SuspendLayout();
@@ -382,12 +386,12 @@
             // 
             // txtSerialNumber
             // 
-            txtSerialNumber.Font = new Font("Arial", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txtSerialNumber.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             txtSerialNumber.ForeColor = Color.Blue;
-            txtSerialNumber.Location = new Point(74, 55);
+            txtSerialNumber.Location = new Point(70, 55);
             txtSerialNumber.Margin = new Padding(4);
             txtSerialNumber.Name = "txtSerialNumber";
-            txtSerialNumber.Size = new Size(236, 35);
+            txtSerialNumber.Size = new Size(223, 30);
             txtSerialNumber.TabIndex = 95;
             txtSerialNumber.TextChanged += txtSerialNumber_TextChanged;
             txtSerialNumber.KeyDown += txtSerialNumber_KeyDown;
@@ -398,7 +402,7 @@
             label9.AutoSize = true;
             label9.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.FromArgb(65, 67, 27);
-            label9.Location = new Point(9, 62);
+            label9.Location = new Point(14, 62);
             label9.Margin = new Padding(4, 0, 4, 0);
             label9.Name = "label9";
             label9.Size = new Size(50, 24);
@@ -433,6 +437,8 @@
             // 
             myRoundedPanel12.BackColor = Color.FromArgb(121, 174, 111);
             myRoundedPanel12.BorderRadius = 15;
+            myRoundedPanel12.Controls.Add(txtRev);
+            myRoundedPanel12.Controls.Add(label73);
             myRoundedPanel12.Controls.Add(customLine7);
             myRoundedPanel12.Controls.Add(txtECN);
             myRoundedPanel12.Controls.Add(label40);
@@ -448,40 +454,62 @@
             myRoundedPanel12.Location = new Point(1359, 14);
             myRoundedPanel12.Margin = new Padding(4);
             myRoundedPanel12.Name = "myRoundedPanel12";
-            myRoundedPanel12.Size = new Size(320, 269);
+            myRoundedPanel12.Size = new Size(308, 269);
             myRoundedPanel12.TabIndex = 128;
+            // 
+            // txtRev
+            // 
+            txtRev.Font = new Font("Arial Narrow", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtRev.Location = new Point(69, 183);
+            txtRev.Margin = new Padding(4);
+            txtRev.Name = "txtRev";
+            txtRev.Size = new Size(225, 27);
+            txtRev.TabIndex = 140;
+            txtRev.TextChanged += txtRev_TextChanged;
+            // 
+            // label73
+            // 
+            label73.AutoSize = true;
+            label73.Font = new Font("Arial", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label73.ForeColor = Color.FromArgb(65, 67, 27);
+            label73.Location = new Point(10, 187);
+            label73.Margin = new Padding(4, 0, 4, 0);
+            label73.Name = "label73";
+            label73.Size = new Size(54, 21);
+            label73.TabIndex = 139;
+            label73.Text = "REV:";
             // 
             // customLine7
             // 
             customLine7.IsVertical = false;
             customLine7.LineColor = Color.White;
-            customLine7.Location = new Point(14, 199);
+            customLine7.Location = new Point(14, 213);
             customLine7.Margin = new Padding(4);
             customLine7.Name = "customLine7";
-            customLine7.Size = new Size(306, 12);
+            customLine7.Size = new Size(280, 12);
             customLine7.TabIndex = 138;
             customLine7.Text = "customLine7";
             customLine7.Thickness = 2;
             // 
             // txtECN
             // 
-            txtECN.Font = new Font("Arial Narrow", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtECN.Location = new Point(74, 164);
+            txtECN.Font = new Font("Arial Narrow", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtECN.Location = new Point(69, 149);
             txtECN.Margin = new Padding(4);
             txtECN.Name = "txtECN";
-            txtECN.Size = new Size(236, 30);
+            txtECN.Size = new Size(225, 27);
             txtECN.TabIndex = 137;
             txtECN.TextChanged += txtECN_TextChanged;
             // 
             // label40
             // 
             label40.AutoSize = true;
-            label40.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label40.Font = new Font("Arial", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label40.ForeColor = Color.FromArgb(65, 67, 27);
-            label40.Location = new Point(10, 171);
+            label40.Location = new Point(10, 155);
             label40.Margin = new Padding(4, 0, 4, 0);
             label40.Name = "label40";
-            label40.Size = new Size(58, 24);
+            label40.Size = new Size(55, 21);
             label40.TabIndex = 136;
             label40.Text = "ECN:";
             // 
@@ -489,10 +517,10 @@
             // 
             customLine5.IsVertical = false;
             customLine5.LineColor = Color.White;
-            customLine5.Location = new Point(14, 145);
+            customLine5.Location = new Point(14, 133);
             customLine5.Margin = new Padding(4);
             customLine5.Name = "customLine5";
-            customLine5.Size = new Size(306, 12);
+            customLine5.Size = new Size(280, 12);
             customLine5.TabIndex = 135;
             customLine5.Text = "customLine5";
             customLine5.Thickness = 2;
@@ -500,10 +528,10 @@
             // btnSelectFolder
             // 
             btnSelectFolder.Font = new Font("Arial Narrow", 11.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            btnSelectFolder.Location = new Point(250, 219);
+            btnSelectFolder.Location = new Point(232, 229);
             btnSelectFolder.Margin = new Padding(4);
             btnSelectFolder.Name = "btnSelectFolder";
-            btnSelectFolder.Size = new Size(60, 38);
+            btnSelectFolder.Size = new Size(62, 32);
             btnSelectFolder.TabIndex = 134;
             btnSelectFolder.Text = "Save";
             btnSelectFolder.UseVisualStyleBackColor = true;
@@ -514,29 +542,30 @@
             myRoundedPanel61.BackColor = Color.FromArgb(248, 243, 225);
             myRoundedPanel61.BorderRadius = 10;
             myRoundedPanel61.Controls.Add(txtExcelPath);
-            myRoundedPanel61.Location = new Point(69, 219);
+            myRoundedPanel61.Location = new Point(69, 229);
             myRoundedPanel61.Margin = new Padding(4);
             myRoundedPanel61.Name = "myRoundedPanel61";
-            myRoundedPanel61.Size = new Size(173, 38);
+            myRoundedPanel61.Size = new Size(160, 32);
             myRoundedPanel61.TabIndex = 128;
             // 
             // txtExcelPath
             // 
-            txtExcelPath.Location = new Point(5, 5);
+            txtExcelPath.Font = new Font("Segoe UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtExcelPath.Location = new Point(5, 4);
             txtExcelPath.Margin = new Padding(4);
             txtExcelPath.Name = "txtExcelPath";
             txtExcelPath.ScrollBars = ScrollBars.Horizontal;
-            txtExcelPath.Size = new Size(164, 27);
+            txtExcelPath.Size = new Size(150, 25);
             txtExcelPath.TabIndex = 0;
             // 
             // customLine6
             // 
             customLine6.IsVertical = false;
             customLine6.LineColor = Color.White;
-            customLine6.Location = new Point(14, 91);
+            customLine6.Location = new Point(14, 87);
             customLine6.Margin = new Padding(4);
             customLine6.Name = "customLine6";
-            customLine6.Size = new Size(306, 12);
+            customLine6.Size = new Size(280, 12);
             customLine6.TabIndex = 131;
             customLine6.Text = "customLine6";
             customLine6.Thickness = 2;
@@ -544,22 +573,22 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label5.Font = new Font("Arial", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(65, 67, 27);
-            label5.Location = new Point(12, 228);
+            label5.Location = new Point(16, 238);
             label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(53, 24);
+            label5.Size = new Size(51, 19);
             label5.TabIndex = 129;
-            label5.Text = "Path";
+            label5.Text = "Path:";
             // 
             // txtLot
             // 
-            txtLot.Font = new Font("Arial Narrow", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtLot.Location = new Point(74, 110);
+            txtLot.Font = new Font("Arial Narrow", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtLot.Location = new Point(70, 103);
             txtLot.Margin = new Padding(4);
             txtLot.Name = "txtLot";
-            txtLot.Size = new Size(236, 30);
+            txtLot.Size = new Size(223, 27);
             txtLot.TabIndex = 131;
             txtLot.TextChanged += txtLot_TextChanged;
             // 
@@ -568,7 +597,7 @@
             label56.AutoSize = true;
             label56.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label56.ForeColor = Color.FromArgb(65, 67, 27);
-            label56.Location = new Point(10, 118);
+            label56.Location = new Point(9, 111);
             label56.Margin = new Padding(4, 0, 4, 0);
             label56.Name = "label56";
             label56.Size = new Size(56, 24);
@@ -584,11 +613,11 @@
             tabPage3.Controls.Add(pictureBox2);
             tabPage3.Controls.Add(myRoundedPanel1);
             tabPage3.Controls.Add(myRoundedPanel15);
-            tabPage3.Location = new Point(4, 24);
+            tabPage3.Location = new Point(4, 5);
             tabPage3.Margin = new Padding(4);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(4);
-            tabPage3.Size = new Size(1333, 701);
+            tabPage3.Size = new Size(1333, 720);
             tabPage3.TabIndex = 0;
             tabPage3.Text = "tabPage3";
             // 
@@ -645,6 +674,7 @@
             // 
             RxBox.BackColor = Color.FromArgb(248, 243, 225);
             RxBox.Font = new Font("Cordia New", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            RxBox.HideSelection = false;
             RxBox.Location = new Point(24, 48);
             RxBox.Margin = new Padding(4);
             RxBox.Name = "RxBox";
@@ -878,7 +908,7 @@
             // 
             Regis1.BackColor = SystemColors.ButtonFace;
             Regis1.Font = new Font("Roboto", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            Regis1.Location = new Point(6, 36);
+            Regis1.Location = new Point(8, 36);
             Regis1.Margin = new Padding(4, 2, 4, 2);
             Regis1.Name = "Regis1";
             Regis1.Size = new Size(160, 51);
@@ -909,9 +939,9 @@
             lblRegis0.Location = new Point(24, 59);
             lblRegis0.Margin = new Padding(4, 0, 4, 0);
             lblRegis0.Name = "lblRegis0";
-            lblRegis0.Size = new Size(69, 77);
+            lblRegis0.Size = new Size(153, 77);
             lblRegis0.TabIndex = 120;
-            lblRegis0.Text = "0";
+            lblRegis0.Text = "0 °C";
             // 
             // label39
             // 
@@ -929,10 +959,10 @@
             // 
             pictureBox2.BackColor = Color.FromArgb(232, 240, 216);
             pictureBox2.Image = Properties.Resources.primus;
-            pictureBox2.Location = new Point(4, 8);
+            pictureBox2.Location = new Point(4, 6);
             pictureBox2.Margin = new Padding(4);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(94, 94);
+            pictureBox2.Size = new Size(94, 113);
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.TabIndex = 122;
             pictureBox2.TabStop = false;
@@ -1007,9 +1037,9 @@
             chkMultiplyBy100.Location = new Point(491, 49);
             chkMultiplyBy100.Margin = new Padding(4);
             chkMultiplyBy100.Name = "chkMultiplyBy100";
-            chkMultiplyBy100.Size = new Size(70, 24);
+            chkMultiplyBy100.Size = new Size(75, 24);
             chkMultiplyBy100.TabIndex = 127;
-            chkMultiplyBy100.Text = "Ver 1.0";
+            chkMultiplyBy100.Text = "Ver Old";
             chkMultiplyBy100.UseVisualStyleBackColor = true;
             // 
             // customLine3
@@ -1114,9 +1144,10 @@
             // SerialboxOhm
             // 
             SerialboxOhm.BackColor = SystemColors.Window;
+            SerialboxOhm.DropDownStyle = ComboBoxStyle.DropDownList;
             SerialboxOhm.Font = new Font("STXinwei", 11.9999981F, FontStyle.Bold, GraphicsUnit.Point, 134);
             SerialboxOhm.FormattingEnabled = true;
-            SerialboxOhm.Location = new Point(354, 46);
+            SerialboxOhm.Location = new Point(354, 48);
             SerialboxOhm.Margin = new Padding(4, 2, 4, 2);
             SerialboxOhm.Name = "SerialboxOhm";
             SerialboxOhm.Size = new Size(129, 29);
@@ -1125,9 +1156,10 @@
             // portDis
             // 
             portDis.BackColor = SystemColors.Window;
+            portDis.DropDownStyle = ComboBoxStyle.DropDownList;
             portDis.Font = new Font("STXinwei", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
             portDis.FormattingEnabled = true;
-            portDis.Location = new Point(185, 46);
+            portDis.Location = new Point(185, 48);
             portDis.Margin = new Padding(4, 2, 4, 2);
             portDis.Name = "portDis";
             portDis.Size = new Size(129, 29);
@@ -1175,7 +1207,7 @@
             label11.AutoSize = true;
             label11.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label11.ForeColor = SystemColors.ButtonHighlight;
-            label11.Location = new Point(354, 20);
+            label11.Location = new Point(355, 20);
             label11.Margin = new Padding(4, 0, 4, 0);
             label11.Name = "label11";
             label11.Size = new Size(128, 24);
@@ -1210,9 +1242,10 @@
             // PortBox
             // 
             PortBox.BackColor = SystemColors.Window;
+            PortBox.DropDownStyle = ComboBoxStyle.DropDownList;
             PortBox.Font = new Font("STXinwei", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
             PortBox.FormattingEnabled = true;
-            PortBox.Location = new Point(24, 46);
+            PortBox.Location = new Point(24, 48);
             PortBox.Margin = new Padding(4, 2, 4, 2);
             PortBox.Name = "PortBox";
             PortBox.Size = new Size(129, 29);
@@ -1224,6 +1257,8 @@
             myRoundedPanel15.BorderRadius = 30;
             myRoundedPanel15.Controls.Add(myRoundedPanel56);
             myRoundedPanel15.Controls.Add(pictureBox1);
+            myRoundedPanel15.Controls.Add(btnOpenForm4);
+            myRoundedPanel15.Controls.Add(bntStop);
             myRoundedPanel15.Controls.Add(label50);
             myRoundedPanel15.Controls.Add(label38);
             myRoundedPanel15.Controls.Add(label3);
@@ -1231,7 +1266,6 @@
             myRoundedPanel15.Controls.Add(myRoundedPanel7);
             myRoundedPanel15.Controls.Add(customLine4);
             myRoundedPanel15.Controls.Add(btnRun);
-            myRoundedPanel15.Controls.Add(bntStop);
             myRoundedPanel15.Location = new Point(654, 131);
             myRoundedPanel15.Margin = new Padding(4);
             myRoundedPanel15.Name = "myRoundedPanel15";
@@ -1242,35 +1276,35 @@
             // 
             myRoundedPanel56.BackColor = Color.FromArgb(210, 220, 182);
             myRoundedPanel56.BorderRadius = 15;
-            myRoundedPanel56.Controls.Add(lblElapsedTime);
             myRoundedPanel56.Controls.Add(label7);
-            myRoundedPanel56.Location = new Point(54, 462);
+            myRoundedPanel56.Controls.Add(lblElapsedTime);
+            myRoundedPanel56.Location = new Point(47, 464);
             myRoundedPanel56.Margin = new Padding(4);
             myRoundedPanel56.Name = "myRoundedPanel56";
-            myRoundedPanel56.Size = new Size(206, 82);
+            myRoundedPanel56.Size = new Size(223, 82);
             myRoundedPanel56.TabIndex = 130;
+            // 
+            // label7
+            // 
+            label7.Font = new Font("Segoe UI", 31.8000011F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label7.Location = new Point(7, 4);
+            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Name = "label7";
+            label7.Size = new Size(61, 74);
+            label7.TabIndex = 0;
+            label7.Text = "⏱";
+            label7.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblElapsedTime
             // 
             lblElapsedTime.Font = new Font("Arial", 27.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblElapsedTime.Location = new Point(49, 21);
+            lblElapsedTime.Location = new Point(60, 17);
             lblElapsedTime.Margin = new Padding(4, 0, 4, 0);
             lblElapsedTime.Name = "lblElapsedTime";
-            lblElapsedTime.Size = new Size(153, 52);
+            lblElapsedTime.Size = new Size(159, 52);
             lblElapsedTime.TabIndex = 1;
             lblElapsedTime.Text = "00:00";
             lblElapsedTime.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Font = new Font("STXinwei", 35.9999962F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label7.Location = new Point(-11, 12);
-            label7.Margin = new Padding(4, 0, 4, 0);
-            label7.Name = "label7";
-            label7.Size = new Size(89, 61);
-            label7.TabIndex = 0;
-            label7.Text = "⏱";
             // 
             // pictureBox1
             // 
@@ -1284,6 +1318,34 @@
             pictureBox1.TabIndex = 111;
             pictureBox1.TabStop = false;
             pictureBox1.MouseDoubleClick += setting_MouseDoubleClick;
+            // 
+            // btnOpenForm4
+            // 
+            btnOpenForm4.BackColor = Color.DarkTurquoise;
+            btnOpenForm4.Cursor = Cursors.Hand;
+            btnOpenForm4.Font = new Font("Arial Black", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnOpenForm4.Location = new Point(224, 227);
+            btnOpenForm4.Margin = new Padding(4, 2, 4, 2);
+            btnOpenForm4.Name = "btnOpenForm4";
+            btnOpenForm4.Size = new Size(76, 73);
+            btnOpenForm4.TabIndex = 131;
+            btnOpenForm4.Text = "Test display";
+            btnOpenForm4.UseVisualStyleBackColor = false;
+            btnOpenForm4.Click += btnOpenForm4_Click;
+            // 
+            // bntStop
+            // 
+            bntStop.BackColor = Color.FromArgb(180, 82, 83);
+            bntStop.Cursor = Cursors.Hand;
+            bntStop.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            bntStop.Location = new Point(22, 312);
+            bntStop.Margin = new Padding(4, 2, 4, 2);
+            bntStop.Name = "bntStop";
+            bntStop.Size = new Size(278, 74);
+            bntStop.TabIndex = 118;
+            bntStop.Text = "Stop";
+            bntStop.UseVisualStyleBackColor = false;
+            bntStop.Click += bntStop_Click;
             // 
             // label50
             // 
@@ -1386,28 +1448,14 @@
             btnRun.BackColor = Color.Gold;
             btnRun.Cursor = Cursors.Hand;
             btnRun.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnRun.Location = new Point(20, 221);
+            btnRun.Location = new Point(22, 227);
             btnRun.Margin = new Padding(4, 2, 4, 2);
             btnRun.Name = "btnRun";
-            btnRun.Size = new Size(276, 68);
+            btnRun.Size = new Size(194, 73);
             btnRun.TabIndex = 125;
             btnRun.Text = "Run";
             btnRun.UseVisualStyleBackColor = false;
             btnRun.Click += btnRun_Click;
-            // 
-            // bntStop
-            // 
-            bntStop.BackColor = Color.FromArgb(180, 82, 83);
-            bntStop.Cursor = Cursors.Hand;
-            bntStop.Font = new Font("Arial Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            bntStop.Location = new Point(22, 306);
-            bntStop.Margin = new Padding(4, 2, 4, 2);
-            bntStop.Name = "bntStop";
-            bntStop.Size = new Size(274, 68);
-            bntStop.TabIndex = 118;
-            bntStop.Text = "Stop";
-            bntStop.UseVisualStyleBackColor = false;
-            bntStop.Click += bntStop_Click;
             // 
             // tabControl2
             // 
@@ -3066,7 +3114,7 @@
             myRoundedPanel63.Location = new Point(1359, 14);
             myRoundedPanel63.Margin = new Padding(4);
             myRoundedPanel63.Name = "myRoundedPanel63";
-            myRoundedPanel63.Size = new Size(320, 46);
+            myRoundedPanel63.Size = new Size(308, 46);
             myRoundedPanel63.TabIndex = 129;
             // 
             // label57
@@ -3090,7 +3138,7 @@
             myRoundedPanel64.Location = new Point(1359, 294);
             myRoundedPanel64.Margin = new Padding(4);
             myRoundedPanel64.Name = "myRoundedPanel64";
-            myRoundedPanel64.Size = new Size(320, 50);
+            myRoundedPanel64.Size = new Size(308, 50);
             myRoundedPanel64.TabIndex = 133;
             // 
             // picStep1
@@ -3268,15 +3316,28 @@
             myRoundedPanel6.Location = new Point(1359, 316);
             myRoundedPanel6.Margin = new Padding(4);
             myRoundedPanel6.Name = "myRoundedPanel6";
-            myRoundedPanel6.Size = new Size(320, 419);
+            myRoundedPanel6.Size = new Size(308, 419);
             myRoundedPanel6.TabIndex = 122;
+            // 
+            // label47
+            // 
+            label47.AutoSize = true;
+            label47.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            label47.ForeColor = Color.FromArgb(65, 67, 27);
+            label47.Location = new Point(6, 733);
+            label47.Margin = new Padding(4, 0, 4, 0);
+            label47.Name = "label47";
+            label47.Size = new Size(96, 20);
+            label47.TabIndex = 139;
+            label47.Text = "Version 1.0.0";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(120F, 120F);
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Color.FromArgb(232, 240, 216);
-            ClientSize = new Size(1695, 750);
+            ClientSize = new Size(1685, 756);
+            Controls.Add(label47);
             Controls.Add(myRoundedPanel64);
             Controls.Add(myRoundedPanel63);
             Controls.Add(myRoundedPanel12);
@@ -3286,7 +3347,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4, 2, 4, 2);
             Name = "Form1";
-            Text = "Calibrate and test Air Control. CMA-003";
+            Text = "Calibrate and test AirControl. CMA-003";
             FormClosed += Form1_FormClosed;
             Load += Form1_Load;
             myRoundedPanel12.ResumeLayout(false);
@@ -3330,7 +3391,6 @@
             myRoundedPanel15.ResumeLayout(false);
             myRoundedPanel15.PerformLayout();
             myRoundedPanel56.ResumeLayout(false);
-            myRoundedPanel56.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             myRoundedPanel55.ResumeLayout(false);
             myRoundedPanel55.PerformLayout();
@@ -3458,6 +3518,7 @@
             myRoundedPanel6.ResumeLayout(false);
             myRoundedPanel6.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -3700,5 +3761,9 @@
         private Label lblStatusValue;
         private Label label46;
         private Label lblConnStatusValue;
+        private Button btnOpenForm4;
+        private Label label47;
+        private TextBox txtRev;
+        private Label label73;
     }
 }

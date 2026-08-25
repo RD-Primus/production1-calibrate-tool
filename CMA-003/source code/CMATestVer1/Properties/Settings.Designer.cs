@@ -70,5 +70,17 @@ namespace CMATestVer1.Properties {
                 this["SavedECN"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("F-PD-07 Rev.6")]
+        public string SavedREV {
+            get {
+                return ((string)(this["SavedREV"]));
+            }
+            set {
+                this["SavedREV"] = value;
+            }
+        }
     }
 }
