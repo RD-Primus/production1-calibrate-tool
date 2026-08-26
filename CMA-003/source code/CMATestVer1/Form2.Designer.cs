@@ -197,11 +197,11 @@
             label1.AutoSize = true;
             label1.Font = new Font("Arial Black", 17.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = SystemColors.ButtonHighlight;
-            label1.Location = new Point(256, 12);
+            label1.Location = new Point(247, 12);
             label1.Name = "label1";
-            label1.Size = new Size(258, 41);
+            label1.Size = new Size(257, 41);
             label1.TabIndex = 122;
-            label1.Text = "Control Setting";
+            label1.Text = "Control Manual";
             // 
             // myRoundedPanel2
             // 
