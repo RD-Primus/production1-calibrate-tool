@@ -90,7 +90,8 @@ namespace Tower_Light
 
         private bool _is220VAC = false; // false = 24VDC, true = 220VAC
         private string _criteriaJsonPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TowerLightTester", "criteria_settings.json");
-
+        private bool _isTestingStatic = false;
+        private int _currentTestingTier = -1;
         public Form1()
         {
             InitializeComponent();
@@ -347,7 +348,19 @@ namespace Tower_Light
                     for (int i = 0; i < Math.Min(5, maxReg); i++)
                     {
                         if (_registerLabels[i] != null)
-                            _registerLabels[i].Text = _latestRegs[i].ToString();
+                        {
+                            if (_isTestingStatic)
+                            {
+                                // หากกำลังเทสทีละชั้น ให้อัปเดตเฉพาะชั้นที่ตรงกับ _currentTestingTier
+                                if (i == _currentTestingTier)
+                                    _registerLabels[i].Text = _latestRegs[i].ToString();
+                            }
+                            else
+                            {
+                                // โหมดปกติ อัปเดตทุกช่อง
+                                _registerLabels[i].Text = _latestRegs[i].ToString();
+                            }
+                        }
                     }
 
                     if (maxReg > 5 && _latestRegs[5] == 1)
@@ -773,15 +786,39 @@ namespace Tower_Light
             ushort[] peakAdc = new ushort[5];
             List<string> staticErrors = new List<string>();
 
+            _isTestingStatic = true;
+            for (int i = 0; i < 5; i++)
+            {
+                if (_registerLabels[i] != null)
+                    _registerLabels[i].Text = "-";
+            }
+            Panel[] colorPanels = { dis1, dis2, dis3, dis4, dis5 };
+            for (int i = 0; i < 5; i++)
+            {
+                if (colorPanels[i] != null) colorPanels[i].BackColor = Color.LightGray;
+            }
+
+            // 🌟 หยุด Timer อ่านค่ารวมก่อนเริ่มลูป เพื่อควบคุมแบบ Manual ในลูป
+            _readTimer.Stop();
+
             // ลูปทดสอบทีละชั้น
             for (ushort relay = 0; relay < activeTiers; relay++)
             {
-                // 1. สั่งเปิดไฟเฉพาะชั้นปัจจุบัน
-                await WriteSingleRegAsync(SLAVE_LAMP, relay, 1);
+                // ⭐ 1. หยุดอ่านค่าก่อนเพื่อเคลียร์สายสัญญาณ และป้องกันคำสั่งชนกัน
+                _readTimer.Stop();
+                await Task.Delay(100);
 
+                _currentTestingTier = relay;
+
+                // ⭐ 2. สั่งเปิดไฟเฉพาะชั้นปัจจุบัน
+                await WriteSingleRegAsync(SLAVE_LAMP, relay, 1);
+                _latestRegs[relay] = 0;
                 bool passed = false;
 
-                // 2. วนลูปรออ่านค่า ADC ของชั้นนี้ (สูงสุด 15 รอบ รอบละ 200ms = 3 วินาที)
+                // ⭐ 3. เปิดไฟเสร็จ ค่อยสั่งเปิดการอ่านค่า (Timer) ใหม่อีกครั้ง
+                _readTimer.Start();
+
+                // วนลูปรออ่านค่า ADC ของชั้นนี้ (สูงสุด 15 รอบ รอบละ 200ms = 3 วินาที)
                 for (int w = 0; w < 15; w++)
                 {
                     await Task.Delay(200);
@@ -793,13 +830,26 @@ namespace Tower_Light
                     if (currentAdc >= minAcceptable[relay])
                     {
                         passed = true;
+                        int currentCID = cIDs[relay];
+                        if (colorPanels[relay] != null)
+                        {
+                            colorPanels[relay].BackColor = currentCID switch
+                            {
+                                1 => Color.Red,
+                                2 => Color.Yellow,
+                                3 => Color.LimeGreen,
+                                4 => Color.Blue,
+                                5 => Color.White,
+                                _ => Color.LightGray
+                            };
+                        }
                         break; // ถ้าค่า ADC ถึงเกณฑ์แล้ว ให้ออกจากลูปรอทันที
                     }
                 }
 
                 isPassedThisRound[relay] = passed;
 
-                // 3. ประเมินผลและอัปเดต UI สำหรับชั้นนี้
+                // ประเมินผลและอัปเดต UI สำหรับชั้นนี้
                 int cID = cIDs[relay];
                 string cName = cNames[relay];
 
@@ -828,11 +878,17 @@ namespace Tower_Light
                     AddLog($"สี {cName} ไม่ผ่านในขั้นตอน Static Test! (ADC={peakAdc[relay]})", Color.Red);
                 }
 
-                // 4. สั่งปิดไฟชั้นปัจจุบัน และหน่วงเวลาเล็กน้อยเพื่อให้แสงเคลียร์ตัวก่อนเริ่มเทสชั้นต่อไป
+                // ⭐ 4. สั่งหยุดอ่านก่อนจะส่งคำสั่งปิดไฟ เพื่อป้องกันคำสั่งปิดไฟชนกับการอ่านรอบถัดไป
+                _readTimer.Stop();
+                await Task.Delay(100);
+
+                // สั่งปิดไฟชั้นปัจจุบัน และหน่วงเวลาเล็กน้อยเพื่อให้แสงเคลียร์ตัวก่อนเริ่มเทสชั้นต่อไป
                 await WriteSingleRegAsync(SLAVE_LAMP, relay, 0);
                 await Task.Delay(300);
             }
 
+            _isTestingStatic = false;
+            _currentTestingTier = -1;
             if (!allPass && IsDebugMode) AddLog($"❌ Error detected during Static Test! (Continuing...)", Color.Red);
             await AllOff(); // เคลียร์สถานะทั้งหมดเพื่อความชัวร์ก่อนเข้าสู่โหมด Blink
 
@@ -1071,6 +1127,8 @@ namespace Tower_Light
 
             AddLog("System Reset Complete.", Color.ForestGreen);
             rstja_btn.Enabled = true;
+            _isTestingStatic = false;
+            _currentTestingTier = -1;
         }
 
         private void AddLog(string message, Color color)

@@ -15,25 +15,25 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_2324F0E37C794D70B181EE6665378728"
+        "MsmKey" = "8:_39A8AB49CA8E40DFBC1A5E439DA8ACF3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_DA103BFF578C4F85868EFAAB4DCD8BCA"
+        "MsmKey" = "8:_A5AFE6504BC247838E724B4DAE529431"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_DDE2B71D1723495DB833542FA0046914"
+        "MsmKey" = "8:_BAA13649B0524C048A9653D51CC9A073"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_E40A6AC0CEF24267ABEE8F35125EA424"
+        "MsmKey" = "8:_CA6924B0CEA94848BF2D04CE527FA998"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -134,7 +134,7 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2324F0E37C794D70B181EE6665378728"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39A8AB49CA8E40DFBC1A5E439DA8ACF3"
             {
             "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\Primus_icon.ico"
             "TargetName" = "8:Primus_icon.ico"
@@ -154,27 +154,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DA103BFF578C4F85868EFAAB4DCD8BCA"
-            {
-            "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\Software Tester Tower Light V1.002.exe"
-            "TargetName" = "8:Software Tester Tower Light V1.002.exe"
-            "Tag" = "8:"
-            "Folder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DDE2B71D1723495DB833542FA0046914"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A5AFE6504BC247838E724B4DAE529431"
             {
             "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\Template.xlsx"
             "TargetName" = "8:Template.xlsx"
@@ -194,7 +174,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E40A6AC0CEF24267ABEE8F35125EA424"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BAA13649B0524C048A9653D51CC9A073"
+            {
+            "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\Software Tester Tower Light V1.002.exe"
+            "TargetName" = "8:Software Tester Tower Light V1.002.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CA6924B0CEA94848BF2D04CE527FA998"
             {
             "SourcePath" = "8:..\\..\\..\\..\\Documents\\Visual Studio\\Tower Light\\SoftwareTesterTowerLightV1001.pdb"
             "TargetName" = "8:SoftwareTesterTowerLightV1001.pdb"
@@ -271,7 +271,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Software Tester Tower Light V1.002"
         "ProductCode" = "8:{A19B798F-0F4D-4229-8C9D-5163E8B55A71}"
-        "PackageCode" = "8:{FC54BD1A-2081-4F0D-A620-77E33D1F2823}"
+        "PackageCode" = "8:{6F0616DD-2DDB-42D3-A5DC-4D266B1F9898}"
         "UpgradeCode" = "8:{3A9C65DD-89DD-4048-A3BC-F88B6F4A0EBF}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -391,7 +391,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B4F30EF2BFB54C208D890CB72FE6F577"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5258413CA8384025B9F35158FC7C1798"
             {
             "Name" = "8:Software Tester Tower Light V1.002"
             "Arguments" = "8:"
@@ -399,13 +399,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_DA103BFF578C4F85868EFAAB4DCD8BCA"
+            "Target" = "8:_BAA13649B0524C048A9653D51CC9A073"
             "Folder" = "8:_F5EA0DD5476946ECB301947C51874165"
             "WorkingFolder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
-            "Icon" = "8:_2324F0E37C794D70B181EE6665378728"
+            "Icon" = "8:_39A8AB49CA8E40DFBC1A5E439DA8ACF3"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EB6D42936DEB48B7A35FE1E24EDA29AE"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_C307F500C6F640C7B03443B156EE5F1E"
             {
             "Name" = "8:Software Tester Tower Light V1.002"
             "Arguments" = "8:"
@@ -413,10 +413,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_DA103BFF578C4F85868EFAAB4DCD8BCA"
+            "Target" = "8:_BAA13649B0524C048A9653D51CC9A073"
             "Folder" = "8:_F494DB579CC74691B9BF64BD8DD2A9E8"
             "WorkingFolder" = "8:_4718A67071774AA6B07FA21CEEBCFAAB"
-            "Icon" = "8:_2324F0E37C794D70B181EE6665378728"
+            "Icon" = "8:_39A8AB49CA8E40DFBC1A5E439DA8ACF3"
             "Feature" = "8:"
             }
         }
