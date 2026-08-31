@@ -31,6 +31,7 @@ namespace CMATestVer1
 
 
         private ushort lastRequestedStart = 0; // ตัวแปรเก็บค่าเริ่มต้นล่าสุด
+        private volatile bool _calAckReceived = false;
 
         // เก็บค่า register ดิบล่าสุด แยกตาม (slaveId, address) ไม่ผ่าน UI
         private readonly Dictionary<(byte slaveId, int addr), short> _lastRegisterValues
@@ -109,11 +110,16 @@ namespace CMATestVer1
         private readonly object _anyFrameLock = new object();
         private const int BusTimeoutMs = 6000;
 
+        private DateTime _lastID1FrameTime = DateTime.MinValue;
+        private readonly object _id1TimeLock = new object();
+        private const int MainboardTimeoutMs = 6000; 
+
         //ตรวจจับสายหลุดฝั่ง _DisPort (ผ่าน callback จาก Form4)
         private DateTime _lastDisPortFrameTime = DateTime.MinValue;
         private readonly object _disPortTimeLock = new object();
         private const int DisPortTimeoutMs = 8000; // นานกว่าหน่อยเพราะ Form4 อาจ poll ช้ากว่า
-
+        private volatile bool _suppressDisPortTimeoutCheck = false;
+        private DateTime _resumeDisPortTimeoutCheckAt = DateTime.MinValue;
 
         public Form1(string token)
         {
@@ -221,6 +227,7 @@ namespace CMATestVer1
                     //reset เวลาไว้ตอนเริ่มต่อใหม่ ป้องกัน false trigger ทันทีที่ connect
                     lock (_anyFrameLock) { _lastAnyFrameTime = DateTime.Now; }
                     lock (_disPortTimeLock) { _lastDisPortFrameTime = DateTime.Now; }
+                    lock (_id1TimeLock) { _lastID1FrameTime = DateTime.Now; }
 
                     UpdateConnectionStatusUI(true);
 
@@ -457,8 +464,6 @@ namespace CMATestVer1
 
             try { if (_DisPort != null) _DisPort.DataReceived -= DisPort_TimeoutTracker; } catch { }
 
-            // ★ ห่อ Close() ของ _serialPort ด้วย _lock ตัวเดียวกับที่ SendFrame ใช้
-            // เพื่อการันตีว่าไม่มี Write() กำลังทำงานอยู่พอดีตอน Close()
             lock (_lock)
             {
                 try { if (_serialPort?.IsOpen == true) _serialPort.Close(); } catch { }
@@ -536,18 +541,24 @@ namespace CMATestVer1
         {
             lock (_disPortTimeLock) { _lastDisPortFrameTime = DateTime.Now; }
         }
-
         private void ParseModbusRTU()
         {
             lock (_lock)
             {
                 while (rxBuffer.Count >= 5)
                 {
+                    // ★ จุดที่ 1: เช็ค slave ID ก่อนเชื่อ function code
+                    byte slaveId = rxBuffer[0];
+                    if (slaveId != 1 && slaveId != 2 && slaveId != 3)
+                    {
+                        rxBuffer.RemoveAt(0);
+                        continue;
+                    }
+
                     byte function = rxBuffer[1];
                     int frameLength = 0;
 
                     if (function == 0x03)
-
                     {
                         frameLength = rxBuffer[2] + 5;
                     }
@@ -559,8 +570,15 @@ namespace CMATestVer1
                     {
                         frameLength = 41;
                     }
-
                     else { rxBuffer.RemoveAt(0); continue; }
+
+                    // ★ จุดที่ 2: sanity cap กัน frameLength เพี้ยนแล้วค้างรอ
+                    const int MaxFrameLength = 65; // ID1 อ่าน 27 registers = byteCount 54 + 5 = 59, เผื่อ margin
+                    if (frameLength > MaxFrameLength)
+                    {
+                        rxBuffer.RemoveAt(0);
+                        continue;
+                    }
 
                     if (rxBuffer.Count < frameLength) break;
 
@@ -569,23 +587,29 @@ namespace CMATestVer1
 
                     ProcessFrame(frame);
                 }
+
+                // ★ จุดที่ 3: safety net กัน buffer โตค้างไม่สิ้นสุด
+                const int MaxBufferSize = 200;
+                if (rxBuffer.Count > MaxBufferSize)
+                {
+                    rxBuffer.Clear();
+                }
             }
         }
         private void ProcessFrame(byte[] frame)
         {
-            lock (_anyFrameLock) { _lastAnyFrameTime = DateTime.Now; }
+            lock (_anyFrameLock) { _lastAnyFrameTime = DateTime.Now; }   // ยังคงไว้ เผื่อใช้เช็ค "บัสรวม" ต่อ
 
             byte slaveID = frame[0];
 
             if (slaveID == 1)
             {
+                lock (_id1TimeLock) { _lastID1FrameTime = DateTime.Now; }   // ★ เพิ่ม: จับเวลาเฉพาะ Mainboard
                 UpdateMainBoardUI(frame);
-
             }
             else if (slaveID == 2)
             {
                 UpdatePH07UI(frame);
-
             }
             else if (slaveID == 3)
             {
@@ -779,6 +803,7 @@ namespace CMATestVer1
             }
             else if (frame[1] == 0x55)
             {
+                _calAckReceived = true;
                 //LogToRx("Calibration Success!\r\n");
             }
         }
@@ -861,81 +886,134 @@ namespace CMATestVer1
         }
 
 
+
+
         //-- timer
         private bool _timerBusy = false;
         private int _fastPollCount = 0;
+
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (_timerBusy) return;
+
             _timerBusy = true;
 
             try
             {
                 _fastPollCount++;
+
                 if (_fastPollCount >= 15)
                 {
                     timer1.Interval = 1000;
                 }
 
-                // ── 1. อัปเดตนาฬิกา ──────────────────────────────────────
+                // ── 1. อัปเดตนาฬิกา ─────────────────────────────
                 if (_runStopwatch.IsRunning)
                 {
                     var t = _runStopwatch.Elapsed;
                     lblElapsedTime.Text = $" {t.Minutes:D2}:{t.Seconds:D2}";
                 }
 
-                // ── 2. นับถอยหลังเปิด Form4 ──────────────────────────────
+                // ── 2. นับถอยหลังเพื่อเปิด Form4 ────────────────
                 if (_autoOpenCountdown > 0)
                 {
                     _autoOpenCountdown--;
-                    if (_autoOpenCountdown == 0 && _DisPort != null && _DisPort.IsOpen)
+
+                    if (_autoOpenCountdown == 0 &&
+                        _DisPort != null &&
+                        _DisPort.IsOpen)
                     {
-                        // ✅ เลื่อนการเปิด Form4 ออกไปทำหลัง tick นี้จบ (ผ่าน message queue)
-                        // ไม่ block ExecuteReadCycle ของ tick ปัจจุบัน และไม่มี Thread.Sleep ค้างเธรด UI
                         this.BeginInvoke(new Action(OpenForm4Deferred));
                     }
                 }
 
-                // ── 3. เช็คการหลุด ─────────────────────────────────────────
+                // ── 3. ตรวจว่าพอร์ตยังเปิดอยู่หรือไม่ ─────────────
+
+                // พอร์ต RS-485 บัสหลัก
                 if (_serialPort == null || !_serialPort.IsOpen)
                 {
                     HandleDisconnect("Port is not open.");
                     return;
                 }
 
+                // พอร์ตเครื่องวัด Ohm
                 if (_ohmPort == null || !_ohmPort.IsOpen)
                 {
                     HandleDisconnect("Port Ohm Source is not open.");
                     return;
                 }
 
+                // พอร์ต RS-485 ของ Display
                 if (_DisPort == null || !_DisPort.IsOpen)
                 {
                     HandleDisconnect("Port Display is not open.");
                     return;
                 }
 
-                //เช็คบัสหลัก (_serialPort)
-                DateTime lastFrame;
-                lock (_anyFrameLock) { lastFrame = _lastAnyFrameTime; }
+                // ── 4. ตรวจ timeout ของ RS-485 บัสหลัก ──────────
+                // บัสหลักยังตรวจตามปกติ แม้ว่า Form4 กำลังเปิดอยู่
 
-                if ((DateTime.Now - lastFrame).TotalMilliseconds > BusTimeoutMs)
+                DateTime lastID1Frame;
+
+                lock (_id1TimeLock)
                 {
-                    HandleDisconnect("No response from RS-485 bus\n(สาย RS-485 ของ CMA-003 หลุดหรืออุปกรณ์ไม่ตอบสนอง)");
+                    lastID1Frame = _lastID1FrameTime;
+                }
+
+                if (lastID1Frame != DateTime.MinValue &&   // กันกรณียังไม่เคยได้รับเฟรม ID1 เลยตั้งแต่ connect
+                    (DateTime.Now - lastID1Frame).TotalMilliseconds > MainboardTimeoutMs)
+                {
+                    HandleDisconnect(
+                        "No response from Mainboard (ID1)\n" +
+                        "(บอร์ด CMA-003 ไม่ตอบสนอง แม้บัส RS-485 ยังมีสัญญาณจากอุปกรณ์อื่นอยู่)");
+
                     return;
                 }
 
-                //เช็ค _DisPort ตลอดเวลา ไม่ต้องรอ Form4 เปิด
-                DateTime lastDisFrame;
-                lock (_disPortTimeLock) { lastDisFrame = _lastDisPortFrameTime; }
+                // ── 5. ตรวจช่วงพักของ Display ───────────────────
+                // เมื่อ Form4 ปิด ระบบจะกำหนดเวลาให้พักต่ออีก 1 นาที
+                // เมื่อครบ 1 นาที จึงกลับมาตรวจ timeout ของ Display
 
-                if ((DateTime.Now - lastDisFrame).TotalMilliseconds > DisPortTimeoutMs)
+                if (_suppressDisPortTimeoutCheck &&
+                    _resumeDisPortTimeoutCheckAt != DateTime.MinValue &&
+                    DateTime.Now >= _resumeDisPortTimeoutCheckAt)
                 {
-                    HandleDisconnect("No response from Display port\n(สาย RS-485 ของ Display หลุดหรืออุปกรณ์ไม่ตอบสนอง)");
-                    return;
+                    // เริ่มจับเวลา timeout ใหม่จากตอนนี้
+                    // ป้องกันการแจ้งสายหลุดทันทีหลังหมดช่วงพัก
+                    lock (_disPortTimeLock)
+                    {
+                        _lastDisPortFrameTime = DateTime.Now;
+                    }
+
+                    _resumeDisPortTimeoutCheckAt = DateTime.MinValue;
+                    _suppressDisPortTimeoutCheck = false;
                 }
 
-                // ── 4. ส่ง Modbus Read ───────────────────────────────────
+                // ── 6. ตรวจ timeout ของ Display ─────────────────
+                // จะไม่เข้าตรงนี้ขณะที่ Form4 เปิด
+                // และไม่เข้าตรงนี้ในช่วง 1 นาทีหลัง Form4 ปิด
+
+                if (!_suppressDisPortTimeoutCheck)
+                {
+                    DateTime lastDisFrame;
+
+                    lock (_disPortTimeLock)
+                    {
+                        lastDisFrame = _lastDisPortFrameTime;
+                    }
+
+                    if ((DateTime.Now - lastDisFrame).TotalMilliseconds >
+                        DisPortTimeoutMs)
+                    {
+                        HandleDisconnect(
+                            "No response from Display port\n" +
+                            "(สาย RS-485 ของ Display หลุดหรืออุปกรณ์ไม่ตอบสนอง)");
+
+                        return;
+                    }
+                }
+
+                // ── 7. ส่งคำสั่งอ่าน Modbus ตามปกติ ─────────────
                 ExecuteReadCycle();
             }
             catch (Exception ex)
@@ -949,7 +1027,7 @@ namespace CMATestVer1
             }
         }
 
-        
+
 
 
         //-- ส่วนของการสั่งอ่านและเขียน
@@ -1338,7 +1416,7 @@ namespace CMATestVer1
 
             if (_sequenceStep == 0)
             {
-                LogToRx("--- เริ่มกระบวนการ Calibrate หลัก ---", Color.Black);
+                LogToRx("--- เริ่มกระบวนการ Calibrate ---", Color.Black);
             }
 
             if (e.Argument is not List<string> dataList) { e.Cancel = true; return; }
@@ -1384,18 +1462,51 @@ namespace CMATestVer1
             }
 
             byte[] calFrame = PrepareCalibrationFrame();
-            SendFrame(calFrame);
-
             backgroundWorkerOhm.ReportProgress(progressEnd);
 
-            if (!CancellableSleep(1000)) { e.Cancel = true; return; }
+            const int maxCalAckRetry = 3;
+            bool gotAck = false;
 
-            LogToRx("[CAL DONE] Calibrate เสร็จสิ้น");
+            for (int attempt = 0; attempt < maxCalAckRetry; attempt++)
+            {
+                if (attempt > 0)
+                {
+                    //LogToRx($"[RETRY] ยังไม่ได้รับการตอบกลับ Calibration กำลังส่งซ้ำ (ครั้งที่ {attempt + 1}/{maxCalAckRetry})", Color.Orange);
+                }
+
+                _calAckReceived = false;
+                SendFrame(calFrame);
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_calAckReceived) { gotAck = true; break; }
+                    if (!CancellableSleep(100)) { e.Cancel = true; return; }
+                }
+
+                if (gotAck)
+                {
+                    //LogToRx($"[OK] ได้รับการตอบกลับ Calibration แล้ว (ครั้งที่ {attempt + 1}/{maxCalAckRetry})", Color.Green);
+                    break;
+                }
+
+                // progressive backoff ก่อน retry รอบถัดไป (ยกเว้นรอบสุดท้าย)
+                if (attempt < maxCalAckRetry - 1)
+                {
+                    if (!CancellableSleep(500 * (attempt + 1))) { e.Cancel = true; return; }
+                }
+            }
+
+            if (!gotAck)
+            {
+                LogToRx($"[FAIL] ไม่ได้รับการตอบกลับจากบอร์ดหลังส่ง Calibration (ลองแล้ว {maxCalAckRetry} ครั้ง)", Color.Red);
+                e.Result = "FAILED";
+                return;
+            }
+
+
             SetStep(0, StepState.Pass);
-
             _calDone = true;
             _sequenceStep = 0;
-
             e.Result = "SUCCESS";
         }
         private void DoTest(DoWorkEventArgs e, int progressStart = 0, int progressEnd = 100)
@@ -1818,7 +1929,7 @@ namespace CMATestVer1
                 SafeInvoke(() =>
                 {
                     string timeStamp = DateTime.Now.ToString("HH:mm:ss");
-                    LogToRx($"ADC: {adcIntValue:X4} ({adcIntValue})|Ohm: {currentOhm}", Color.Black);
+                    LogToRx($"ADC: {adcIntValue:X4} ({adcIntValue}) |Ohm: {currentOhm}", Color.Black);
                 });
 
                 _sequenceStep++;
@@ -2133,6 +2244,18 @@ namespace CMATestVer1
 
             if (currentStatus != expectedStatus)
             {
+                // WL เปิดไม่สำเร็จ
+                if (targetID == 2 && address == 0)
+                {
+                    _wlResult = "FAIL";
+                }
+
+                // HP เปิดไม่สำเร็จ
+                if (targetID == 2 && address == 1)
+                {
+                    _hpResult = "FAIL";
+                }
+
                 LogToRx($"[FAIL] {label} ไม่ทำงาน! (ค่าปัจจุบัน: {currentStatus}, ค่าที่หวัง: {expectedStatus})", Color.Red);
                 return false;
             }
@@ -2801,30 +2924,33 @@ namespace CMATestVer1
             if (_form4Instance != null && !_form4Instance.IsDisposed)
             {
                 if (_DisPort != null)
+
                 {
                     _DisPort.DataReceived -= _form4Instance.DataReceivedHandler;
                 }
                 _form4Instance.Close();
             }
-
             _form4Instance = new Form4(_DisPort!, this);
-            _form4Instance.AutoCloseOnComplete = true;   // ★ flow อัตโนมัติปิดเองเหมือนเดิม
+            _form4Instance.AutoCloseOnComplete = true; // ★ flow อัตโนมัติปิดเองเหมือนเดิม
             _form4Instance.Owner = this;
             _form4Instance.Show();
+            UpdateOpenForm4ButtonState(); // ★
 
-            UpdateOpenForm4ButtonState();   // ★
         }
+
         public void OnForm4Closed()
         {
             bool duringCalTest = backgroundWorkerOhm.IsBusy &&
-                                  (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
 
+            (_currentMode == WorkerMode.Test || _currentMode == WorkerMode.CalAndTest);
             if (duringCalTest && !_form4TestAlreadyDone)
-            {
-                _form4ManuallyClosed = true;   // ★ ยังไม่ทันจบ test แล้วหายไป = โดนกากบาท
-            }
 
+            {
+                _form4ManuallyClosed = true; // ★ ยังไม่ทันจบ test แล้วหายไป = โดนกากบาท
+
+            }
             UpdateOpenForm4ButtonState();
+
         }
         public void OnForm4TestComplete(string form4Status)
         {
@@ -2865,6 +2991,23 @@ namespace CMATestVer1
         public void OnDisPortFrameReceived()
         {
             lock (_disPortTimeLock) { _lastDisPortFrameTime = DateTime.Now; }
+        }
+        public void SetDisPortTimeoutCheckSuppressed(bool suppressed)
+        {
+            if (suppressed)
+            {
+                // Form4 เปิด: พักการตรวจ timeout ของ Display ทันที
+                _suppressDisPortTimeoutCheck = true;
+
+                // ยกเลิกเวลารอเดิม เผื่อเปิด Form4 ซ้ำ
+                _resumeDisPortTimeoutCheckAt = DateTime.MinValue;
+            }
+            else
+            {
+                // Form4 ปิด: ยังพักต่ออีก 1 นาที
+                _suppressDisPortTimeoutCheck = true;
+                _resumeDisPortTimeoutCheckAt = DateTime.Now.AddSeconds(30);
+            }
         }
         private void btnOpenForm4_Click(object sender, EventArgs e)
         {
@@ -3450,7 +3593,7 @@ namespace CMATestVer1
                     using var workbook = new XLWorkbook(filePath);
                     var sheet = workbook.Worksheet(1);
 
-                    if (TryGetCellDate(sheet.Cell("Z3"), out DateTime lotDate) && lotDate.Date == targetDate.Date)
+                    if (TryGetCellDate(sheet.Cell("AB3"), out DateTime lotDate) && lotDate.Date == targetDate.Date)
                     {
                         string displayName = Path.GetFileNameWithoutExtension(filePath).Replace("-", "/");
                         matchedLots.Add((displayName, filePath));
@@ -3496,6 +3639,27 @@ namespace CMATestVer1
             }
 
             string text = cell.GetString().Trim();
+
+            // ★ เพิ่ม: parse รูปแบบ "d/M/yy" ที่ SaveTestDataToExcel ใช้จริง (ปีพุทธ 2 หลัก เช่น "27/8/69")
+            var parts = text.Split('/');
+            if (parts.Length == 3
+                && int.TryParse(parts[0], out int day)
+                && int.TryParse(parts[1], out int month)
+                && int.TryParse(parts[2], out int buddhistYear2Digit))
+            {
+                int gregorianYear = (2500 + buddhistYear2Digit) - 543;
+
+                try
+                {
+                    date = new DateTime(gregorianYear, month, day);
+                    return true;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // day/month ไม่ valid ตกไป fallback ด้านล่าง
+                }
+            }
+
             return DateTime.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date)
                 || DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
         }
@@ -3865,7 +4029,6 @@ namespace CMATestVer1
             {
                 if (_originalBounds.TryGetValue(c, out Rectangle orig))
                 {
-                    // ★ offset ใส่เฉพาะ control ระดับบนสุด (ลูกของ Form โดยตรง)
                     // ส่วน control ที่ซ้อนอยู่ใน panel ไม่ต้องบวก offset ซ้ำ เพราะตำแหน่งเป็น relative ต่อ parent panel อยู่แล้ว
                     int x = (int)(orig.X * scale);
                     int y = (int)(orig.Y * scale);

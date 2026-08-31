@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_0DEBCC18DEF54FF88F9DFB6EEE1F42F8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_99269DA48D78432088FB6274A79CF3E0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -22,12 +28,6 @@
         "Entry"
         {
         "MsmKey" = "8:_CAE7A4065BA54128B4CBE9DD6F989B3D"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_E4AD200AD0EA48BC9647DA7E321C654D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -128,10 +128,10 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0DEBCC18DEF54FF88F9DFB6EEE1F42F8"
             {
-            "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
-            "TargetName" = "8:Primus_icon.ico"
+            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\template.xlsx"
+            "TargetName" = "8:template.xlsx"
             "Tag" = "8:"
             "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
             "Condition" = "8:"
@@ -148,10 +148,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E4AD200AD0EA48BC9647DA7E321C654D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
             {
-            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\template.xlsx"
-            "TargetName" = "8:template.xlsx"
+            "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
+            "TargetName" = "8:Primus_icon.ico"
             "Tag" = "8:"
             "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
             "Condition" = "8:"

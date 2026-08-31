@@ -22,14 +22,13 @@ namespace CMATestVer1
 
 
         //-- State Machine
+        // ★ ปรับลำดับใหม่: ลด → F → เพิ่ม (3 steps) ตัด "F ค้าง 5 วิ" ตอนต้น และ "F ปิดท้าย" ออก
         private enum AppState
         {
             Idle,
-            WaitingForFunction1,
             ExpectingSilenceDown,
-            WaitingForFunction2,
-            ExpectingSilenceUp,
-            WaitingForFunction3
+            WaitingForFunctionF,
+            ExpectingSilenceUp
         }
 
         private AppState currentState = AppState.Idle;
@@ -42,23 +41,20 @@ namespace CMATestVer1
 
 
         //-- ตัวแปรเก็บประวัติการตรวจสอบเพื่อรายงานผล
-        private bool isFunction1Success = false;
         private bool isArrowDownSilenceSuccess = false;
-        private bool isFunction2ResumeSuccess = false;
+        private bool isFunctionResumeSuccess = false;
         private bool isArrowUpSilenceSuccess = false;
-        private bool isFunction3ResumeSuccess = false;
 
         private readonly HashSet<int> _failedSteps = new HashSet<int>(); // เก็บทุก step ที่ fail แทนตัวเดียว
 
         //-- Constants
         private static readonly string[] StepNames =
         {
-                "LED ติดครบ / โชว์ 120 → กด F ค้าง 5 วิ",
                 "เจอ I n P → กดปุ่มลด",
                 "เจอ 0 → กดปุ่ม F",
                 "เจอ PUS → กดปุ่มเพิ่ม",
                 "เจอ 0 → กดปุ่ม F"
-            };
+         };
 
         //-- Write Queue (กัน DataReceived thread ไป Write ตรงๆ)
         private readonly Queue<byte[]> _writeQueue = new Queue<byte[]>();
@@ -79,6 +75,8 @@ namespace CMATestVer1
             _serialPort = sharedPort;
             _parentForm = parentForm;
 
+            _parentForm.SetDisPortTimeoutCheckSuppressed(true);
+
             if (_serialPort != null)
             {
                 _serialPort.DataReceived -= DataReceivedHandler;
@@ -86,7 +84,7 @@ namespace CMATestVer1
             }
 
             silenceTimer = new System.Windows.Forms.Timer();
-            silenceTimer.Interval = 500;
+            silenceTimer.Interval = 3000;
             silenceTimer.Tick += SilenceTimer_Tick;
 
             _countdownTick = new System.Windows.Forms.Timer();
@@ -105,93 +103,110 @@ namespace CMATestVer1
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            _writeQueueTimer?.Stop();   
+            _writeQueueTimer?.Stop();
 
             if (_serialPort != null)
             {
                 _serialPort.DataReceived -= DataReceivedHandler;
             }
+
+            _parentForm?.SetDisPortTimeoutCheckSuppressed(false);
             _parentForm?.OnForm4Closed();
+
             base.OnFormClosed(e);
         }
 
         //-- fromload4
         private async void Form4_Load(object sender, EventArgs e)
         {
-            isFunction1Success = false;
-            isArrowDownSilenceSuccess = false;
-            isFunction2ResumeSuccess = false;
-            isArrowUpSilenceSuccess = false;
-            isFunction3ResumeSuccess = false; ;
-
-            lock (_lock)
+            try
             {
-                rxBuffer.Clear();
+                if (!IsSafeToInvoke()) return;
+                await ResetAndInitializeAsync();
             }
-
-            if (_serialPort != null && _serialPort.IsOpen)
+            catch (Exception ex)
             {
-                try
-                {
-                    _serialPort.DiscardInBuffer();
-                    _serialPort.DiscardOutBuffer();
-                }
-                catch { }
+                // ★ กัน async void ทำแอปทั้งตัวเด้งปิดเงียบๆ — โชว์ error ให้เห็นแทน
+                LogUnexpectedError("Form4_Load", ex);
             }
-
-            currentState = AppState.Idle;
-            await Task.Delay(300);
-
-            if (!IsSafeToInvoke()) return; // ★ เช็คว่า Form4 ยังไม่ถูกปิดไปก่อน
-
-            SendDisplay120();
-
-            await ResetAndInitializeAsync();
         }
 
+        // ★ ช่วย log error ที่ไม่คาดคิดแทนการปล่อยให้แอปเด้งปิด
+        private void LogUnexpectedError(string context, Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[{context}] {ex}");
+            try
+            {
+                if (IsSafeToInvoke() && RecieverBox != null && !RecieverBox.IsDisposed)
+                {
+                    RecieverBox.AppendText($"\r\n[!! ERROR @ {context}] {ex.GetType().Name}: {ex.Message}\r\n");
+                }
+            }
+            catch { }
+        }
 
         //-- ปุ่มกด Test
         private void testDis_Click(object sender, EventArgs e)
         {
-
-            isFunction1Success = false;
             isArrowDownSilenceSuccess = false;
-            isFunction2ResumeSuccess = false;
+            isFunctionResumeSuccess = false;
             isArrowUpSilenceSuccess = false;
-            isFunction3ResumeSuccess = false;
+
             _failedSteps.Clear();
-            currentState = AppState.WaitingForFunction1;
+
+            // เริ่มขั้นตอนแรก: กดปุ่มลด
+            currentState = AppState.ExpectingSilenceDown;
 
             silenceTimer.Stop();
             TimeoutTimer.Stop();
+            StopCountdown();
 
             ResetAllSteps();
             SetStep(0, StepState.Running);
 
             RecieverBox.Clear();
-            RecieverBox.AppendText($"======================================\r\n");
-            RecieverBox.AppendText($"เริ่มทำการทดสอบการกดปุ่มแบบลำดับ\r\n");
-            RecieverBox.AppendText($"======================================\r\n\n");
+            RecieverBox.AppendText(
+                "======================================\r\n");
 
-            RecieverBox.AppendText("[ขั้นตอนที่ 1] LED ติดครบ / โชว์ 120\r\n");
-            RecieverBox.AppendText("  → กดปุ่ม F ค้างไว้ 5 วินาที...\r\n");
+            RecieverBox.AppendText(
+                "เริ่มทำการทดสอบการกดปุ่ม\r\n");
 
-            TimeoutTimer.Interval = 10000;
-            TimeoutTimer.Start();
-            StartCountdown(15);
+            RecieverBox.AppendText(
+                "ลำดับ: ลด → F → เพิ่ม\r\n");
+
+            RecieverBox.AppendText(
+                "======================================\r\n\r\n");
+
+            RecieverBox.AppendText(
+                "[ขั้นตอนที่ 1] กดปุ่มลด\r\n");
+
+            RecieverBox.AppendText(
+                "  → รอตรวจสัญญาณนิ่ง สูงสุด 10 วินาที...\r\n");
+
+            // เริ่มรอตรวจการกดปุ่มลด
+            silenceTimer.Start();
+            ResetTimeoutTimer(10);
         }
         private async void btnRefreshDisplay_Click(object sender, EventArgs e)
         {
-            // เตือนก่อนถ้ากำลังทดสอบอยู่
-            if (currentState != AppState.Idle)
+            try
             {
-                var confirm = BigMessageBox.Show("กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?", "ตรวจตอบ", MessageBoxIcon.Warning, MessageBoxButtons.YesNo, fontSize: 14f);
+                // เตือนก่อนถ้ากำลังทดสอบอยู่
+                if (currentState != AppState.Idle)
+                {
+                    var confirm = BigMessageBox.Show("กำลังทดสอบอยู่ การ Refresh จะยกเลิกการทดสอบปัจจุบัน ต้องการดำเนินการต่อหรือไม่?", "ตรวจตอบ", MessageBoxIcon.Warning, MessageBoxButtons.YesNo, fontSize: 14f);
 
-                if (confirm == DialogResult.No) return;
+                    if (confirm == DialogResult.No) return;
+                }
+
+                // เรียกการตั้งต้นใหม่เหมือนตอนเปิด Form
+                await ResetAndInitializeAsync();
             }
-
-            // เรียกการตั้งต้นใหม่เหมือนตอนเปิด Form
-            await ResetAndInitializeAsync();
+            catch (Exception ex)
+            {
+                // ★ กัน async void ทำแอปทั้งตัวเด้งปิดเงียบๆ — โชว์ error ให้เห็นแทน
+                LogUnexpectedError("btnRefreshDisplay_Click", ex);
+            }
         }
         private async Task ResetAndInitializeAsync()
         {
@@ -210,11 +225,9 @@ namespace CMATestVer1
             }
 
             // 3. Reset ตัวแปรเก็บผลการทดสอบทั้งหมด
-            isFunction1Success = false;
             isArrowDownSilenceSuccess = false;
-            isFunction2ResumeSuccess = false;
+            isFunctionResumeSuccess = false;
             isArrowUpSilenceSuccess = false;
-            isFunction3ResumeSuccess = false;
             _failedSteps.Clear();
             currentState = AppState.Idle;
 
@@ -243,7 +256,6 @@ namespace CMATestVer1
             await Task.Delay(300);
             SendDisplay120();
         }
-
         private void EnqueueWrite(byte[] frame)
         {
             lock (_writeQueueLock)
@@ -310,56 +322,40 @@ namespace CMATestVer1
                     {
                         if (rxBuffer.Count < 41) break;
 
-                        byte[] fullFrame = rxBuffer.GetRange(0, 41).ToArray();
+                        byte[] fullFrame =
+                            rxBuffer.GetRange(0, 41).ToArray();
+
                         rxBuffer.RemoveRange(0, 41);
 
                         _parentForm?.OnDisPortFrameReceived();
 
-                        SafeBeginInvoke(() =>   // ✅ เปลี่ยนจาก if(!IsSafeToInvoke) + try/catch เดิม
+                        SafeBeginInvoke(() =>
                         {
-                            if (currentState == AppState.WaitingForFunction1)
+                            // ขั้นตอนที่ 2: รอการกด F
+                            if (currentState == AppState.WaitingForFunctionF)
                             {
-                                isFunction1Success = true;
-                                currentState = AppState.ExpectingSilenceDown;
-
-                                ResetTimeoutTimer();
-                                SetStep(0, StepState.Pass);
-                                SetStep(1, StepState.Running);
-
-                                RecieverBox.AppendText($"\r\n[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 1: กด F ค้างไว้สำเร็จ\r\n");
-                                RecieverBox.AppendText("[ขั้นตอนที่ 2] เจอ I n P\r\n");
-                                RecieverBox.AppendText("  → กดปุ่มลด (รอสัญญาณนิ่ง)...\r\n");
-
-                                silenceTimer.Stop();
-                                silenceTimer.Start();
-                                ResetTimeoutTimer();
-                            }
-                            else if (currentState == AppState.WaitingForFunction2)
-                            {
-                                isFunction2ResumeSuccess = true;
+                                isFunctionResumeSuccess = true;
                                 currentState = AppState.ExpectingSilenceUp;
 
-                                ResetTimeoutTimer();
-                                SetStep(2, StepState.Pass);
-                                SetStep(3, StepState.Running);
-
-                                RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 3: กด F สำเร็จ\r\n");
-                                RecieverBox.AppendText("[ขั้นตอนที่ 4] เจอ PUS\r\n");
-                                RecieverBox.AppendText("  → กดปุ่มเพิ่ม (รอสัญญาณนิ่ง)...\r\n");
-
+                                TimeoutTimer.Stop();
                                 silenceTimer.Stop();
+
+                                SetStep(1, StepState.Pass);
+                                SetStep(2, StepState.Running);
+
+                                RecieverBox.AppendText(
+                                    $"[{DateTime.Now:HH:mm:ss.fff}] " +
+                                    "✓ ผ่านขั้นตอน 2: กด F สำเร็จ\r\n");
+
+                                RecieverBox.AppendText(
+                                    "[ขั้นตอนที่ 3] กดปุ่มเพิ่ม\r\n");
+
+                                RecieverBox.AppendText(
+                                    "  → รอตรวจสัญญาณนิ่ง สูงสุด 10 วินาที...\r\n");
+
+                                // เริ่มตรวจช่วงสัญญาณเงียบของปุ่มเพิ่ม
                                 silenceTimer.Start();
-                                ResetTimeoutTimer();
-                            }
-                            else if (currentState == AppState.WaitingForFunction3)
-                            {
-                                isFunction3ResumeSuccess = true;
-                                currentState = AppState.Idle;
-
-                                SetStep(4, StepState.Pass);
-
-                                RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 5: กด F สำเร็จ\r\n");
-                                ReportTestResult();
+                                ResetTimeoutTimer(10);
                             }
                         });
 
@@ -386,6 +382,11 @@ namespace CMATestVer1
                             }
                         });
 
+                        continue;
+                    }
+                    else
+                    {
+                        rxBuffer.RemoveAt(0);
                         continue;
                     }
 
@@ -486,11 +487,9 @@ namespace CMATestVer1
 
             int failedIndex = currentState switch
             {
-                AppState.WaitingForFunction1 => 0,
-                AppState.ExpectingSilenceDown => 1,
-                AppState.WaitingForFunction2 => 2,
-                AppState.ExpectingSilenceUp => 3,
-                AppState.WaitingForFunction3 => 4,
+                AppState.ExpectingSilenceDown => 0,
+                AppState.WaitingForFunctionF => 1,
+                AppState.ExpectingSilenceUp => 2,
                 _ => -1
             };
 
@@ -503,51 +502,69 @@ namespace CMATestVer1
             SetStep(failedIndex, StepState.Fail);
             _failedSteps.Add(failedIndex);
 
-            RecieverBox.AppendText($"\r\n[⏱ หมดเวลา] ขั้นตอนที่ {failedIndex + 1} ไม่มีสัญญาณตอบสนอง (บันทึกเป็น FAIL แต่ทดสอบต่อ)\r\n");
+            RecieverBox.AppendText(
+                $"\r\n[⏱ หมดเวลา] ขั้นตอนที่ {failedIndex + 1} " +
+                "ไม่มีสัญญาณตอบสนอง " +
+                "(บันทึกเป็น FAIL แต่ทดสอบต่อ)\r\n");
 
-            // เคลียร์ buffer ก่อนไปขั้นถัดไป กันข้อมูลค้าง
-            lock (_lock) { rxBuffer.Clear(); }
-            if (_serialPort != null && _serialPort.IsOpen)
+            // เคลียร์ข้อมูลค้างก่อนเริ่มขั้นตอนใหม่
+            lock (_lock)
             {
-                try { _serialPort.DiscardInBuffer(); _serialPort.DiscardOutBuffer(); } catch { }
+                rxBuffer.Clear();
             }
 
-            // ── ไป step ถัดไปแทนที่จะหยุด ──
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                try
+                {
+                    _serialPort.DiscardInBuffer();
+                    _serialPort.DiscardOutBuffer();
+                }
+                catch
+                {
+                }
+            }
+
             switch (failedIndex)
             {
-                case 0: // step1 timeout -> ไปต่อ step2
-                    currentState = AppState.ExpectingSilenceDown;
+                // ปุ่มลดหมดเวลา
+                // ไปทดสอบปุ่ม F ต่อ
+                case 0:
+                    currentState = AppState.WaitingForFunctionF;
+
                     SetStep(1, StepState.Running);
-                    RecieverBox.AppendText("[ขั้นตอนที่ 2] เจอ I n P → กดปุ่มลด (รอสัญญาณนิ่ง)...\r\n");
-                    silenceTimer.Stop();
-                    silenceTimer.Start();
-                    ResetTimeoutTimer();
+
+                    RecieverBox.AppendText(
+                        "[ขั้นตอนที่ 2] กดปุ่ม F\r\n");
+
+                    RecieverBox.AppendText(
+                        "  → รอสัญญาณตอบกลับ สูงสุด 14 วินาที...\r\n");
+
+                    ResetTimeoutTimer(14);
                     break;
 
-                case 1: // step2 timeout -> ไปต่อ step3
-                    currentState = AppState.WaitingForFunction2;
-                    SetStep(2, StepState.Running);
-                    RecieverBox.AppendText("[ขั้นตอนที่ 3] เจอ 0 → กดปุ่ม F...\r\n");
-                    ResetTimeoutTimer();
-                    break;
-
-                case 2: // step3 timeout -> ไปต่อ step4
+                // ปุ่ม F หมดเวลา
+                // ไปทดสอบปุ่มเพิ่มต่อ
+                case 1:
                     currentState = AppState.ExpectingSilenceUp;
-                    SetStep(3, StepState.Running);
-                    RecieverBox.AppendText("[ขั้นตอนที่ 4] เจอ PUS → กดปุ่มเพิ่ม (รอสัญญาณนิ่ง)...\r\n");
+
+                    SetStep(2, StepState.Running);
+
+                    RecieverBox.AppendText(
+                        "[ขั้นตอนที่ 3] กดปุ่มเพิ่ม\r\n");
+
+                    RecieverBox.AppendText(
+                        "  → รอตรวจสัญญาณนิ่ง สูงสุด 10 วินาที...\r\n");
+
                     silenceTimer.Stop();
                     silenceTimer.Start();
-                    ResetTimeoutTimer();
+
+                    ResetTimeoutTimer(10);
                     break;
 
-                case 3: // step4 timeout -> ไปต่อ step5
-                    currentState = AppState.WaitingForFunction3;
-                    SetStep(4, StepState.Running);
-                    RecieverBox.AppendText("[ขั้นตอนที่ 5] เจอ 0 → กดปุ่ม F เพื่อจบการทดสอบ...\r\n");
-                    ResetTimeoutTimer();
-                    break;
-
-                case 4: // step5 timeout -> ครบทุก step แล้ว จบการทดสอบ
+                // ปุ่มเพิ่มหมดเวลา
+                // ครบทั้งสามขั้นตอนแล้ว
+                case 2:
                     currentState = AppState.Idle;
                     ReportTestResult();
                     break;
@@ -559,36 +576,52 @@ namespace CMATestVer1
 
             if (!IsSafeToInvoke()) return;
 
+            // ── ขั้นตอนที่ 1: ตรวจปุ่มลด ──
             if (currentState == AppState.ExpectingSilenceDown)
             {
                 isArrowDownSilenceSuccess = true;
-                currentState = AppState.WaitingForFunction2;
+                currentState = AppState.WaitingForFunctionF;
 
                 SafeInvoke(() =>
                 {
-                    ResetTimeoutTimer();
-                    SetStep(1, StepState.Pass);
-                    SetStep(2, StepState.Running);
+                    TimeoutTimer.Stop();
 
-                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 2: กดปุ่มลดสำเร็จ\r\n");
-                    RecieverBox.AppendText("[ขั้นตอนที่ 3] เจอ 0\r\n");
-                    RecieverBox.AppendText("  → กดปุ่ม F...\r\n");
+                    SetStep(0, StepState.Pass);
+                    SetStep(1, StepState.Running);
+
+                    RecieverBox.AppendText(
+                        $"[{DateTime.Now:HH:mm:ss.fff}] " +
+                        "✓ ผ่านขั้นตอน 1: กดปุ่มลดสำเร็จ\r\n");
+
+                    RecieverBox.AppendText(
+                        "[ขั้นตอนที่ 2] กดปุ่ม F\r\n");
+
+                    RecieverBox.AppendText(
+                        "  → รอสัญญาณตอบกลับ สูงสุด 14 วินาที...\r\n");
+
+                    ResetTimeoutTimer(14);
                 });
             }
+
+            // ── ขั้นตอนที่ 3: ตรวจปุ่มเพิ่ม ──
             else if (currentState == AppState.ExpectingSilenceUp)
             {
                 isArrowUpSilenceSuccess = true;
-                currentState = AppState.WaitingForFunction3;
+                currentState = AppState.Idle;
 
                 SafeInvoke(() =>
                 {
-                    ResetTimeoutTimer();
-                    SetStep(3, StepState.Pass);
-                    SetStep(4, StepState.Running);
+                    TimeoutTimer.Stop();
+                    StopCountdown();
 
-                    RecieverBox.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] ✓ ผ่านขั้นตอน 4: กดปุ่มเพิ่มสำเร็จ\r\n");
-                    RecieverBox.AppendText("[ขั้นตอนที่ 5] เจอ 0\r\n");
-                    RecieverBox.AppendText("  → กดปุ่ม F เพื่อจบการทดสอบ...\r\n");
+                    SetStep(2, StepState.Pass);
+
+                    RecieverBox.AppendText(
+                        $"[{DateTime.Now:HH:mm:ss.fff}] " +
+                        "✓ ผ่านขั้นตอน 3: กดปุ่มเพิ่มสำเร็จ\r\n");
+
+                    // ขั้นตอนสุดท้ายผ่านแล้ว จบการทดสอบทันที
+                    ReportTestResult();
                 });
             }
         }
@@ -624,11 +657,9 @@ namespace CMATestVer1
         {
             _stepLeds = new PictureBox[]
             {
-                dot0,   // ขั้น 1: LED ติดครบ / โชว์ 120 → กด F
-                dot1,   // ขั้น 2: เจอ I n P → กดปุ่มลด
-                dot2,   // ขั้น 3: เจอ 0 → กดปุ่ม F
-                dot3,   // ขั้น 4: เจอ PUS → กดปุ่มเพิ่ม
-                dot4    // ขั้น 5: เจอ 0 → กดปุ่ม F
+                dot0,   // ขั้น 1: เจอ I n P → กดปุ่มลด
+                dot1,   // ขั้น 2: เจอ 0 → กดปุ่ม F
+                dot2,    // ขั้น 3: เจอ PUS → กดปุ่มเพิ่ม
             };
 
             foreach (var pb in _stepLeds)
@@ -653,7 +684,7 @@ namespace CMATestVer1
             countdown.ForeColor = _countdownSeconds <= 5 ? Color.Red : Color.DarkGreen;
             countdown.Text = $"⏱ {_countdownSeconds} วินาที";
         }
-        private void StartCountdown(int seconds = 8) 
+        private void StartCountdown(int seconds = 10)
         {
             _countdownSeconds = seconds;
             countdown.ForeColor = Color.DarkGreen;
@@ -666,65 +697,108 @@ namespace CMATestVer1
             _countdownTick.Stop();
             countdown.Text = "00:00";
         }
-        private void ResetTimeoutTimer(int seconds = 8)
+        private void ResetTimeoutTimer(int seconds = 10)
         {
             TimeoutTimer.Stop();
-            TimeoutTimer.Interval = seconds * 1000; // ✅ ตั้ง timeout จริงให้ตรงกับตัวเลขที่โชว์
-            TimeoutTimer.Start(); 
+            TimeoutTimer.Interval = seconds * 1000; 
+            TimeoutTimer.Start();
 
-            StartCountdown();
+            StartCountdown(seconds);
         }
 
-
-
-
         //-- สรุปผลการ test
+        private string GetLedTestResult()
+        {
+            bool hasFailedLed =
+                chkOut.Checked ||
+                chkHP.Checked ||
+                chkWL.Checked ||
+                chk7Segment.Checked;
+
+            return hasFailedLed ? "FAIL" : "OK";
+        }
         private void ReportTestResult()
+        {
+            try
+            {
+                ReportTestResultCore();
+            }
+            catch (Exception ex)
+            {
+                // ★ กันไม่ให้ exception จากขั้นตอนสรุปผลทำให้ทั้งแอปเด้งปิดแบบไม่รู้สาเหตุ
+                LogUnexpectedError("ReportTestResult", ex);
+            }
+        }
+        private void ReportTestResultCore()
         {
             TimeoutTimer.Stop();
             silenceTimer.Stop();
             StopCountdown();
+
+            currentState = AppState.Idle;
 
             if (_serialPort != null)
             {
                 _serialPort.DataReceived -= DataReceivedHandler;
             }
 
-            // ตอนนี้ทดสอบครบทุก step เสมอ (ไม่หยุดกลางทาง) เลยเช็คตรงๆ จาก _failedSteps ได้เลย
-            string[] stepResults = new string[5];
-            for (int i = 0; i < 5; i++)
+            // 0 = ลด, 1 = F, 2 = เพิ่ม
+            string[] stepResults = new string[3];
+
+            for (int i = 0; i < 3; i++)
             {
-                stepResults[i] = _failedSteps.Contains(i) ? "FAIL" : "OK";
+                stepResults[i] =
+                    _failedSteps.Contains(i) ? "FAIL" : "OK";
             }
 
-            _parentForm._btnFunctionResult = stepResults[0];
-            _parentForm._ledResult = stepResults[0];
-            _parentForm._btnDownResult = stepResults[1];
-            _parentForm._btnUpResult = stepResults[3];
+            _parentForm._btnDownResult = stepResults[0];
+            _parentForm._btnFunctionResult = stepResults[1];
+            _parentForm._btnUpResult = stepResults[2];
 
-            bool allPassed = _failedSteps.Count == 0;
+            // ตรวจ Checkbox ของ LED
+            string ledResult = GetLedTestResult();
+            _parentForm._ledResult = ledResult;
+
+            // ผลรวมต้องผ่านทั้งปุ่มและ LED
+            bool buttonTestPassed = _failedSteps.Count == 0;
+            bool ledTestPassed = ledResult == "OK";
+            bool allPassed = buttonTestPassed && ledTestPassed;
 
             if (allPassed)
             {
-                RecieverBox.AppendText($" ผลการตรวจสอบ :  SUCCESS \r\n");
-                // MessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: SUCCESS ✓",
-                //"Test Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RecieverBox.AppendText(
+                    "\r\nผลการตรวจสอบ : SUCCESS\r\n");
             }
             else
             {
-                RecieverBox.AppendText($" ผลการตรวจสอบ :  FAILED (ล้มเหลว {_failedSteps.Count} ขั้นตอน) \r\n");
-                BigMessageBox.Show("ทดสอบเรียบร้อย!\nผลการตรวจสอบ: FAILED ✗", "Test Complete", MessageBoxIcon.Warning, MessageBoxButtons.OK, fontSize: 14f);
+                if (!ledTestPassed)
+                {
+                    RecieverBox.AppendText(
+                        "\r\n✗ การตรวจสอบ LED: FAIL " +
+                        "(มีรายการ LED ไม่ติด)\r\n");
+                }
+
+                RecieverBox.AppendText(
+                    $"\r\nผลการตรวจสอบ : FAILED " +
+                    $"(ปุ่มล้มเหลว {_failedSteps.Count} ขั้นตอน)\r\n");
+
+                BigMessageBox.Show(
+                    "ทดสอบเรียบร้อย!\nผลการตรวจสอบ: FAILED ✗",
+                    "Test Complete",
+                    MessageBoxIcon.Warning,
+                    MessageBoxButtons.OK,
+                    fontSize: 14f);
             }
 
             string finalStatus = allPassed ? "PASS" : "FAIL";
+
             _parentForm?.OnForm4TestComplete(finalStatus);
 
-            if (AutoCloseOnComplete)   // ★ เปลี่ยนจาก this.Close(); ตรงๆ
+            if (AutoCloseOnComplete)
             {
                 this.Close();
             }
         }
-
 
 
 
