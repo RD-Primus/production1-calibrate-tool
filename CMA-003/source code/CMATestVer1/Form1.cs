@@ -965,7 +965,7 @@ namespace CMATestVer1
                 {
                     HandleDisconnect(
                         "No response from Mainboard (ID1)\n" +
-                        "(บอร์ด CMA-003 ไม่ตอบสนอง แม้บัส RS-485 ยังมีสัญญาณจากอุปกรณ์อื่นอยู่)");
+                        "(บอร์ด CMA-003 ไม่ตอบสนอง กรุณาตรวจสอบสาย Power และสายสัญญาณว่าเชื่อมต่ออยู่หรือไม่\")");
 
                     return;
                 }
