@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CMATestVer1.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ExcelFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedLot" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedResultFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedECN" Type="System.String" Scope="User">
+      <Value Profile="(Default)">RD-CN-18-0023</Value>
+    </Setting>
+    <Setting Name="SavedREV" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F-PD-07 Rev.6</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
