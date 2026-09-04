@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="CMA003Test App/CMA003Test App.vdproj" Type="Installer">
-    <Build />
-  </Project>
-  <Project Path="CMATestVer1/CMATestVer1.csproj" />
-</Solution>
