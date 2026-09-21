@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DEF-03N App/DEF-03N App.vdproj" Type="Installer" />
+  <Project Path="TEST_DEF-03N/TEST_DEF-03N.csproj" />
+</Solution>
