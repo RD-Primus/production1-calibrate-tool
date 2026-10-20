@@ -1,0 +1,48 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CMATestVer1.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ExcelFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedLot" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedResultFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedECN" Type="System.String" Scope="User">
+      <Value Profile="(Default)">RD-CN-18-0023</Value>
+    </Setting>
+    <Setting Name="SavedFirmware" Type="System.String" Scope="User">
+      <Value Profile="(Default)">AirControl c v1.02.d43(255 KB)</Value>
+    </Setting>
+    <Setting Name="SavedFirmwareDis" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MCU_DISPLAY_AIR_CONTROL V1.03.hex(84.1 KB)</Value>
+    </Setting>
+    <Setting Name="SavedREV" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F-PD-07 Rev.6</Value>
+    </Setting>
+    <Setting Name="SavedEquipmentText" Type="System.String" Scope="User">
+      <Value Profile="(Default)">OS-270 | Exp. 1/4/26</Value>
+    </Setting>
+    <Setting Name="SavedEquipmentDetails" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedApiToken" Type="System.String" Scope="User">
+      <Value Profile="(Default)">pqc_live_14622399280b9a002345757b97108737</Value>
+    </Setting>
+    <Setting Name="SavedAutoDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="SavedOperatorName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedServerIp" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.109.54</Value>
+    </Setting>
+    <Setting Name="SavedServerPort" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5088</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

@@ -1,4 +1,4 @@
-﻿"DeployProject"
+"DeployProject"
 {
 "VSVersion" = "3:800"
 "ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
@@ -16,6 +16,12 @@
         "Entry"
         {
         "MsmKey" = "8:_0DEBCC18DEF54FF88F9DFB6EEE1F42F8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1243908899F940F8BFB8F84048B9CE25"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -148,6 +154,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1243908899F940F8BFB8F84048B9CE25"
+            {
+            "SourcePath" = "8:..\\CMATestVer1\\bin\\Debug\\net8.0-windows\\CMA-003 QC Inspection.xlsx"
+            "TargetName" = "8:CMA-003 QC Inspection.xlsx"
+            "Tag" = "8:"
+            "Folder" = "8:_2BA1DFDE30F24F25B87632BBB6B40203"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE7A4065BA54128B4CBE9DD6F989B3D"
             {
             "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\Primus_icon.ico"
@@ -225,7 +251,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:CMA003Test App"
         "ProductCode" = "8:{43214E52-97F5-4BCE-B7CF-D97D291AE7A1}"
-        "PackageCode" = "8:{42E01A56-90CB-475E-99C7-E6EEA3846B70}"
+        "PackageCode" = "8:{A36634AC-DEBA-4B74-91BD-47AED00ADC36}"
         "UpgradeCode" = "8:{8119DB27-E196-4756-BCC1-215A4FCDF950}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

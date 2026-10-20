@@ -1,0 +1,817 @@
+================================================================================
+ภาคผนวก ค. (Appendix C)
+ซอร์สโค้ดและฟังก์ชันหลักของการสื่อสาร การประมวลผล และการจัดการข้อมูล
+โปรเจกต์: CMATestVer1 (ระบบทดสอบบอร์ดควบคุม CMA-003)
+================================================================================
+
+สารบัญเนื้อหาภายในภาคผนวก ค.:
+--------------------------------------------------------------------------------
+ค.1 ฟังก์ชันการอ่านและเขียนข้อมูลฮาร์ดแวร์ (Modbus RTU Communication)
+    1.1 การคำนวณ Checksum CRC-16 (CalculateCRC)
+    1.2 การประกอบเฟรมและส่งคำสั่งออกทางพอร์ต Serial (SendFrame)
+    1.3 การส่งคำขออ่านข้อมูล Function 0x03 วนลูปตาม Slave ID (ExecuteReadCycle)
+    1.4 การส่งคำสั่งเขียนค่าลง Register Function 0x06 (ExecuteWriteSingleRegister)
+    1.5 การดักรับข้อมูลจากฮาร์ดแวร์แบบ Event-Driven (DataReceivedHandler)
+    1.6 การตรวจสอบความยาวและตัดแยกเฟรม Modbus RTU (ParseModbusRTU)
+    1.7 การกระจายเฟรมข้อมูลไปยังตัวประมวลผลตาม Slave ID (ProcessFrame)
+    1.8 การถอดรหัส 27 รีจิสเตอร์ของบอร์ดหลัก CMA-003 Slave ID 1 (UpdateMainBoardUI)
+    1.9 การถอดรหัสสถานะบอร์ด PH07 Slave ID 2 (UpdatePH07UI)
+    1.10 การถอดรหัสสถานะบอร์ด PH01 Slave ID 3 (UpdatePH01UI)
+
+ค.2 กลไกการจัดการข้อผิดพลาดระหว่างการสื่อสาร (Error Handling and Retry Mechanism)
+    2.1 กลไกตรวจสอบค่าตอบกลับและส่งคำสั่งซ้ำ (Read-back Verification & Retry Loop)
+    2.2 ระบบตรวจจับการขาดการเชื่อมต่อของแต่ละบอร์ด (Multi-Node Heartbeat Watchdog)
+    2.3 กลไกปลดล็อกสถานะเมื่อบอร์ดไม่ตอบกลับ (Write-Timeout Auto Unlock)
+    2.4 การจัดการ Buffer ป้องกันข้อมูลขยะและ Buffer Overflow (Sanity Framing & Safety Net)
+    2.5 คิวคำสั่งแบบอะซิงโครนัสป้องกันการชนกันของบัส (Thread-Safe Write Queue)
+
+ค.3 การจัดเก็บรายงานและการส่งข้อมูลส่วนกลาง (Data Logging and API Integration)
+    3.1 ฟังก์ชันบันทึกผลการทดสอบลงไฟล์ Excel อัตโนมัติ (SaveDataToExcel)
+    3.2 ฟังก์ชันโหลดประวัติจาก Excel มาแสดงบน DataGrid (LoadExcelToDataGrid)
+    3.3 ฟังก์ชันขอรับสิทธิ์เข้าถึงระบบ Server (LoginToServerAsync & JWT Token)
+    3.4 ฟังก์ชันจัดโครงสร้าง JSON Payload และส่งขึ้น Server QC (SendQcPayloadAsync)
+================================================================================
+
+
+================================================================================
+ค.1 ฟังก์ชันการอ่านและเขียนข้อมูลฮาร์ดแวร์ (Modbus RTU Communication)
+================================================================================
+
+--------------------------------------------------------------------------------
+1.1 ฟังก์ชันคำนวณ Checksum CRC-16 (CalculateCRC)
+--------------------------------------------------------------------------------
+/// <summary>
+/// คำนวณรหัส CRC-16 (Polynomial 0xA001) คืนค่าเป็น byte[2] (Low Byte, High Byte)
+/// สำหรับตรวจสอบความถูกต้องของข้อมูลตามมาตรฐาน Modbus RTU
+/// </summary>
+private byte[] CalculateCRC(byte[] data)
+{
+    ushort crc = 0xFFFF;
+
+    foreach (byte b in data)
+    {
+        crc ^= b;
+
+        for (int i = 0; i < 8; i++)
+        {
+            if ((crc & 0x0001) != 0)
+                crc = (ushort)((crc >> 1) ^ 0xA001);
+            else
+                crc >>= 1;
+        }
+    }
+
+    return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
+}
+
+
+--------------------------------------------------------------------------------
+1.2 ฟังก์ชันประกอบเฟรมและส่งคำสั่งออกทางพอร์ต Serial (SendFrame)
+--------------------------------------------------------------------------------
+/// <summary>
+/// นำข้อมูลคำสั่งดิบมาคำนวณ CRC16 ต่อท้าย 2 ไบต์ แล้วส่งออกทางพอร์ต RS-485
+/// </summary>
+private void SendFrame(byte[] data)
+{
+    lock (_lock)
+    {
+        if (_serialPort == null || !_serialPort.IsOpen) return;
+
+        try
+        {
+            byte[] crc = CalculateCRC(data);
+            byte[] frame = new byte[data.Length + 2];
+            Array.Copy(data, frame, data.Length);
+            frame[data.Length] = crc[0];     // CRC Low
+            frame[data.Length + 1] = crc[1]; // CRC High
+
+            _serialPort.Write(frame, 0, frame.Length);
+        }
+        catch (Exception ex)
+        {
+            SafeBeginInvoke(() => HandleDisconnect("Write Error: " + ex.Message));
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------
+1.3 ฟังก์ชันส่งคำขออ่านข้อมูล Function 0x03 (ExecuteReadCycle)
+--------------------------------------------------------------------------------
+int currentPollingID = 1;
+
+/// <summary>
+/// สร้างเฟรมคำขออ่านข้อมูล (Function 0x03: Read Holding Registers)
+/// วนลูปถามบอร์ด ID 1 (27 registers), ID 2 (6 registers), ID 3 (6 registers)
+/// </summary>
+private void ExecuteReadCycle()
+{
+    if (_isWriting) return;
+
+    byte idToSend = (byte)currentPollingID;
+    ushort startAddress = 0;
+    ushort quantity = 0;
+
+    if (idToSend == 1)      // บอร์ดหลัก CMA-003: ขออ่าน 27 registers (Address 0 - 26)
+    {
+        startAddress = 0;
+        quantity = 27;
+        currentPollingID = 2; // รอบถัดไปสลับไปถาม ID 2
+    }
+    else if (idToSend == 2) // บอร์ด PH07: ขออ่าน 6 registers
+    {
+        startAddress = 0;
+        quantity = 6;
+        currentPollingID = 3; // รอบถัดไปสลับไปถาม ID 3
+    }
+    else if (idToSend == 3) // บอร์ด PH01: ขออ่าน 6 registers
+    {
+        startAddress = 0;
+        quantity = 6;
+        currentPollingID = 1; // รอบถัดไปวนกลับมาถาม ID 1
+    }
+
+    lastRequestedStart = startAddress;
+
+    // ประกอบเฟรมคำขอ 6 ไบต์แรก: [SlaveID, Func(0x03), StartHi, StartLo, QtyHi, QtyLo]
+    byte[] frame = new byte[6];
+    frame[0] = idToSend;
+    frame[1] = 0x03;
+    frame[2] = (byte)(startAddress >> 8);
+    frame[3] = (byte)(startAddress & 0xFF);
+    frame[4] = (byte)(quantity >> 8);
+    frame[5] = (byte)(quantity & 0xFF);
+
+    SendFrame(frame); // คำนวณ CRC16 และส่งเฟรมคำขอออกไป
+}
+
+
+--------------------------------------------------------------------------------
+1.4 ฟังก์ชันส่งคำสั่งเขียนค่าลง Register Function 0x06 (ExecuteWriteSingleRegister)
+--------------------------------------------------------------------------------
+/// <summary>
+/// สร้างเฟรมคำสั่งเขียนค่าลง Register เดี่ยว (Function 0x06: Write Single Register)
+/// </summary>
+private void ExecuteWriteSingleRegister(byte targetID, ushort address, short value)
+{
+    if (_serialPort == null || !_serialPort.IsOpen) return;
+
+    // เฟรมคำสั่งเขียน 6 ไบต์แรก: [SlaveID, Func(0x06), AddrHi, AddrLo, ValHi, ValLo]
+    byte[] frame = new byte[6];
+    frame[0] = targetID;
+    frame[1] = 0x06;
+    frame[2] = (byte)(address >> 8);
+    frame[3] = (byte)(address & 0xFF);
+    frame[4] = (byte)(value >> 8);
+    frame[5] = (byte)(value & 0xFF);
+
+    SendFrame(frame); // คำนวณ CRC16 และส่งคำสั่งเขียนออกไป
+}
+
+
+--------------------------------------------------------------------------------
+1.5 ฟังก์ชันดักรับข้อมูลจากฮาร์ดแวร์ (DataReceivedHandler)
+--------------------------------------------------------------------------------
+/// <summary>
+/// Event ดักจับสัญญาณเมื่อมีไบต์ข้อมูลส่งเข้ามาทาง Serial Port แล้วดูดเข้าสู่ rxBuffer
+/// </summary>
+private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
+{
+    if (_serialPort == null || !_serialPort.IsOpen) return;
+
+    try
+    {
+        int count = _serialPort.BytesToRead;
+        if (count == 0) return;
+
+        byte[] buffer = new byte[count];
+        _serialPort.Read(buffer, 0, count);
+
+        lock (_lock) 
+        { 
+            rxBuffer.AddRange(buffer); 
+        }
+
+        ParseModbusRTU(); // เรียกตัวถอดรหัสและตัดแยกเฟรมทันที
+    }
+    catch { }
+}
+
+
+--------------------------------------------------------------------------------
+1.6 ฟังก์ชันตรวจสอบความยาวและตัดแยกเฟรม (ParseModbusRTU)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ตรวจสอบความถูกต้องและตัดแยกเฟรม Modbus RTU ตามความยาวจริงของ Function Code
+/// ป้องกันปัญหา Packet Fragmentation และ Buffer Overflow
+/// </summary>
+private void ParseModbusRTU()
+{
+    lock (_lock)
+    {
+        while (rxBuffer.Count >= 5)
+        {
+            // 1. ตรวจสอบความถูกต้องของ Slave ID (1, 2, 3)
+            byte slaveId = rxBuffer[0];
+            if (slaveId != 1 && slaveId != 2 && slaveId != 3)
+            {
+                rxBuffer.RemoveAt(0); // ล้าง Byte ขยะทิ้ง
+                continue;
+            }
+
+            // 2. คำนวณความยาวเฟรมตาม Function Code
+            byte function = rxBuffer[1];
+            int frameLength = 0;
+
+            if (function == 0x03)      // ตอบกลับคำขออ่าน: [ID, 0x03, ByteCount, Data..., CRCLo, CRCHi]
+            {
+                frameLength = rxBuffer[2] + 5;
+            }
+            else if (function == 0x06) // ตอบกลับการเขียนค่า: 8 ไบต์
+            {
+                frameLength = 8;
+            }
+            else if (function == 0x55) // ตอบกลับ Calibration: 41 ไบต์
+            {
+                frameLength = 41;
+            }
+            else 
+            { 
+                rxBuffer.RemoveAt(0); 
+                continue; 
+            }
+
+            // 3. ตรวจสอบว่าได้รับข้อมูลครบความยาวเฟรมหรือไม่
+            if (rxBuffer.Count < frameLength) break;
+
+            byte[] frame = rxBuffer.GetRange(0, frameLength).ToArray();
+            rxBuffer.RemoveRange(0, frameLength);
+
+            ProcessFrame(frame); // ส่งเฟรมที่สมบูรณ์ไปประมวลผลต่อตาม Slave ID
+        }
+
+        if (rxBuffer.Count > 200) rxBuffer.Clear(); // ล้าง Buffer หากข้อมูลตกค้างเกินขนาด
+    }
+}
+
+
+--------------------------------------------------------------------------------
+1.7 ฟังก์ชันกระจายเฟรมข้อมูลไปยังตัวประมวลผล (ProcessFrame)
+--------------------------------------------------------------------------------
+/// <summary>
+/// จำแนกและส่งเฟรมข้อมูลไปประมวลผลตามหมายเลขบอร์ด (Slave ID)
+/// </summary>
+private void ProcessFrame(byte[] frame)
+{
+    byte slaveID = frame[0];
+
+    if (slaveID == 1)
+    {
+        lock (_id1TimeLock) { _lastID1FrameTime = DateTime.Now; } // อัปเดตเวลากัน Timeout ของ ID 1
+        UpdateMainBoardUI(frame);                                 // ประมวลผลบอร์ดหลัก
+    }
+    else if (slaveID == 2)
+    {
+        UpdatePH07UI(frame);                                      // ประมวลผลบอร์ด PH07
+    }
+    else if (slaveID == 3)
+    {
+        UpdatePH01UI(frame);                                      // ประมวลผลบอร์ด PH01
+    }
+}
+
+
+--------------------------------------------------------------------------------
+1.8 ฟังก์ชันถอดรหัสบอร์ดหลัก CMA-003 Slave ID 1 (UpdateMainBoardUI)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ถอดรหัสค่า Registers ทั้ง 27 ตัวของบอร์ดหลัก CMA-003 เช่น อุณหภูมิ (PV), Setpoint (SV), ADC
+/// </summary>
+private void UpdateMainBoardUI(byte[] frame)
+{
+    if (frame == null || frame.Length < 3 || frame[1] != 0x03) return;
+
+    int byteCount = frame[2];
+    int numRegs = byteCount / 2; // 54 ไบต์ = 27 รีจิสเตอร์
+
+    SafeBeginInvoke(() =>
+    {
+        for (int i = 0; i < numRegs; i++)
+        {
+            int actualRegister = lastRequestedStart + i;
+            // รวม High Byte และ Low Byte เข้าด้วยกัน
+            short value = (short)(frame[3 + (i * 2)] << 8 | frame[4 + (i * 2)]);
+
+            lock (_regLock) 
+            { 
+                _lastRegisterValues[((byte)1, actualRegister)] = value; 
+            }
+
+            // แยกแปลงค่าตามฟังก์ชันของแต่ละ Register
+            switch (actualRegister)
+            {
+                case 0: // Register 0: ค่าอุณหภูมิปัจจุบัน (Process Value - PV)
+                    _currentPv = value / 10.0;
+                    lblRegis0.Text = _currentPv.ToString("F1") + " °C";
+                    break;
+
+                case 1: // Register 1: ค่า Setpoint (SV)
+                    _currentSV = value / 10.0;
+                    break;
+
+                case 20: // Register 20: สถานะ Relay
+                    Led_Relay = (value != 0);
+                    break;
+            }
+        }
+    });
+}
+
+
+--------------------------------------------------------------------------------
+1.9 ฟังก์ชันถอดรหัสบอร์ด PH07 Slave ID 2 (UpdatePH07UI)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ถอดรหัสค่าสถานะจากบอร์ด PH07 (ID 2) สำหรับ Water Level และ High Pressure
+/// </summary>
+private void UpdatePH07UI(byte[] frame)
+{
+    if (frame.Length >= 5 && frame[1] == 0x03)
+    {
+        short val0 = (short)(frame[3] << 8 | frame[4]); // Register 0: Water Level
+        short val1 = (short)(frame[5] << 8 | frame[6]); // Register 1: High Pressure
+
+        ID2_reg0IsOn = (val0 != 0);
+        ID2_reg1IsOn = (val1 != 0);
+
+        SafeBeginInvoke(() =>
+        {
+            DrawLedBulb(picWL, ID2_reg0IsOn, Color.Red);
+            DrawLedBulb(picHp, ID2_reg1IsOn, Color.Red);
+            UpdateDeviceStatusLabel(status_WL, ID2_reg0IsOn);
+            UpdateDeviceStatusLabel(status_HP, ID2_reg1IsOn);
+        });
+    }
+}
+
+
+--------------------------------------------------------------------------------
+1.10 ฟังก์ชันถอดรหัสบอร์ด PH01 Slave ID 3 (UpdatePH01UI)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ถอดรหัสค่าสถานะจากบอร์ด PH01 (ID 3) สำหรับ Alarm 1, Alarm 2, Compressor, Cool Fan, Hot Fan
+/// </summary>
+private void UpdatePH01UI(byte[] frame)
+{
+    if (frame.Length >= 5 && frame[1] == 0x03)
+    {
+        int byteCount = frame[2];
+        int numRegs = byteCount / 2;
+
+        for (int i = 0; i < numRegs; i++)
+        {
+            short value = (short)(frame[3 + (i * 2)] << 8 | frame[4 + (i * 2)]);
+
+            switch (i)
+            {
+                case 0: _alarm2IsOn = (value != 0); break;
+                case 1: _alarm1IsOn = (value != 0); break;
+                case 3: ID3_reg3IsOn = (value != 0); break; // Cool Fan
+                case 4: ID3_reg4IsOn = (value != 0); break; // Hot Fan
+                case 5: ID3_reg5IsOn = (value != 0); break; // Compressor
+            }
+        }
+
+        lock (_id3TimeLock) { _lastID3FrameTime = DateTime.Now; }
+
+        SafeBeginInvoke(() =>
+        {
+            DrawLedBulb(picCoolFan, ID3_reg3IsOn, Color.Red);
+            DrawLedBulb(picHotFan, ID3_reg4IsOn, Color.Red);
+            DrawLedBulb(picCom, ID3_reg5IsOn, Color.Red);
+            UpdateDeviceStatusLabel(status_CoolFan, ID3_reg3IsOn);
+            UpdateDeviceStatusLabel(status_HotFan, ID3_reg4IsOn);
+            UpdateDeviceStatusLabel(status_Compressor, ID3_reg5IsOn);
+        });
+    }
+}
+
+
+================================================================================
+ค.2 กลไกการจัดการข้อผิดพลาดระหว่างการสื่อสาร (Error Handling and Retry Mechanism)
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 กลไกตรวจสอบค่าตอบกลับและส่งคำสั่งซ้ำ (Read-back Verification & Retry Loop)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ส่งคำสั่งเขียนค่าและตรวจสอบค่าตอบกลับ (Read-back) หากไม่ตรงจะวนลูปส่งซ้ำ (Retry Loop)
+/// </summary>
+public async Task<bool> WriteAndVerifyWithRetryAsync(byte slaveId, ushort address, ushort expectedValue, int maxRetries = 3, int timeoutMs = 800)
+{
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
+        {
+            // 1. ส่งคำสั่งเขียนค่าลง Register
+            ExecuteWriteSingleRegister(slaveId, address, (short)expectedValue);
+
+            // 2. ลูปตรวจสอบค่าที่อ่านกลับมาภายในเวลา timeoutMs
+            DateTime startTime = DateTime.Now;
+            bool isVerified = false;
+
+            while ((DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
+            {
+                // ตรวจสอบค่าล่าสุดที่ได้รับจาก ParseModbusRTU
+                if (_lastRegisterValues.TryGetValue((slaveId, address), out short currentVal) && currentVal == (short)expectedValue)
+                {
+                    isVerified = true;
+                    break;
+                }
+                await Task.Delay(50); // รอผลการตอบกลับ
+            }
+
+            if (isVerified)
+            {
+                LogToRx($"[OK] Node {slaveId} Addr:0x{address:X2} verified on attempt {attempt}", Color.Green);
+                return true;
+            }
+
+            LogToRx($"[RETRY] Node {slaveId} Addr:0x{address:X2} mismatch. Retrying ({attempt}/{maxRetries})...", Color.Orange);
+        }
+        catch (Exception ex)
+        {
+            LogToRx($"[ERROR] Attempt {attempt} Exception: {ex.Message}", Color.Red);
+        }
+
+        await Task.Delay(100); // เว้นจังหวะก่อนส่งซ้ำ
+    }
+
+    LogToRx($"[FAIL] Node {slaveId} Addr:0x{address:X2} Timeout after {maxRetries} retries!", Color.Red);
+    return false;
+}
+
+
+--------------------------------------------------------------------------------
+2.2 ระบบตรวจจับการขาดการเชื่อมต่อของแต่ละบอร์ด (Multi-Node Heartbeat Watchdog)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ตรวจจับการขาดหายของสัญญาณ (Heartbeat Timeout) ของบอร์ดหลักและบอร์ด Display
+/// </summary>
+private void CheckConnectionWatchdog()
+{
+    // 1. ตรวจสอบ Heartbeat ของบอร์ดหลัก CMA-003 (ID1)
+    DateTime lastID1;
+    lock (_id1TimeLock) { lastID1 = _lastID1FrameTime; }
+
+    if (lastID1 != DateTime.MinValue && (DateTime.Now - lastID1).TotalMilliseconds > 6000)
+    {
+        HandleDisconnect("No response from Mainboard (ID1)\n(บอร์ด CMA-003 ไม่ตอบสนอง กรุณาตรวจสอบสายสัญญาณ)");
+        return;
+    }
+
+    // 2. ตรวจสอบ Heartbeat ของบอร์ด Display
+    if (EnableDisPortResponseTimeoutCheck && !_suppressDisPortTimeoutCheck)
+    {
+        DateTime lastDis;
+        lock (_disPortTimeLock) { lastDis = _lastDisPortFrameTime; }
+
+        if (lastDis != DateTime.MinValue && (DateTime.Now - lastDis).TotalMilliseconds > 8000)
+        {
+            HandleDisconnect("No response from Display port\n(สาย RS-485 ของ Display หลุดหรืออุปกรณ์ไม่ตอบสนอง)");
+            return;
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------
+2.3 กลไกปลดล็อกสถานะเมื่อบอร์ดไม่ตอบกลับ (Write-Timeout Auto Unlock)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ป้องกันการค้างของสถานะการเขียน (Auto-Unlock Deadlock Prevention)
+/// </summary>
+private void CheckWriteTimeout()
+{
+    // หากอยู่ในสถานะเขียนค้างเกิน 3 วินาที (ไม่ได้รับ Response ยืนยัน)
+    if (_isWriting && (DateTime.Now - _isWritingStartTime).TotalMilliseconds > 3000)
+    {
+        LogToRx("⚠ Write ACK Timeout: บังคับปลดล็อกสถานะให้ Polling ทำงานต่อ", Color.Orange);
+        _isWriting = false; // ปลดล็อกให้รอบการอ่านข้อมูลทำงานต่อได้
+    }
+}
+
+
+--------------------------------------------------------------------------------
+2.4 การจัดการ Buffer ป้องกันข้อมูลขยะและ Buffer Overflow (Sanity Framing & Safety Net)
+--------------------------------------------------------------------------------
+/// <summary>
+/// กลไกคัดกรองไบต์ขยะและป้องกัน Buffer ล้นใน ParseModbusRTU
+/// </summary>
+private void SanityBufferCheck()
+{
+    const int MaxFrameLength = 65; // ความยาวเฟรมสูงสุดที่ยอมรับได้
+    const int MaxBufferSize = 200;   // ขนาด Buffer สูงสุดที่ยอมให้พักไว้
+
+    lock (_lock)
+    {
+        // 1. หากพบ Slave ID ที่ไม่รู้จัก ให้ทิ้งไบต์แรกทันที
+        if (rxBuffer.Count > 0 && rxBuffer[0] != 1 && rxBuffer[0] != 2 && rxBuffer[0] != 3)
+        {
+            rxBuffer.RemoveAt(0);
+        }
+
+        // 2. Safety Net: ล้าง Buffer ทั้งหมดหากเกิดข้อมูลคั่งค้างเกินขนาด
+        if (rxBuffer.Count > MaxBufferSize)
+        {
+            rxBuffer.Clear();
+            LogToRx("⚠ RX Buffer Overflow: ล้าง Buffer ขยะที่ตกค้าง", Color.DarkOrange);
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------
+2.5 คิวคำสั่งแบบอะซิงโครนัสป้องกันการชนกันของบัส (Thread-Safe Write Queue)
+--------------------------------------------------------------------------------
+private readonly Queue<byte[]> _writeQueue = new Queue<byte[]>();
+private readonly object _writeQueueLock = new object();
+
+/// <summary>
+/// นำคำสั่งเข้าคิวเพื่อรอการส่งออกทางพอร์ต ป้องกัน Bus Collision
+/// </summary>
+public void EnqueueCommand(byte[] frame)
+{
+    lock (_writeQueueLock)
+    {
+        _writeQueue.Enqueue(frame);
+    }
+}
+
+/// <summary>
+/// Timer ทำงานทุกๆ 20ms ดึงคำสั่งจากคิวส่งออกไปทีละเฟรม
+/// </summary>
+private void WriteQueueTimer_Tick(object sender, EventArgs e)
+{
+    byte[]? frameToSend = null;
+
+    lock (_writeQueueLock)
+    {
+        if (_writeQueue.Count > 0)
+        {
+            frameToSend = _writeQueue.Dequeue();
+        }
+    }
+
+    if (frameToSend != null && _serialPort != null && _serialPort.IsOpen)
+    {
+        _serialPort.Write(frameToSend, 0, frameToSend.Length);
+    }
+}
+
+
+================================================================================
+ค.3 การจัดเก็บรายงานและการส่งข้อมูลส่วนกลาง (Data Logging and API Integration)
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 ฟังก์ชันบันทึกผลการทดสอบลงไฟล์ Excel อัตโนมัติ (SaveDataToExcel)
+--------------------------------------------------------------------------------
+/// <summary>
+/// บันทึกผลการทดสอบของชิ้นงานลงในไฟล์ Excel ของ LOT นั้นๆ พร้อมคำนวณสถิติสรุปอัตโนมัติ
+/// </summary>
+public bool SaveDataToExcel(string serialNumber, string lotNumber, string testStatus)
+{
+    if (string.IsNullOrEmpty(_excelFilePath) || !File.Exists(_excelFilePath)) return false;
+
+    try
+    {
+        using var workbook = new XLWorkbook(_excelFilePath);
+        var sheet = workbook.Worksheet(1);
+
+        // 1. ค้นหาแถวว่างถัดไปสำหรับกรอกข้อมูลการทดสอบ
+        int targetRow = FindNextAvailableRow(sheet);
+
+        // 2. บันทึกข้อมูลผลการวัดแต่ละหัวข้อลงตามคอลัมน์มาตรฐาน
+        sheet.Cell(targetRow, 1).Value = targetRow - ExcelFirstTestRow + 1; // ลำดับที่ (No.)
+        sheet.Cell(targetRow, 3).Value = _RelayResult;                      // Relay LED
+        sheet.Cell(targetRow, 5).Value = _wlResult;                         // Water Level
+        sheet.Cell(targetRow, 8).Value = _hpResult;                         // High Pressure
+        sheet.Cell(targetRow, 11).Value = _alarm1Result;                    // Alarm 1
+        sheet.Cell(targetRow, 12).Value = _HotFan;                          // Hot Fan
+        sheet.Cell(targetRow, 13).Value = _CoolFan;                         // Cool Fan
+        sheet.Cell(targetRow, 14).Value = _Compressor;                      // Compressor
+        sheet.Cell(targetRow, 15).Value = _ohm200Result;                    // ทดสอบที่ 200 Ohm
+        sheet.Cell(targetRow, 16).Value = _ohm2000Result;                   // ทดสอบที่ 2000 Ohm
+        sheet.Cell(targetRow, 17).Value = _ohm8000Result;                   // ทดสอบที่ 8000 Ohm
+        sheet.Cell(targetRow, 22).Value = _btnFunctionResult;               // ปุ่ม Function (F)
+        sheet.Cell(targetRow, 23).Value = _btnDownResult;                   // ปุ่มลด (Down)
+        sheet.Cell(targetRow, 24).Value = _btnUpResult;                     // ปุ่มเพิ่ม (Up)
+        sheet.Cell(targetRow, 28).Value = serialNumber;                     // Serial Number (S/N)
+
+        // ทำเครื่องหมายในช่องผลการประเมิน (ปกติ หรือ ไม่ปกติ)
+        if (testStatus == "PASS")
+        {
+            sheet.Cell(targetRow, 26).Value = "OK"; // ช่องสถานะปกติ (PASS)
+            sheet.Cell(targetRow, 27).Value = "";
+        }
+        else
+        {
+            sheet.Cell(targetRow, 26).Value = "";
+            sheet.Cell(targetRow, 27).Value = "OK"; // ช่องสถานะไม่ปกติ (FAIL)
+        }
+
+        // 3. คำนวณผลรวมสถิติในส่วนท้ายตาราง (Summary Header & Values)
+        int summaryHeaderRow = FindSummaryHeaderRow(sheet);
+        int summaryValueRow = summaryHeaderRow + 1;
+
+        int actualCount = CountValidTests(sheet);       // จำนวนทดสอบจริง
+        int goodCount = CountPassTests(sheet);          // จำนวนชิ้นงานที่ผ่าน
+        int defectCount = actualCount - goodCount;      // จำนวนชิ้นงานที่เสีย
+        double yieldPercent = actualCount > 0 ? ((double)goodCount / actualCount) * 100.0 : 0.0;
+
+        sheet.Cell(summaryValueRow, 6).Value = actualCount;                 // Col F: ยอดทดสอบจริง
+        sheet.Cell(summaryValueRow, 8).Value = goodCount;                   // Col H: ยอดงานดี (Good)
+        sheet.Cell(summaryValueRow, 10).Value = defectCount;                // Col J: ยอดงานเสีย (Defect)
+        sheet.Cell(summaryValueRow, 12).Value = yieldPercent;               // Col L: Yield Rate
+        sheet.Cell(summaryValueRow, 12).Style.NumberFormat.Format = "0.00\"%\"";
+
+        // บันทึกชื่อผู้ปฏิบัติงานลงในช่องลงนาม
+        WriteOperatorNameToSummary(sheet, summaryHeaderRow);
+
+        workbook.Save(); // บันทึกไฟล์ Excel
+        return true;
+    }
+    catch (Exception ex)
+    {
+        LogToRx($"บันทึกข้อมูลลง Excel ล้มเหลว: {ex.Message}", Color.Red);
+        return false;
+    }
+}
+
+
+--------------------------------------------------------------------------------
+3.2 ฟังก์ชันโหลดประวัติจาก Excel มาแสดงบน DataGrid (LoadExcelToDataGrid)
+--------------------------------------------------------------------------------
+/// <summary>
+/// อ่านข้อมูลผลการทดสอบทั้งหมดจากไฟล์ Excel มาแสดงผลในตาราง DataGridView
+/// </summary>
+private void LoadExcelToDataGrid(string? filePath = null)
+{
+    if (!string.IsNullOrEmpty(filePath))
+    {
+        _historyExcelFilePath = filePath;
+    }
+    else if (!string.IsNullOrEmpty(cmbLot.Text) && !string.IsNullOrEmpty(ResultFolder))
+    {
+        string safeFileName = cmbLot.Text.Trim().Replace("/", "-");
+        _historyExcelFilePath = Path.Combine(ResultFolder, safeFileName + ".xlsx");
+    }
+    else
+    {
+        _historyExcelFilePath = null;
+    }
+
+    // หากยังไม่เลือก LOT หรือไม่พบไฟล์ ให้เคลียร์ตารางเป็นค่าว่าง
+    if (string.IsNullOrEmpty(_historyExcelFilePath) || !File.Exists(_historyExcelFilePath))
+    {
+        dataGridView1.DataSource = null;
+        lblPassCount.Text = "0";
+        lblFailCount.Text = "0";
+        lblLotCount.Text = "กรุณาเลือก LOT เพื่อแสดงข้อมูล";
+        return;
+    }
+
+    try
+    {
+        using var workbook = new XLWorkbook(_historyExcelFilePath);
+        var sheet = workbook.Worksheet(1);
+        var rows = new List<TestResultExcel>();
+
+        int row = ExcelFirstTestRow;
+        int maxRow = FindSummaryHeaderRow(sheet) - 1;
+        int passCount = 0, failCount = 0;
+
+        while (row <= maxRow)
+        {
+            string currentSn = sheet.Cell(row, 28).GetString().Trim();
+            // ตรวจสอบเฉพาะแถวที่มี Serial Number จริง
+            if (string.IsNullOrWhiteSpace(currentSn) || IsPlaceholderSN(currentSn))
+            {
+                row++;
+                continue;
+            }
+
+            string zVal = sheet.Cell(row, 26).GetString().Trim().ToUpper(); // ช่องปกติ
+            string status = (zVal == "OK") ? "PASS" : "FAIL";
+
+            if (status == "PASS") passCount++;
+            else failCount++;
+
+            rows.Add(new TestResultExcel
+            {
+                No = int.Parse(sheet.Cell(row, 1).GetString()),
+                RelayLED = sheet.Cell(row, 3).GetString(),
+                WL = sheet.Cell(row, 5).GetString(),
+                HP = sheet.Cell(row, 8).GetString(),
+                Ohm200 = sheet.Cell(row, 15).GetString(),
+                Ohm2000 = sheet.Cell(row, 16).GetString(),
+                Ohm8000 = sheet.Cell(row, 17).GetString(),
+                Status = status,
+                SerialNumber = currentSn
+            });
+            row++;
+        }
+
+        // ผูกข้อมูลเข้า DataGridView และอัปเดตตัวเลขสรุป
+        dataGridView1.DataSource = rows;
+        lblPassCount.Text = passCount.ToString();
+        lblFailCount.Text = failCount.ToString();
+        lblLotCount.Text = $"ล็อต {cmbLot.Text} มีทั้งหมด: {rows.Count} ชิ้น";
+    }
+    catch (Exception ex)
+    {
+        LogToRx($"โหลด DataGrid ล้มเหลว: {ex.Message}", Color.Red);
+    }
+}
+
+
+--------------------------------------------------------------------------------
+3.3 ฟังก์ชันขอรับสิทธิ์เข้าถึงระบบ Server (LoginToServerAsync & JWT Token)
+--------------------------------------------------------------------------------
+/// <summary>
+/// เข้าสู่ระบบเซิร์ฟเวอร์ QC เพื่อขอรับ JWT Token สำหรับยืนยันตัวตน
+/// </summary>
+public async Task<string?> LoginToServerAsync(string loginUrl, string username, string password)
+{
+    using var client = new HttpClient();
+    client.Timeout = TimeSpan.FromSeconds(10);
+
+    var loginPayload = new { username = username, password = password };
+    string jsonContent = JsonConvert.SerializeObject(loginPayload);
+    using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+    try
+    {
+        HttpResponseMessage response = await client.PostAsync(loginUrl, content);
+        string responseString = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonObject = JObject.Parse(responseString);
+            string token = jsonObject["token"]?.ToString() ?? jsonObject["data"]?["token"]?.ToString() ?? "";
+            return token.Trim();
+        }
+        return null;
+    }
+    catch (Exception ex)
+    {
+        LogToRx($"Login Server ล้มเหลว: {ex.Message}", Color.Red);
+        return null;
+    }
+}
+
+
+--------------------------------------------------------------------------------
+3.4 ฟังก์ชันจัดโครงสร้าง JSON Payload และส่งขึ้น Server QC (SendQcPayloadAsync)
+--------------------------------------------------------------------------------
+/// <summary>
+/// ประกอบ JSON Payload และส่งผลการทดสอบขึ้นสู่ระบบฐานข้อมูล QC Server
+/// </summary>
+public async Task<bool> SendQcPayloadAsync(string apiUrl, string token, QcPayload payload)
+{
+    using var client = new HttpClient();
+    client.Timeout = TimeSpan.FromSeconds(15);
+
+    // 1. แนบ JWT Bearer Token ใน Header
+    client.DefaultRequestHeaders.Authorization = 
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+    // 2. แปลง Model เป็น JSON Schema
+    string jsonBody = JsonConvert.SerializeObject(payload, Formatting.Indented);
+    using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+    try
+    {
+        // 3. ส่งข้อมูลขึ้น Server ด้วย HTTP POST
+        HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+        string responseText = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            LogToRx($"[SERVER OK] บันทึกผล S/N: {payload.SerialNumber} ขึ้น Server สำเร็จ", Color.Green);
+            return true;
+        }
+        else
+        {
+            LogToRx($"[SERVER ERROR] ({response.StatusCode}): {responseText}", Color.Red);
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        LogToRx($"[SERVER NETWORK ERROR]: {ex.Message}", Color.Red);
+        return false;
+    }
+}
+================================================================================
