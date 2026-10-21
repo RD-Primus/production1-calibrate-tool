@@ -27,6 +27,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B34904CD44A5441CBD13C2BFCB6833BD"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C02D63C166F445379FF6F1A644CAE97E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -49,6 +55,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -65,6 +87,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -100,6 +138,26 @@
             {
             "SourcePath" = "8:C:\\Users\\ASUS\\Downloads\\icon\\Primus_icon.ico"
             "TargetName" = "8:Primus_icon.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_967A9992FB9247638CC550D8A0DA274C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B34904CD44A5441CBD13C2BFCB6833BD"
+            {
+            "SourcePath" = "8:..\\TEST_DEF-03N\\bin\\Debug\\net8.0-windows\\DEF-03N QC Inspection.xlsx"
+            "TargetName" = "8:DEF-03N QC Inspection.xlsx"
             "Tag" = "8:"
             "Folder" = "8:_967A9992FB9247638CC550D8A0DA274C"
             "Condition" = "8:"
@@ -193,7 +251,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DEF-03N App"
         "ProductCode" = "8:{2A63EC01-3721-4821-8264-82C84AE87019}"
-        "PackageCode" = "8:{B8038BBB-EAE0-415B-B0C4-6C3890215D7B}"
+        "PackageCode" = "8:{72C2DF79-9B10-4BD3-84EA-BD71DA619B27}"
         "UpgradeCode" = "8:{0409961B-D1BC-4189-8DF5-EE9BD5334B0F}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

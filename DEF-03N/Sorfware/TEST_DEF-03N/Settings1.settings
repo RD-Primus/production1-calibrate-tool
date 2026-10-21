@@ -1,9 +1,27 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="TEST_DEF_03N" GeneratedClassName="Settings1">
   <Profiles />
   <Settings>
     <Setting Name="LastTemplatePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedApiToken" Type="System.String" Scope="User">
+      <Value Profile="(Default)">pqc_live_14622399280b9a002345757b97108737</Value>
+    </Setting>
+    <Setting Name="SavedEquipmentDetails" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SavedAutoDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="SavedServerIp" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.109.54</Value>
+    </Setting>
+    <Setting Name="SavedServerPort" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5088</Value>
+    </Setting>
+    <Setting Name="SavedOperatorUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">admin</Value>
     </Setting>
   </Settings>
 </SettingsFile>

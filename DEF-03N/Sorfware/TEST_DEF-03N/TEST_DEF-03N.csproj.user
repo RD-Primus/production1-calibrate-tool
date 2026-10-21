@@ -1,13 +1,55 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Compile Update="CustomCheckBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="CustomComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="CustomLine.cs">
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="CustomRoundedButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="CustomTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="DescriptionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="EquipmentPopupForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form1.DebugShortcut.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Description.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.EquipmentApi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Help.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Login.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.QcPayloadV2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ServerAddress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="HelpPopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="MyRoundedPanel.cs">

@@ -15,9 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ParameterPopupController.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Update="ParameterPopupController.cs" />
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -41,6 +39,12 @@
     <None Update="Settings1.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="Resources\help_workflow.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DEF-03N QC Inspection.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

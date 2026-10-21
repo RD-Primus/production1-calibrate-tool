@@ -32,10 +32,7 @@ namespace TEST_DEF_03N
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             Regis0 = new Label();
             label4 = new Label();
-            Regis1 = new TextBox();
-            panel11 = new Panel();
-            label14 = new Label();
-            pnConnect = new MyRoundedPanel();
+            Regis1 = new Label();
             label54 = new Label();
             label9 = new Label();
             pictureBox1 = new PictureBox();
@@ -44,7 +41,6 @@ namespace TEST_DEF_03N
             backgroundWorkerOhm = new System.ComponentModel.BackgroundWorker();
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             richTextBoxRx = new RichTextBox();
-            btnSendCustom = new Button();
             timerCal = new System.Windows.Forms.Timer(components);
             label12 = new Label();
             panel6 = new Panel();
@@ -71,6 +67,7 @@ namespace TEST_DEF_03N
             label16 = new Label();
             pic_qa_step1 = new PictureBox();
             label15 = new Label();
+            stepTimeline = new StepTimelineControl();
             tabcontrol = new TabControl();
             tabPage1 = new TabPage();
             tabPage2 = new TabPage();
@@ -126,73 +123,82 @@ namespace TEST_DEF_03N
             label52 = new Label();
             label48 = new Label();
             label6 = new Label();
-            customLine3 = new CustomLine();
             label10 = new Label();
             myRoundedPanel4 = new MyRoundedPanel();
-            Regis26 = new TextBox();
+            customLine8 = new CustomLine();
+            customLine7 = new CustomLine();
+            Regis26 = new Label();
             label56 = new Label();
             label57 = new Label();
             label7 = new Label();
             myRoundedPanel2 = new MyRoundedPanel();
             chkDebugWrite = new CheckBox();
-            btnClearMessage = new Button();
+            btnClearMessage = new CustomRoundedButton();
+            txt_name = new CustomTextBox();
+            btn_setparameter = new CustomRoundedButton();
+            btnCheckRelay = new CustomRoundedButton();
+            btn_Testbtn = new CustomRoundedButton();
+            btnManualInput = new CustomRoundedButton();
+            btnSelectTestPopup = new CustomRoundedButton();
+            btn_login = new CustomRoundedButton();
             myRoundedPanel10 = new MyRoundedPanel();
             myRoundedPanel11 = new MyRoundedPanel();
-            txt_supply = new ComboBox();
+            lblProgressPercent = new Label();
+            label62 = new Label();
+            progressBarRun = new ProgressBar();
+            txt_supply = new CustomComboBox();
+            txt_model = new CustomComboBox();
             customLine4 = new CustomLine();
             label11 = new Label();
-            myRoundedPanel5 = new MyRoundedPanel();
-            lblProgressPercent = new Label();
-            progressBarRun = new ProgressBar();
-            txt_model = new ComboBox();
-            btnStop = new Button();
-            btnRun = new Button();
-            chkTestForAll = new CheckBox();
-            chkCalibration = new CheckBox();
+            btnStop = new CustomRoundedButton();
+            btnRun = new CustomRoundedButton();
             label27 = new Label();
-            btnCheckRelay = new Button();
-            btnSelectTestPopup = new Button();
-            portOhm = new ComboBox();
-            portDEF = new ComboBox();
-            txt_SN = new TextBox();
+            myRoundedPanel7 = new MyRoundedPanel();
+            customLine3 = new CustomLine();
+            chkCalibration = new CheckBox();
+            chkTestForAll = new CheckBox();
+            sent_server = new CustomCheckBox();
+            portOhm = new CustomComboBox();
+            portDEF = new CustomComboBox();
+            txt_SN = new CustomTextBox();
             label2 = new Label();
             label13 = new Label();
             label1 = new Label();
             label47 = new Label();
-            btnConnect = new Button();
+            btnConnect = new CustomRoundedButton();
             label3 = new Label();
             customLine1 = new CustomLine();
-            btnRefresh = new Button();
-            txt_Lot = new TextBox();
-            txt_templatePath = new TextBox();
-            btn_browseTemplate = new Button();
+            btnRefresh = new CustomRoundedButton();
+            txt_Lot = new CustomTextBox();
+            txt_templatePath = new CustomTextBox();
+            btn_browseTemplate = new CustomRoundedButton();
             customLine2 = new CustomLine();
             label53 = new Label();
             chkMultiplyBy100 = new CheckBox();
             label40 = new Label();
             label5 = new Label();
             myRoundedPanel1 = new MyRoundedPanel();
-            label59 = new Label();
-            txt_instrument = new TextBox();
-            label60 = new Label();
-            btn_Testbtn = new Button();
-            btn_setparameter = new Button();
-            label45 = new Label();
-            txt_Rev = new TextBox();
+            portRelay = new CustomComboBox();
             label29 = new Label();
-            btnManualInput = new Button();
-            portRelay = new ComboBox();
-            customLine5 = new CustomLine();
+            txt_help = new CustomRoundedButton();
+            txt_note = new CustomRoundedButton();
+            btn_equipment = new CustomRoundedButton();
             label8 = new Label();
-            txt_ECN = new TextBox();
+            txt_ECN = new CustomTextBox();
+            label60 = new Label();
             cmsSelectTests = new ContextMenuStrip(components);
             cmsPTC2K = new ToolStripMenuItem();
             cmsNTC10K01 = new ToolStripMenuItem();
             cmsNTC2K = new ToolStripMenuItem();
             cmsNTC10K03 = new ToolStripMenuItem();
-            myRoundedPanel6 = new MyRoundedPanel();
-            panel11.SuspendLayout();
-            pnConnect.SuspendLayout();
+            label61 = new Label();
+            myRoundedPanel8 = new MyRoundedPanel();
+            label63 = new Label();
+            pnConnect = new MyRoundedPanel();
+            myRoundedPanel3 = new MyRoundedPanel();
+            label59 = new Label();
+            label45 = new Label();
+            label14 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             panel6.SuspendLayout();
             panel30.SuspendLayout();
@@ -236,126 +242,89 @@ namespace TEST_DEF_03N
             myRoundedPanel2.SuspendLayout();
             myRoundedPanel10.SuspendLayout();
             myRoundedPanel11.SuspendLayout();
-            myRoundedPanel5.SuspendLayout();
+            myRoundedPanel7.SuspendLayout();
             myRoundedPanel1.SuspendLayout();
             cmsSelectTests.SuspendLayout();
+            myRoundedPanel8.SuspendLayout();
+            pnConnect.SuspendLayout();
+            myRoundedPanel3.SuspendLayout();
             SuspendLayout();
             // 
             // Regis0
             // 
-            Regis0.BackColor = Color.FromArgb(20, 38, 56);
-            Regis0.Font = new Font("Segoe UI", 22.2F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            Regis0.ForeColor = Color.FromArgb(255, 242, 0);
-            Regis0.Location = new Point(37, 45);
+            Regis0.BackColor = Color.FromArgb(24, 32, 43);
+            Regis0.Font = new Font("Leelawadee UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            Regis0.ForeColor = Color.FromArgb(242, 184, 75);
+            Regis0.Location = new Point(27, 41);
             Regis0.Name = "Regis0";
             Regis0.Size = new Size(119, 56);
             Regis0.TabIndex = 10;
             Regis0.Text = "_°C";
-            Regis0.TextAlign = ContentAlignment.MiddleRight;
+            Regis0.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.FlatStyle = FlatStyle.Popup;
-            label4.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            label4.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label4.ForeColor = SystemColors.ControlLightLight;
-            label4.Location = new Point(40, 11);
+            label4.Location = new Point(24, 14);
             label4.Name = "label4";
-            label4.Size = new Size(111, 31);
+            label4.Size = new Size(79, 23);
             label4.TabIndex = 9;
             label4.Text = "PV Value";
             // 
             // Regis1
             // 
-            Regis1.BackColor = SystemColors.ControlLightLight;
-            Regis1.Font = new Font("Segoe UI", 18F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            Regis1.Location = new Point(211, 50);
-            Regis1.Margin = new Padding(3, 4, 3, 4);
+            Regis1.BackColor = Color.FromArgb(24, 32, 43);
+            Regis1.Font = new Font("Leelawadee UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            Regis1.ForeColor = Color.FromArgb(232, 237, 243);
+            Regis1.Location = new Point(192, 41);
             Regis1.Name = "Regis1";
-            Regis1.Size = new Size(124, 47);
-            Regis1.TabIndex = 0;
-            Regis1.TextAlign = HorizontalAlignment.Center;
-            Regis1.TextChanged += CommonRegis_TextChanged;
-            Regis1.Enter += CommonRegis_Enter;
-            Regis1.KeyDown += CommonRegis_KeyDown;
-            Regis1.Leave += CommonRegis_Leave;
-            // 
-            // panel11
-            // 
-            panel11.BackColor = Color.FromArgb(12, 29, 46);
-            panel11.Controls.Add(label14);
-            panel11.Controls.Add(pnConnect);
-            panel11.Controls.Add(label9);
-            panel11.Controls.Add(pictureBox1);
-            panel11.Controls.Add(lblTimer);
-            panel11.Location = new Point(-1, -1);
-            panel11.Margin = new Padding(3, 4, 3, 4);
-            panel11.Name = "panel11";
-            panel11.Size = new Size(1267, 81);
-            panel11.TabIndex = 11;
-            // 
-            // label14
-            // 
-            label14.AutoSize = true;
-            label14.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label14.ForeColor = SystemColors.ControlLightLight;
-            label14.Location = new Point(1157, 39);
-            label14.Name = "label14";
-            label14.Size = new Size(29, 28);
-            label14.TabIndex = 22;
-            label14.Text = "◷";
-            // 
-            // pnConnect
-            // 
-            pnConnect.AutoSize = true;
-            pnConnect.BackColor = Color.Red;
-            pnConnect.BorderRadius = 5;
-            pnConnect.Controls.Add(label54);
-            pnConnect.Location = new Point(1158, 11);
-            pnConnect.Margin = new Padding(3, 4, 3, 4);
-            pnConnect.Name = "pnConnect";
-            pnConnect.Size = new Size(89, 21);
-            pnConnect.TabIndex = 23;
+            Regis1.Size = new Size(119, 56);
+            Regis1.TabIndex = 13;
+            Regis1.Text = "_°C";
+            Regis1.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // label54
             // 
             label54.AutoSize = true;
-            label54.Font = new Font("Segoe UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label54.ForeColor = SystemColors.ControlLightLight;
-            label54.Location = new Point(5, 1);
+            label54.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label54.ForeColor = Color.FromArgb(59, 32, 32);
+            label54.Location = new Point(19, 8);
             label54.Name = "label54";
-            label54.Size = new Size(79, 17);
+            label54.Size = new Size(76, 17);
             label54.TabIndex = 24;
-            label54.Text = "●Disconnect";
+            label54.Text = "Disconnect";
             // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Font = new Font("Segoe UI", 25.8000011F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            label9.Font = new Font("Leelawadee UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.Transparent;
-            label9.Location = new Point(221, 10);
+            label9.Location = new Point(79, 11);
             label9.Name = "label9";
-            label9.Size = new Size(795, 60);
+            label9.Size = new Size(378, 41);
             label9.TabIndex = 10;
-            label9.Text = "Software Calibrate and Test DEF-03N";
+            label9.Text = "Calibrate && Test DEF-03N";
             // 
             // pictureBox1
             // 
             pictureBox1.BackColor = SystemColors.ControlLightLight;
             pictureBox1.Image = Properties.Resources.primus;
-            pictureBox1.Location = new Point(22, 0);
+            pictureBox1.Location = new Point(14, 13);
             pictureBox1.Margin = new Padding(3, 4, 3, 4);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(79, 81);
+            pictureBox1.Size = new Size(58, 59);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 22;
             pictureBox1.TabStop = false;
             // 
             // lblTimer
             // 
-            lblTimer.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            lblTimer.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTimer.ForeColor = Color.Lavender;
-            lblTimer.Location = new Point(1170, 36);
+            lblTimer.Location = new Point(1132, 17);
             lblTimer.Name = "lblTimer";
             lblTimer.Size = new Size(71, 36);
             lblTimer.TabIndex = 11;
@@ -368,25 +337,13 @@ namespace TEST_DEF_03N
             // 
             // richTextBoxRx
             // 
-            richTextBoxRx.Font = new Font("TH SarabunPSK", 15.7499981F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            richTextBoxRx.Location = new Point(19, 51);
+            richTextBoxRx.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            richTextBoxRx.Location = new Point(17, 51);
             richTextBoxRx.Margin = new Padding(3, 4, 3, 4);
             richTextBoxRx.Name = "richTextBoxRx";
-            richTextBoxRx.Size = new Size(829, 229);
+            richTextBoxRx.Size = new Size(469, 197);
             richTextBoxRx.TabIndex = 12;
             richTextBoxRx.Text = "";
-            // 
-            // btnSendCustom
-            // 
-            btnSendCustom.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnSendCustom.Location = new Point(1771, 572);
-            btnSendCustom.Margin = new Padding(3, 4, 3, 4);
-            btnSendCustom.Name = "btnSendCustom";
-            btnSendCustom.Size = new Size(78, 48);
-            btnSendCustom.TabIndex = 15;
-            btnSendCustom.Text = "Send";
-            btnSendCustom.UseVisualStyleBackColor = true;
-            btnSendCustom.Click += btnSendCustom_Click;
             // 
             // timerCal
             // 
@@ -395,11 +352,11 @@ namespace TEST_DEF_03N
             // label12
             // 
             label12.AutoSize = true;
-            label12.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold | FontStyle.Italic);
+            label12.Font = new Font("Leelawadee UI", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label12.ForeColor = SystemColors.ControlLightLight;
-            label12.Location = new Point(364, 8);
+            label12.Location = new Point(357, 11);
             label12.Name = "label12";
-            label12.Size = new Size(130, 31);
+            label12.Size = new Size(96, 25);
             label12.TabIndex = 12;
             label12.Text = "ADC Value";
             // 
@@ -663,6 +620,26 @@ namespace TEST_DEF_03N
             label15.Name = "label15";
             label15.Size = new Size(0, 37);
             label15.TabIndex = 8;
+            // 
+            // stepTimeline
+            // 
+            stepTimeline.BackColor = Color.FromArgb(24, 32, 43);
+            stepTimeline.FailColor = Color.FromArgb(239, 68, 68);
+            stepTimeline.ForeColor = Color.White;
+            stepTimeline.LineColor = Color.FromArgb(46, 64, 88);
+            stepTimeline.LineWidth = 3;
+            stepTimeline.Location = new Point(22, 44);
+            stepTimeline.Margin = new Padding(3, 4, 3, 4);
+            stepTimeline.Name = "stepTimeline";
+            stepTimeline.NodeDiameter = 34;
+            stepTimeline.PassColor = Color.FromArgb(78, 190, 126);
+            stepTimeline.ResultText = "---------";
+            stepTimeline.ResultTextColor = Color.Black;
+            stepTimeline.Size = new Size(250, 348);
+            stepTimeline.StepFont = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            stepTimeline.TabIndex = 29;
+            stepTimeline.TitleFont = new Font("Segoe UI", 16F, FontStyle.Bold);
+            stepTimeline.ViewMode = TimelineViewMode.Overview;
             // 
             // tabcontrol
             // 
@@ -1280,67 +1257,80 @@ namespace TEST_DEF_03N
             label6.TabIndex = 40;
             label6.Text = "Calibration";
             // 
-            // customLine3
-            // 
-            customLine3.IsVertical = false;
-            customLine3.LineColor = Color.FromArgb(64, 84, 103);
-            customLine3.Location = new Point(21, 45);
-            customLine3.Margin = new Padding(3, 4, 3, 4);
-            customLine3.Name = "customLine3";
-            customLine3.Size = new Size(230, 13);
-            customLine3.TabIndex = 45;
-            customLine3.Text = "customLine3";
-            customLine3.Thickness = 1;
-            // 
             // label10
             // 
             label10.AutoSize = true;
-            label10.Font = new Font("Segoe UI", 15F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label10.ForeColor = Color.FromArgb(85, 223, 243);
+            label10.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label10.ForeColor = Color.FromArgb(232, 237, 243);
             label10.Location = new Point(20, 12);
             label10.Name = "label10";
-            label10.Size = new Size(185, 35);
+            label10.Size = new Size(170, 31);
             label10.TabIndex = 44;
             label10.Text = "STEP PROCESS";
             // 
             // myRoundedPanel4
             // 
-            myRoundedPanel4.BackColor = Color.FromArgb(20, 38, 56);
-            myRoundedPanel4.BorderRadius = 15;
+            myRoundedPanel4.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel4.BorderRadius = 20;
+            myRoundedPanel4.Controls.Add(customLine8);
+            myRoundedPanel4.Controls.Add(customLine7);
             myRoundedPanel4.Controls.Add(Regis26);
-            myRoundedPanel4.Controls.Add(Regis0);
             myRoundedPanel4.Controls.Add(Regis1);
+            myRoundedPanel4.Controls.Add(Regis0);
             myRoundedPanel4.Controls.Add(label12);
             myRoundedPanel4.Controls.Add(label56);
             myRoundedPanel4.Controls.Add(label4);
-            myRoundedPanel4.Location = new Point(387, 90);
+            myRoundedPanel4.Location = new Point(393, 90);
             myRoundedPanel4.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel4.Name = "myRoundedPanel4";
-            myRoundedPanel4.Size = new Size(519, 116);
+            myRoundedPanel4.Size = new Size(501, 116);
             myRoundedPanel4.TabIndex = 43;
+            // 
+            // customLine8
+            // 
+            customLine8.IsVertical = true;
+            customLine8.LineColor = Color.FromArgb(64, 84, 103);
+            customLine8.Location = new Point(328, 13);
+            customLine8.Margin = new Padding(3, 4, 3, 4);
+            customLine8.Name = "customLine8";
+            customLine8.Size = new Size(18, 90);
+            customLine8.TabIndex = 87;
+            customLine8.Text = "customLine8";
+            customLine8.Thickness = 1;
+            // 
+            // customLine7
+            // 
+            customLine7.IsVertical = true;
+            customLine7.LineColor = Color.FromArgb(64, 84, 103);
+            customLine7.Location = new Point(162, 13);
+            customLine7.Margin = new Padding(3, 4, 3, 4);
+            customLine7.Name = "customLine7";
+            customLine7.Size = new Size(18, 90);
+            customLine7.TabIndex = 86;
+            customLine7.Text = "customLine7";
+            customLine7.Thickness = 1;
             // 
             // Regis26
             // 
-            Regis26.BackColor = SystemColors.ControlLightLight;
-            Regis26.Font = new Font("Segoe UI", 18F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            Regis26.Location = new Point(370, 49);
-            Regis26.Margin = new Padding(3, 4, 3, 4);
+            Regis26.BackColor = Color.FromArgb(24, 32, 43);
+            Regis26.Font = new Font("Leelawadee UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            Regis26.ForeColor = Color.FromArgb(124, 200, 224);
+            Regis26.Location = new Point(357, 46);
             Regis26.Name = "Regis26";
-            Regis26.ReadOnly = true;
-            Regis26.Size = new Size(124, 47);
-            Regis26.TabIndex = 13;
-            Regis26.TabStop = false;
-            Regis26.TextAlign = HorizontalAlignment.Center;
+            Regis26.Size = new Size(128, 56);
+            Regis26.TabIndex = 14;
+            Regis26.Text = "XXXX";
+            Regis26.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // label56
             // 
             label56.AutoSize = true;
             label56.FlatStyle = FlatStyle.Popup;
-            label56.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold | FontStyle.Italic);
+            label56.Font = new Font("Leelawadee UI", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label56.ForeColor = SystemColors.ButtonHighlight;
-            label56.Location = new Point(217, 8);
+            label56.Location = new Point(192, 9);
             label56.Name = "label56";
-            label56.Size = new Size(109, 31);
+            label56.Size = new Size(81, 25);
             label56.TabIndex = 11;
             label56.Text = "SV Value";
             // 
@@ -1349,7 +1339,7 @@ namespace TEST_DEF_03N
             label57.AutoSize = true;
             label57.Font = new Font("Segoe UI", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label57.ForeColor = SystemColors.ButtonHighlight;
-            label57.Location = new Point(13, 9);
+            label57.Location = new Point(13, 12);
             label57.Name = "label57";
             label57.Size = new Size(56, 38);
             label57.TabIndex = 15;
@@ -1358,34 +1348,34 @@ namespace TEST_DEF_03N
             // label7
             // 
             label7.AutoSize = true;
-            label7.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            label7.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label7.ForeColor = Color.White;
-            label7.Location = new Point(56, 11);
+            label7.Location = new Point(56, 14);
             label7.Name = "label7";
-            label7.Size = new Size(151, 31);
+            label7.Size = new Size(155, 31);
             label7.TabIndex = 44;
             label7.Text = "MASSANGER";
             // 
             // myRoundedPanel2
             // 
-            myRoundedPanel2.BackColor = Color.FromArgb(20, 38, 56);
-            myRoundedPanel2.BorderRadius = 15;
+            myRoundedPanel2.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel2.BorderRadius = 20;
             myRoundedPanel2.Controls.Add(richTextBoxRx);
             myRoundedPanel2.Controls.Add(chkDebugWrite);
             myRoundedPanel2.Controls.Add(btnClearMessage);
             myRoundedPanel2.Controls.Add(label7);
             myRoundedPanel2.Controls.Add(label57);
-            myRoundedPanel2.Location = new Point(387, 564);
+            myRoundedPanel2.Location = new Point(393, 573);
             myRoundedPanel2.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel2.Name = "myRoundedPanel2";
-            myRoundedPanel2.Size = new Size(864, 295);
+            myRoundedPanel2.Size = new Size(501, 264);
             myRoundedPanel2.TabIndex = 46;
             // 
             // chkDebugWrite
             // 
             chkDebugWrite.AutoSize = true;
             chkDebugWrite.ForeColor = SystemColors.ControlLightLight;
-            chkDebugWrite.Location = new Point(705, 19);
+            chkDebugWrite.Location = new Point(351, 20);
             chkDebugWrite.Name = "chkDebugWrite";
             chkDebugWrite.Size = new Size(76, 24);
             chkDebugWrite.TabIndex = 60;
@@ -1395,69 +1385,259 @@ namespace TEST_DEF_03N
             // 
             // btnClearMessage
             // 
-            btnClearMessage.BackColor = Color.FromArgb(255, 255, 128);
-            btnClearMessage.Cursor = Cursors.Hand;
-            btnClearMessage.FlatStyle = FlatStyle.Popup;
-            btnClearMessage.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnClearMessage.Location = new Point(791, 17);
-            btnClearMessage.Margin = new Padding(3, 4, 3, 4);
+            btnClearMessage.BackColor = Color.FromArgb(32, 43, 57);
+            btnClearMessage.BorderColor = Color.FromArgb(46, 59, 78);
+            btnClearMessage.BorderRadius = 5;
+            btnClearMessage.BorderThickness = 1;
+            btnClearMessage.FlatAppearance.BorderSize = 0;
+            btnClearMessage.FlatStyle = FlatStyle.Flat;
+            btnClearMessage.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnClearMessage.ForeColor = Color.FromArgb(232, 237, 243);
+            btnClearMessage.Location = new Point(432, 18);
             btnClearMessage.Name = "btnClearMessage";
-            btnClearMessage.Size = new Size(57, 26);
-            btnClearMessage.TabIndex = 60;
+            btnClearMessage.Size = new Size(54, 27);
+            btnClearMessage.TabIndex = 90;
             btnClearMessage.Text = "Clear";
             btnClearMessage.UseVisualStyleBackColor = false;
             btnClearMessage.Click += btnClearMessage_Click;
             // 
+            // txt_name
+            // 
+            txt_name.BackColor = Color.FromArgb(16, 22, 30);
+            txt_name.BorderColor = Color.FromArgb(16, 22, 30);
+            txt_name.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_name.BorderRadius = 5;
+            txt_name.BorderSize = 1;
+            txt_name.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txt_name.ForeColor = Color.White;
+            txt_name.InnerPadding = 12;
+            txt_name.Location = new Point(30, 333);
+            txt_name.Name = "txt_name";
+            txt_name.Size = new Size(305, 38);
+            txt_name.TabIndex = 90;
+            // 
+            // btn_setparameter
+            // 
+            btn_setparameter.BackColor = Color.FromArgb(32, 43, 57);
+            btn_setparameter.BorderColor = Color.FromArgb(46, 59, 78);
+            btn_setparameter.BorderRadius = 5;
+            btn_setparameter.BorderThickness = 1;
+            btn_setparameter.FlatAppearance.BorderSize = 0;
+            btn_setparameter.FlatStyle = FlatStyle.Flat;
+            btn_setparameter.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btn_setparameter.ForeColor = Color.FromArgb(232, 237, 243);
+            btn_setparameter.Location = new Point(10, 280);
+            btn_setparameter.Name = "btn_setparameter";
+            btn_setparameter.Size = new Size(268, 38);
+            btn_setparameter.TabIndex = 94;
+            btn_setparameter.Text = "⚙ตั้งค่าพารามิเตอร์";
+            btn_setparameter.UseVisualStyleBackColor = false;
+            btn_setparameter.Click += btn_setparameter_Click;
+            // 
+            // btnCheckRelay
+            // 
+            btnCheckRelay.BackColor = Color.FromArgb(32, 43, 57);
+            btnCheckRelay.BorderColor = Color.FromArgb(46, 59, 78);
+            btnCheckRelay.BorderRadius = 5;
+            btnCheckRelay.BorderThickness = 1;
+            btnCheckRelay.FlatAppearance.BorderSize = 0;
+            btnCheckRelay.FlatStyle = FlatStyle.Flat;
+            btnCheckRelay.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btnCheckRelay.ForeColor = Color.FromArgb(232, 237, 243);
+            btnCheckRelay.Location = new Point(151, 201);
+            btnCheckRelay.Name = "btnCheckRelay";
+            btnCheckRelay.Size = new Size(127, 38);
+            btnCheckRelay.TabIndex = 93;
+            btnCheckRelay.Text = "🔔 Relay / Alarm";
+            btnCheckRelay.UseVisualStyleBackColor = false;
+            btnCheckRelay.Click += btnCheckRelay_Click;
+            // 
+            // btn_Testbtn
+            // 
+            btn_Testbtn.BackColor = Color.FromArgb(32, 43, 57);
+            btn_Testbtn.BorderColor = Color.FromArgb(46, 59, 78);
+            btn_Testbtn.BorderRadius = 5;
+            btn_Testbtn.BorderThickness = 1;
+            btn_Testbtn.FlatAppearance.BorderSize = 0;
+            btn_Testbtn.FlatStyle = FlatStyle.Flat;
+            btn_Testbtn.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btn_Testbtn.ForeColor = Color.FromArgb(232, 237, 243);
+            btn_Testbtn.Location = new Point(10, 201);
+            btn_Testbtn.Name = "btn_Testbtn";
+            btn_Testbtn.Size = new Size(129, 38);
+            btn_Testbtn.TabIndex = 92;
+            btn_Testbtn.Text = "ปุ่มและ LED";
+            btn_Testbtn.UseVisualStyleBackColor = false;
+            btn_Testbtn.Click += btn_Testbtn_Click;
+            // 
+            // btnManualInput
+            // 
+            btnManualInput.BackColor = Color.FromArgb(32, 43, 57);
+            btnManualInput.BorderColor = Color.FromArgb(46, 59, 78);
+            btnManualInput.BorderRadius = 5;
+            btnManualInput.BorderThickness = 1;
+            btnManualInput.FlatAppearance.BorderSize = 0;
+            btnManualInput.FlatStyle = FlatStyle.Flat;
+            btnManualInput.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btnManualInput.ForeColor = Color.FromArgb(232, 237, 243);
+            btnManualInput.Location = new Point(12, 121);
+            btnManualInput.Name = "btnManualInput";
+            btnManualInput.Size = new Size(127, 38);
+            btnManualInput.TabIndex = 91;
+            btnManualInput.Text = "Manual";
+            btnManualInput.UseVisualStyleBackColor = false;
+            btnManualInput.Click += btnManualInput_Click;
+            // 
+            // btnSelectTestPopup
+            // 
+            btnSelectTestPopup.BackColor = Color.FromArgb(32, 43, 57);
+            btnSelectTestPopup.BorderColor = Color.FromArgb(46, 59, 78);
+            btnSelectTestPopup.BorderRadius = 5;
+            btnSelectTestPopup.BorderThickness = 1;
+            btnSelectTestPopup.FlatAppearance.BorderSize = 0;
+            btnSelectTestPopup.FlatStyle = FlatStyle.Flat;
+            btnSelectTestPopup.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btnSelectTestPopup.ForeColor = Color.FromArgb(232, 237, 243);
+            btnSelectTestPopup.Location = new Point(151, 121);
+            btnSelectTestPopup.Name = "btnSelectTestPopup";
+            btnSelectTestPopup.Size = new Size(127, 38);
+            btnSelectTestPopup.TabIndex = 90;
+            btnSelectTestPopup.Text = "Auto";
+            btnSelectTestPopup.UseVisualStyleBackColor = false;
+            btnSelectTestPopup.Click += btnSelectTestPopup_Click;
+            // 
+            // btn_login
+            // 
+            btn_login.BackColor = Color.FromArgb(32, 43, 57);
+            btn_login.BorderColor = Color.FromArgb(46, 59, 78);
+            btn_login.BorderRadius = 15;
+            btn_login.BorderThickness = 1;
+            btn_login.FlatAppearance.BorderSize = 0;
+            btn_login.FlatStyle = FlatStyle.Flat;
+            btn_login.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btn_login.ForeColor = Color.FromArgb(232, 237, 243);
+            btn_login.Location = new Point(912, 20);
+            btn_login.Name = "btn_login";
+            btn_login.Size = new Size(100, 33);
+            btn_login.TabIndex = 95;
+            btn_login.Text = "Login";
+            btn_login.UseVisualStyleBackColor = false;
+            // 
             // myRoundedPanel10
             // 
-            myRoundedPanel10.BackColor = Color.FromArgb(20, 38, 56);
-            myRoundedPanel10.BorderRadius = 15;
+            myRoundedPanel10.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel10.BorderRadius = 20;
             myRoundedPanel10.Controls.Add(label10);
-            myRoundedPanel10.Controls.Add(tabcontrol);
-            myRoundedPanel10.Controls.Add(customLine3);
-            myRoundedPanel10.Location = new Point(918, 90);
+            myRoundedPanel10.Controls.Add(stepTimeline);
+            myRoundedPanel10.Location = new Point(912, 90);
             myRoundedPanel10.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel10.Name = "myRoundedPanel10";
-            myRoundedPanel10.Size = new Size(333, 463);
+            myRoundedPanel10.Size = new Size(289, 396);
             myRoundedPanel10.TabIndex = 47;
             // 
             // myRoundedPanel11
             // 
-            myRoundedPanel11.BackColor = Color.FromArgb(20, 38, 56);
-            myRoundedPanel11.BorderRadius = 15;
+            myRoundedPanel11.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel11.BorderRadius = 20;
+            myRoundedPanel11.Controls.Add(lblProgressPercent);
+            myRoundedPanel11.Controls.Add(label62);
+            myRoundedPanel11.Controls.Add(progressBarRun);
             myRoundedPanel11.Controls.Add(txt_supply);
+            myRoundedPanel11.Controls.Add(txt_model);
             myRoundedPanel11.Controls.Add(customLine4);
             myRoundedPanel11.Controls.Add(label11);
-            myRoundedPanel11.Controls.Add(myRoundedPanel5);
-            myRoundedPanel11.Controls.Add(txt_model);
             myRoundedPanel11.Controls.Add(btnStop);
             myRoundedPanel11.Controls.Add(btnRun);
-            myRoundedPanel11.Controls.Add(chkTestForAll);
-            myRoundedPanel11.Controls.Add(chkCalibration);
             myRoundedPanel11.Controls.Add(label27);
-            myRoundedPanel11.Location = new Point(387, 216);
+            myRoundedPanel11.Controls.Add(myRoundedPanel7);
+            myRoundedPanel11.Location = new Point(393, 220);
             myRoundedPanel11.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel11.Name = "myRoundedPanel11";
-            myRoundedPanel11.Size = new Size(519, 337);
+            myRoundedPanel11.Size = new Size(501, 336);
             myRoundedPanel11.TabIndex = 48;
+            // 
+            // lblProgressPercent
+            // 
+            lblProgressPercent.AutoSize = true;
+            lblProgressPercent.Font = new Font("Segoe UI Semibold", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblProgressPercent.ForeColor = SystemColors.ControlLightLight;
+            lblProgressPercent.Location = new Point(421, 280);
+            lblProgressPercent.Name = "lblProgressPercent";
+            lblProgressPercent.Size = new Size(52, 31);
+            lblProgressPercent.TabIndex = 59;
+            lblProgressPercent.Text = "0 %";
+            lblProgressPercent.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // label62
+            // 
+            label62.AutoSize = true;
+            label62.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label62.ForeColor = SystemColors.ControlLightLight;
+            label62.Location = new Point(316, 67);
+            label62.Name = "label62";
+            label62.Size = new Size(54, 20);
+            label62.TabIndex = 88;
+            label62.Text = "Supply";
+            // 
+            // progressBarRun
+            // 
+            progressBarRun.ForeColor = Color.FromArgb(255, 128, 255);
+            progressBarRun.Location = new Point(27, 289);
+            progressBarRun.Margin = new Padding(3, 4, 3, 4);
+            progressBarRun.Name = "progressBarRun";
+            progressBarRun.Size = new Size(372, 17);
+            progressBarRun.TabIndex = 57;
             // 
             // txt_supply
             // 
-            txt_supply.BackColor = SystemColors.ControlLightLight;
+            txt_supply.ArrowColor = Color.FromArgb(154, 167, 184);
+            txt_supply.BackColor = Color.FromArgb(16, 22, 30);
+            txt_supply.BorderColor = Color.FromArgb(46, 59, 78);
+            txt_supply.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_supply.BorderRadius = 5;
+            txt_supply.BorderSize = 1;
+            txt_supply.DrawMode = DrawMode.OwnerDrawFixed;
+            txt_supply.DropDownStyle = ComboBoxStyle.DropDownList;
+            txt_supply.FlatStyle = FlatStyle.Flat;
+            txt_supply.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            txt_supply.ForeColor = Color.White;
             txt_supply.FormattingEnabled = true;
-            txt_supply.Location = new Point(322, 75);
+            txt_supply.ItemHeight = 28;
+            txt_supply.ItemHoverColor = Color.FromArgb(0, 120, 215);
+            txt_supply.Location = new Point(314, 89);
             txt_supply.Name = "txt_supply";
-            txt_supply.Size = new Size(163, 28);
-            txt_supply.TabIndex = 63;
+            txt_supply.Size = new Size(165, 34);
+            txt_supply.TabIndex = 87;
+            // 
+            // txt_model
+            // 
+            txt_model.ArrowColor = Color.FromArgb(154, 167, 184);
+            txt_model.BackColor = Color.FromArgb(16, 22, 30);
+            txt_model.BorderColor = Color.FromArgb(46, 59, 78);
+            txt_model.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_model.BorderRadius = 5;
+            txt_model.BorderSize = 1;
+            txt_model.DrawMode = DrawMode.OwnerDrawFixed;
+            txt_model.DropDownStyle = ComboBoxStyle.DropDownList;
+            txt_model.FlatStyle = FlatStyle.Flat;
+            txt_model.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            txt_model.ForeColor = Color.White;
+            txt_model.FormattingEnabled = true;
+            txt_model.ItemHeight = 28;
+            txt_model.ItemHoverColor = Color.FromArgb(0, 120, 215);
+            txt_model.Location = new Point(27, 89);
+            txt_model.Name = "txt_model";
+            txt_model.Size = new Size(269, 34);
+            txt_model.TabIndex = 86;
             // 
             // customLine4
             // 
             customLine4.IsVertical = false;
             customLine4.LineColor = Color.FromArgb(64, 84, 103);
-            customLine4.Location = new Point(27, 54);
+            customLine4.Location = new Point(27, 46);
             customLine4.Margin = new Padding(3, 4, 3, 4);
             customLine4.Name = "customLine4";
-            customLine4.Size = new Size(467, 13);
+            customLine4.Size = new Size(452, 13);
             customLine4.TabIndex = 59;
             customLine4.Text = "customLine4";
             customLine4.Thickness = 1;
@@ -1465,197 +1645,208 @@ namespace TEST_DEF_03N
             // label11
             // 
             label11.AutoSize = true;
-            label11.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label11.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label11.ForeColor = SystemColors.ControlLightLight;
-            label11.Location = new Point(36, 75);
+            label11.Location = new Point(27, 67);
             label11.Name = "label11";
-            label11.Size = new Size(81, 28);
+            label11.Size = new Size(56, 20);
             label11.TabIndex = 62;
-            label11.Text = "Model :";
-            // 
-            // myRoundedPanel5
-            // 
-            myRoundedPanel5.BackColor = Color.FromArgb(25, 45, 64);
-            myRoundedPanel5.BorderRadius = 15;
-            myRoundedPanel5.Controls.Add(lblProgressPercent);
-            myRoundedPanel5.Controls.Add(progressBarRun);
-            myRoundedPanel5.Location = new Point(19, 277);
-            myRoundedPanel5.Name = "myRoundedPanel5";
-            myRoundedPanel5.Size = new Size(482, 46);
-            myRoundedPanel5.TabIndex = 58;
-            // 
-            // lblProgressPercent
-            // 
-            lblProgressPercent.AutoSize = true;
-            lblProgressPercent.Font = new Font("Segoe UI Semibold", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblProgressPercent.ForeColor = SystemColors.ControlLightLight;
-            lblProgressPercent.Location = new Point(417, 7);
-            lblProgressPercent.Name = "lblProgressPercent";
-            lblProgressPercent.Size = new Size(52, 31);
-            lblProgressPercent.TabIndex = 59;
-            lblProgressPercent.Text = "0 %";
-            lblProgressPercent.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // progressBarRun
-            // 
-            progressBarRun.ForeColor = Color.FromArgb(255, 128, 255);
-            progressBarRun.Location = new Point(17, 9);
-            progressBarRun.Margin = new Padding(3, 4, 3, 4);
-            progressBarRun.Name = "progressBarRun";
-            progressBarRun.Size = new Size(388, 27);
-            progressBarRun.TabIndex = 57;
-            // 
-            // txt_model
-            // 
-            txt_model.BackColor = SystemColors.ControlLightLight;
-            txt_model.FormattingEnabled = true;
-            txt_model.Location = new Point(114, 75);
-            txt_model.Name = "txt_model";
-            txt_model.Size = new Size(202, 28);
-            txt_model.TabIndex = 61;
+            label11.Text = "Model ";
             // 
             // btnStop
             // 
-            btnStop.BackColor = Color.FromArgb(192, 0, 0);
-            btnStop.Cursor = Cursors.Hand;
-            btnStop.FlatStyle = FlatStyle.Popup;
-            btnStop.Font = new Font("Segoe UI Semibold", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnStop.ForeColor = SystemColors.ControlLightLight;
-            btnStop.Location = new Point(302, 200);
-            btnStop.Margin = new Padding(3, 4, 3, 4);
+            btnStop.BackColor = Color.FromArgb(229, 115, 109);
+            btnStop.BorderColor = Color.FromArgb(229, 115, 109);
+            btnStop.BorderRadius = 5;
+            btnStop.BorderThickness = 2;
+            btnStop.FlatAppearance.BorderSize = 0;
+            btnStop.FlatStyle = FlatStyle.Flat;
+            btnStop.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnStop.ForeColor = Color.FromArgb(36, 26, 4);
+            btnStop.Location = new Point(296, 207);
             btnStop.Name = "btnStop";
-            btnStop.Size = new Size(183, 63);
-            btnStop.TabIndex = 56;
+            btnStop.Size = new Size(183, 57);
+            btnStop.TabIndex = 89;
             btnStop.Text = "■ Stop";
             btnStop.UseVisualStyleBackColor = false;
             btnStop.Click += btnStop_Click;
             // 
             // btnRun
             // 
-            btnRun.BackColor = Color.Gold;
-            btnRun.Cursor = Cursors.Hand;
-            btnRun.FlatStyle = FlatStyle.Popup;
-            btnRun.Font = new Font("Segoe UI Semibold", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnRun.ForeColor = SystemColors.ActiveCaptionText;
-            btnRun.Location = new Point(36, 200);
-            btnRun.Margin = new Padding(3, 4, 3, 4);
+            btnRun.BackColor = Color.FromArgb(242, 184, 75);
+            btnRun.BorderColor = Color.FromArgb(242, 184, 75);
+            btnRun.BorderRadius = 5;
+            btnRun.BorderThickness = 2;
+            btnRun.FlatAppearance.BorderSize = 0;
+            btnRun.FlatStyle = FlatStyle.Flat;
+            btnRun.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnRun.ForeColor = Color.FromArgb(36, 26, 4);
+            btnRun.Location = new Point(27, 207);
             btnRun.Name = "btnRun";
-            btnRun.Size = new Size(260, 63);
-            btnRun.TabIndex = 55;
+            btnRun.Size = new Size(260, 57);
+            btnRun.TabIndex = 86;
             btnRun.Text = "◀ Run";
             btnRun.UseVisualStyleBackColor = false;
             btnRun.Click += btnRun_Click;
             // 
-            // chkTestForAll
+            // label27
             // 
-            chkTestForAll.AutoSize = true;
-            chkTestForAll.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            chkTestForAll.ForeColor = SystemColors.ControlLightLight;
-            chkTestForAll.Location = new Point(40, 158);
-            chkTestForAll.Margin = new Padding(3, 4, 3, 4);
-            chkTestForAll.Name = "chkTestForAll";
-            chkTestForAll.Size = new Size(134, 32);
-            chkTestForAll.TabIndex = 49;
-            chkTestForAll.Text = "Test For All";
-            chkTestForAll.UseVisualStyleBackColor = true;
+            label27.AutoSize = true;
+            label27.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label27.ForeColor = Color.FromArgb(232, 237, 243);
+            label27.Location = new Point(19, 13);
+            label27.Name = "label27";
+            label27.Size = new Size(329, 31);
+            label27.TabIndex = 47;
+            label27.Text = "⚙️ CALLIBRATION AND TEST";
+            // 
+            // myRoundedPanel7
+            // 
+            myRoundedPanel7.BackColor = Color.FromArgb(16, 22, 30);
+            myRoundedPanel7.BorderRadius = 15;
+            myRoundedPanel7.Controls.Add(customLine3);
+            myRoundedPanel7.Controls.Add(chkCalibration);
+            myRoundedPanel7.Controls.Add(chkTestForAll);
+            myRoundedPanel7.Controls.Add(sent_server);
+            myRoundedPanel7.Location = new Point(27, 143);
+            myRoundedPanel7.Name = "myRoundedPanel7";
+            myRoundedPanel7.Size = new Size(452, 45);
+            myRoundedPanel7.TabIndex = 83;
+            // 
+            // customLine3
+            // 
+            customLine3.IsVertical = true;
+            customLine3.LineColor = Color.FromArgb(64, 84, 103);
+            customLine3.Location = new Point(333, 5);
+            customLine3.Margin = new Padding(3, 4, 3, 4);
+            customLine3.Name = "customLine3";
+            customLine3.Size = new Size(18, 34);
+            customLine3.TabIndex = 88;
+            customLine3.Text = "customLine3";
+            customLine3.Thickness = 1;
             // 
             // chkCalibration
             // 
             chkCalibration.AutoSize = true;
-            chkCalibration.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            chkCalibration.Font = new Font("Leelawadee UI", 10.2F);
             chkCalibration.ForeColor = SystemColors.ControlLightLight;
-            chkCalibration.Location = new Point(40, 117);
+            chkCalibration.Location = new Point(12, 11);
             chkCalibration.Margin = new Padding(3, 4, 3, 4);
             chkCalibration.Name = "chkCalibration";
-            chkCalibration.Size = new Size(131, 32);
+            chkCalibration.Size = new Size(115, 27);
             chkCalibration.TabIndex = 48;
             chkCalibration.Text = "Calibration";
             chkCalibration.UseVisualStyleBackColor = true;
             // 
-            // label27
+            // chkTestForAll
             // 
-            label27.AutoSize = true;
-            label27.Font = new Font("Segoe UI", 15F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label27.ForeColor = Color.FromArgb(85, 223, 243);
-            label27.Location = new Point(19, 21);
-            label27.Name = "label27";
-            label27.Size = new Size(364, 35);
-            label27.TabIndex = 47;
-            label27.Text = "⚙️ CALLIBRATION AND TEST";
+            chkTestForAll.AutoSize = true;
+            chkTestForAll.Font = new Font("Leelawadee UI", 10.2F);
+            chkTestForAll.ForeColor = SystemColors.ControlLightLight;
+            chkTestForAll.Location = new Point(165, 11);
+            chkTestForAll.Margin = new Padding(3, 4, 3, 4);
+            chkTestForAll.Name = "chkTestForAll";
+            chkTestForAll.Size = new Size(63, 27);
+            chkTestForAll.TabIndex = 49;
+            chkTestForAll.Text = "Test";
+            chkTestForAll.UseVisualStyleBackColor = true;
             // 
-            // btnCheckRelay
+            // sent_server
             // 
-            btnCheckRelay.BackColor = SystemColors.ControlLightLight;
-            btnCheckRelay.FlatStyle = FlatStyle.Popup;
-            btnCheckRelay.Location = new Point(186, 647);
-            btnCheckRelay.Name = "btnCheckRelay";
-            btnCheckRelay.Size = new Size(149, 42);
-            btnCheckRelay.TabIndex = 60;
-            btnCheckRelay.Text = "🔔 Relay / Alarm";
-            btnCheckRelay.UseVisualStyleBackColor = false;
-            btnCheckRelay.Click += btnCheckRelay_Click;
-            // 
-            // btnSelectTestPopup
-            // 
-            btnSelectTestPopup.BackColor = Color.White;
-            btnSelectTestPopup.Cursor = Cursors.Hand;
-            btnSelectTestPopup.FlatStyle = FlatStyle.Popup;
-            btnSelectTestPopup.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnSelectTestPopup.Location = new Point(186, 601);
-            btnSelectTestPopup.Name = "btnSelectTestPopup";
-            btnSelectTestPopup.Size = new Size(150, 42);
-            btnSelectTestPopup.TabIndex = 58;
-            btnSelectTestPopup.Text = "↻อุณหภูมิ Auto";
-            btnSelectTestPopup.UseVisualStyleBackColor = false;
-            btnSelectTestPopup.Click += btnSelectTestPopup_Click;
+            sent_server.AutoSize = true;
+            sent_server.BackColor = Color.Transparent;
+            sent_server.BorderColor = Color.FromArgb(70, 85, 105);
+            sent_server.BoxBackColor = Color.FromArgb(26, 36, 50);
+            sent_server.BoxBorderRadius = 3;
+            sent_server.BoxSize = 16;
+            sent_server.CheckedColor = Color.FromArgb(0, 120, 215);
+            sent_server.DisabledBorderColor = Color.FromArgb(50, 62, 78);
+            sent_server.DisabledBoxColor = Color.FromArgb(20, 26, 36);
+            sent_server.DisabledForeColor = Color.FromArgb(140, 155, 175);
+            sent_server.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            sent_server.ForeColor = SystemColors.ControlLightLight;
+            sent_server.Location = new Point(357, 11);
+            sent_server.Margin = new Padding(3, 4, 3, 4);
+            sent_server.Name = "sent_server";
+            sent_server.Size = new Size(75, 27);
+            sent_server.TabIndex = 64;
+            sent_server.Text = "Server";
+            sent_server.UseVisualStyleBackColor = true;
             // 
             // portOhm
             // 
-            portOhm.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            portOhm.ArrowColor = Color.FromArgb(154, 167, 184);
+            portOhm.BackColor = Color.FromArgb(16, 22, 30);
+            portOhm.BorderColor = Color.FromArgb(46, 59, 78);
+            portOhm.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            portOhm.BorderRadius = 5;
+            portOhm.BorderSize = 1;
+            portOhm.DrawMode = DrawMode.OwnerDrawFixed;
+            portOhm.DropDownStyle = ComboBoxStyle.DropDownList;
+            portOhm.FlatStyle = FlatStyle.Flat;
+            portOhm.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            portOhm.ForeColor = Color.White;
             portOhm.FormattingEnabled = true;
-            portOhm.Location = new Point(148, 66);
-            portOhm.Margin = new Padding(3, 4, 3, 4);
+            portOhm.ItemHeight = 28;
+            portOhm.ItemHoverColor = Color.FromArgb(0, 120, 215);
+            portOhm.Location = new Point(159, 94);
             portOhm.Name = "portOhm";
-            portOhm.Size = new Size(130, 28);
-            portOhm.TabIndex = 6;
+            portOhm.Size = new Size(175, 34);
+            portOhm.TabIndex = 50;
             // 
             // portDEF
             // 
-            portDEF.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            portDEF.ArrowColor = Color.FromArgb(154, 167, 184);
+            portDEF.BackColor = Color.FromArgb(16, 22, 30);
+            portDEF.BorderColor = Color.FromArgb(46, 59, 78);
+            portDEF.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            portDEF.BorderRadius = 5;
+            portDEF.BorderSize = 1;
+            portDEF.DrawMode = DrawMode.OwnerDrawFixed;
+            portDEF.DropDownStyle = ComboBoxStyle.DropDownList;
+            portDEF.FlatStyle = FlatStyle.Flat;
+            portDEF.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            portDEF.ForeColor = Color.White;
             portDEF.FormattingEnabled = true;
-            portDEF.Location = new Point(148, 102);
-            portDEF.Margin = new Padding(3, 4, 3, 4);
+            portDEF.ItemHeight = 28;
+            portDEF.ItemHoverColor = Color.FromArgb(0, 120, 215);
+            portDEF.Location = new Point(159, 137);
             portDEF.Name = "portDEF";
-            portDEF.Size = new Size(130, 28);
-            portDEF.TabIndex = 5;
+            portDEF.Size = new Size(174, 34);
+            portDEF.TabIndex = 82;
             // 
             // txt_SN
             // 
-            txt_SN.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_SN.ForeColor = SystemColors.HotTrack;
-            txt_SN.Location = new Point(111, 305);
-            txt_SN.Margin = new Padding(3, 4, 3, 4);
+            txt_SN.BackColor = Color.FromArgb(16, 22, 30);
+            txt_SN.BorderColor = Color.FromArgb(16, 22, 30);
+            txt_SN.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_SN.BorderRadius = 5;
+            txt_SN.BorderSize = 1;
+            txt_SN.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txt_SN.ForeColor = Color.WhiteSmoke;
+            txt_SN.InnerPadding = 12;
+            txt_SN.Location = new Point(84, 77);
             txt_SN.Name = "txt_SN";
-            txt_SN.Size = new Size(226, 30);
-            txt_SN.TabIndex = 21;
+            txt_SN.Size = new Size(254, 38);
+            txt_SN.TabIndex = 83;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label2.ForeColor = SystemColors.ControlLightLight;
-            label2.Location = new Point(26, 70);
+            label2.Font = new Font("Leelawadee UI", 10.2F);
+            label2.ForeColor = Color.FromArgb(154, 167, 184);
+            label2.Location = new Point(29, 99);
             label2.Name = "label2";
-            label2.Size = new Size(114, 23);
+            label2.Size = new Size(110, 23);
             label2.TabIndex = 7;
-            label2.Text = "Ohm Source :";
+            label2.Text = "Ohm Source ";
             // 
             // label13
             // 
             label13.AutoSize = true;
-            label13.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label13.ForeColor = SystemColors.ControlLightLight;
-            label13.Location = new Point(56, 309);
+            label13.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label13.ForeColor = Color.FromArgb(154, 167, 184);
+            label13.Location = new Point(30, 85);
             label13.Name = "label13";
             label13.Size = new Size(48, 23);
             label13.TabIndex = 11;
@@ -1664,36 +1855,39 @@ namespace TEST_DEF_03N
             // label1
             // 
             label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label1.ForeColor = SystemColors.ControlLightLight;
-            label1.Location = new Point(48, 106);
+            label1.Font = new Font("Leelawadee UI", 10.2F);
+            label1.ForeColor = Color.FromArgb(154, 167, 184);
+            label1.Location = new Point(29, 142);
             label1.Name = "label1";
-            label1.Size = new Size(92, 23);
+            label1.Size = new Size(87, 23);
             label1.TabIndex = 5;
-            label1.Text = "DEF-03N  :";
+            label1.Text = "DEF-03N  ";
             // 
             // label47
             // 
             label47.AutoSize = true;
-            label47.Font = new Font("Segoe UI", 15F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label47.ForeColor = Color.FromArgb(85, 223, 243);
+            label47.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label47.ForeColor = Color.FromArgb(232, 237, 243);
             label47.Location = new Point(22, 14);
             label47.Name = "label47";
-            label47.Size = new Size(249, 35);
+            label47.Size = new Size(224, 31);
             label47.TabIndex = 9;
             label47.Text = "🔗 CONNECT PORT";
             // 
             // btnConnect
             // 
-            btnConnect.BackColor = Color.FromArgb(9, 169, 213);
-            btnConnect.FlatStyle = FlatStyle.Popup;
-            btnConnect.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnConnect.ForeColor = SystemColors.ControlLightLight;
-            btnConnect.Location = new Point(28, 179);
-            btnConnect.Margin = new Padding(3, 4, 3, 4);
+            btnConnect.BackColor = Color.FromArgb(94, 184, 214);
+            btnConnect.BorderColor = Color.FromArgb(94, 184, 214);
+            btnConnect.BorderRadius = 5;
+            btnConnect.BorderThickness = 2;
+            btnConnect.FlatAppearance.BorderSize = 0;
+            btnConnect.FlatStyle = FlatStyle.Flat;
+            btnConnect.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold);
+            btnConnect.ForeColor = Color.FromArgb(7, 34, 46);
+            btnConnect.Location = new Point(28, 236);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(183, 48);
-            btnConnect.TabIndex = 8;
+            btnConnect.Size = new Size(183, 40);
+            btnConnect.TabIndex = 84;
             btnConnect.Text = "🔗Connect";
             btnConnect.UseVisualStyleBackColor = false;
             btnConnect.Click += btnCon_Click;
@@ -1701,11 +1895,11 @@ namespace TEST_DEF_03N
             // label3
             // 
             label3.AutoSize = true;
-            label3.Font = new Font("Segoe UI", 15F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label3.ForeColor = Color.FromArgb(85, 223, 243);
-            label3.Location = new Point(28, 252);
+            label3.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label3.ForeColor = Color.FromArgb(232, 237, 243);
+            label3.Location = new Point(27, 18);
             label3.Name = "label3";
-            label3.Size = new Size(220, 35);
+            label3.Size = new Size(201, 31);
             label3.TabIndex = 42;
             label3.Text = "📄 SAVE REPORT";
             // 
@@ -1723,54 +1917,76 @@ namespace TEST_DEF_03N
             // 
             // btnRefresh
             // 
-            btnRefresh.BackColor = Color.White;
-            btnRefresh.FlatStyle = FlatStyle.Popup;
-            btnRefresh.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnRefresh.Location = new Point(217, 179);
-            btnRefresh.Margin = new Padding(3, 4, 3, 4);
+            btnRefresh.BackColor = Color.FromArgb(32, 43, 57);
+            btnRefresh.BorderColor = Color.FromArgb(46, 59, 78);
+            btnRefresh.BorderRadius = 5;
+            btnRefresh.BorderThickness = 1;
+            btnRefresh.FlatAppearance.BorderSize = 0;
+            btnRefresh.FlatStyle = FlatStyle.Flat;
+            btnRefresh.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold);
+            btnRefresh.ForeColor = Color.FromArgb(232, 237, 243);
+            btnRefresh.Location = new Point(217, 236);
             btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(119, 48);
-            btnRefresh.TabIndex = 9;
+            btnRefresh.Size = new Size(119, 40);
+            btnRefresh.TabIndex = 85;
             btnRefresh.Text = "↻Refresh";
             btnRefresh.UseVisualStyleBackColor = false;
             btnRefresh.Click += btnRefresh_Click;
             // 
             // txt_Lot
             // 
-            txt_Lot.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_Lot.Location = new Point(111, 348);
-            txt_Lot.Margin = new Padding(3, 4, 3, 4);
+            txt_Lot.BackColor = Color.FromArgb(16, 22, 30);
+            txt_Lot.BorderColor = Color.FromArgb(16, 22, 30);
+            txt_Lot.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_Lot.BorderRadius = 5;
+            txt_Lot.BorderSize = 1;
+            txt_Lot.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txt_Lot.ForeColor = Color.White;
+            txt_Lot.InnerPadding = 12;
+            txt_Lot.Location = new Point(84, 129);
             txt_Lot.Name = "txt_Lot";
-            txt_Lot.Size = new Size(226, 25);
-            txt_Lot.TabIndex = 25;
+            txt_Lot.Size = new Size(254, 38);
+            txt_Lot.TabIndex = 84;
             txt_Lot.Leave += txt_Lot_Leave;
             // 
             // txt_templatePath
             // 
-            txt_templatePath.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_templatePath.Location = new Point(111, 476);
-            txt_templatePath.Margin = new Padding(3, 4, 3, 4);
+            txt_templatePath.BackColor = Color.FromArgb(16, 22, 30);
+            txt_templatePath.BorderColor = Color.FromArgb(16, 22, 30);
+            txt_templatePath.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_templatePath.BorderRadius = 5;
+            txt_templatePath.BorderSize = 1;
+            txt_templatePath.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txt_templatePath.ForeColor = Color.WhiteSmoke;
+            txt_templatePath.InnerPadding = 12;
+            txt_templatePath.Location = new Point(28, 263);
             txt_templatePath.Name = "txt_templatePath";
-            txt_templatePath.Size = new Size(159, 25);
-            txt_templatePath.TabIndex = 19;
+            txt_templatePath.Size = new Size(234, 38);
+            txt_templatePath.TabIndex = 86;
             // 
             // btn_browseTemplate
             // 
-            btn_browseTemplate.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btn_browseTemplate.Location = new Point(276, 475);
-            btn_browseTemplate.Margin = new Padding(3, 4, 3, 4);
+            btn_browseTemplate.BackColor = Color.FromArgb(32, 43, 57);
+            btn_browseTemplate.BorderColor = Color.FromArgb(46, 59, 78);
+            btn_browseTemplate.BorderRadius = 5;
+            btn_browseTemplate.BorderThickness = 1;
+            btn_browseTemplate.FlatAppearance.BorderSize = 0;
+            btn_browseTemplate.FlatStyle = FlatStyle.Flat;
+            btn_browseTemplate.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btn_browseTemplate.ForeColor = Color.FromArgb(232, 237, 243);
+            btn_browseTemplate.Location = new Point(268, 263);
             btn_browseTemplate.Name = "btn_browseTemplate";
-            btn_browseTemplate.Size = new Size(61, 26);
-            btn_browseTemplate.TabIndex = 20;
+            btn_browseTemplate.Size = new Size(68, 38);
+            btn_browseTemplate.TabIndex = 87;
             btn_browseTemplate.Text = "📁Find";
-            btn_browseTemplate.UseVisualStyleBackColor = true;
+            btn_browseTemplate.UseVisualStyleBackColor = false;
             btn_browseTemplate.Click += btn_browseTemplate_Click;
             // 
             // customLine2
             // 
             customLine2.IsVertical = false;
             customLine2.LineColor = Color.FromArgb(64, 84, 103);
-            customLine2.Location = new Point(28, 284);
+            customLine2.Location = new Point(27, 50);
             customLine2.Margin = new Padding(3, 4, 3, 4);
             customLine2.Name = "customLine2";
             customLine2.Size = new Size(309, 13);
@@ -1781,20 +1997,20 @@ namespace TEST_DEF_03N
             // label53
             // 
             label53.AutoSize = true;
-            label53.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label53.ForeColor = SystemColors.ControlLightLight;
-            label53.Location = new Point(41, 479);
+            label53.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label53.ForeColor = Color.FromArgb(154, 167, 184);
+            label53.Location = new Point(26, 237);
             label53.Name = "label53";
-            label53.Size = new Size(63, 20);
+            label53.Size = new Size(122, 23);
             label53.TabIndex = 22;
-            label53.Text = "Report :";
+            label53.Text = "Folder Report :";
             // 
             // chkMultiplyBy100
             // 
             chkMultiplyBy100.AutoSize = true;
             chkMultiplyBy100.Font = new Font("Segoe UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            chkMultiplyBy100.ForeColor = SystemColors.ControlLightLight;
-            chkMultiplyBy100.Location = new Point(282, 72);
+            chkMultiplyBy100.ForeColor = Color.FromArgb(154, 167, 184);
+            chkMultiplyBy100.Location = new Point(272, 66);
             chkMultiplyBy100.Margin = new Padding(3, 4, 3, 4);
             chkMultiplyBy100.Name = "chkMultiplyBy100";
             chkMultiplyBy100.Size = new Size(62, 21);
@@ -1805,216 +2021,166 @@ namespace TEST_DEF_03N
             // label40
             // 
             label40.AutoSize = true;
-            label40.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label40.ForeColor = SystemColors.ControlLightLight;
-            label40.Location = new Point(62, 352);
+            label40.Font = new Font("Leelawadee UI", 10.2F);
+            label40.ForeColor = Color.FromArgb(154, 167, 184);
+            label40.Location = new Point(29, 136);
             label40.Name = "label40";
-            label40.Size = new Size(42, 20);
+            label40.Size = new Size(49, 23);
             label40.TabIndex = 24;
             label40.Text = "LOT :";
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI", 15F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            label5.ForeColor = Color.FromArgb(85, 223, 243);
-            label5.Location = new Point(24, 524);
+            label5.Font = new Font("Leelawadee UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label5.ForeColor = Color.FromArgb(232, 237, 243);
+            label5.Location = new Point(10, 15);
             label5.Name = "label5";
-            label5.Size = new Size(291, 35);
+            label5.Size = new Size(266, 31);
             label5.TabIndex = 44;
             label5.Text = "🔧 CONTROL MANUAL";
             // 
             // myRoundedPanel1
             // 
-            myRoundedPanel1.BackColor = Color.FromArgb(20, 38, 56);
-            myRoundedPanel1.BorderRadius = 15;
-            myRoundedPanel1.Controls.Add(label59);
-            myRoundedPanel1.Controls.Add(txt_instrument);
-            myRoundedPanel1.Controls.Add(label60);
-            myRoundedPanel1.Controls.Add(btnCheckRelay);
-            myRoundedPanel1.Controls.Add(btn_Testbtn);
-            myRoundedPanel1.Controls.Add(btn_setparameter);
-            myRoundedPanel1.Controls.Add(label45);
-            myRoundedPanel1.Controls.Add(txt_Rev);
-            myRoundedPanel1.Controls.Add(label29);
-            myRoundedPanel1.Controls.Add(btnManualInput);
-            myRoundedPanel1.Controls.Add(portRelay);
-            myRoundedPanel1.Controls.Add(customLine5);
-            myRoundedPanel1.Controls.Add(btnSelectTestPopup);
-            myRoundedPanel1.Controls.Add(label8);
-            myRoundedPanel1.Controls.Add(txt_ECN);
-            myRoundedPanel1.Controls.Add(label5);
-            myRoundedPanel1.Controls.Add(label40);
-            myRoundedPanel1.Controls.Add(chkMultiplyBy100);
-            myRoundedPanel1.Controls.Add(label53);
-            myRoundedPanel1.Controls.Add(customLine2);
-            myRoundedPanel1.Controls.Add(btn_browseTemplate);
-            myRoundedPanel1.Controls.Add(txt_templatePath);
-            myRoundedPanel1.Controls.Add(txt_Lot);
+            myRoundedPanel1.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel1.BorderRadius = 20;
             myRoundedPanel1.Controls.Add(btnRefresh);
-            myRoundedPanel1.Controls.Add(customLine1);
-            myRoundedPanel1.Controls.Add(label3);
             myRoundedPanel1.Controls.Add(btnConnect);
-            myRoundedPanel1.Controls.Add(label47);
-            myRoundedPanel1.Controls.Add(label1);
-            myRoundedPanel1.Controls.Add(label13);
-            myRoundedPanel1.Controls.Add(label2);
-            myRoundedPanel1.Controls.Add(txt_SN);
+            myRoundedPanel1.Controls.Add(portRelay);
             myRoundedPanel1.Controls.Add(portDEF);
             myRoundedPanel1.Controls.Add(portOhm);
+            myRoundedPanel1.Controls.Add(label29);
+            myRoundedPanel1.Controls.Add(chkMultiplyBy100);
+            myRoundedPanel1.Controls.Add(customLine1);
+            myRoundedPanel1.Controls.Add(label47);
+            myRoundedPanel1.Controls.Add(label1);
+            myRoundedPanel1.Controls.Add(label2);
             myRoundedPanel1.Location = new Point(13, 90);
             myRoundedPanel1.Margin = new Padding(3, 4, 3, 4);
             myRoundedPanel1.Name = "myRoundedPanel1";
-            myRoundedPanel1.Size = new Size(362, 769);
+            myRoundedPanel1.Size = new Size(362, 292);
             myRoundedPanel1.TabIndex = 40;
             // 
-            // label59
+            // portRelay
             // 
-            label59.AutoSize = true;
-            label59.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label59.ForeColor = SystemColors.ControlLightLight;
-            label59.Location = new Point(29, 445);
-            label59.Name = "label59";
-            label59.Size = new Size(75, 20);
-            label59.TabIndex = 70;
-            label59.Text = "เครื่องมือ :";
-            // 
-            // txt_instrument
-            // 
-            txt_instrument.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_instrument.Location = new Point(111, 443);
-            txt_instrument.Margin = new Padding(3, 4, 3, 4);
-            txt_instrument.Name = "txt_instrument";
-            txt_instrument.Size = new Size(226, 25);
-            txt_instrument.TabIndex = 69;
-            txt_instrument.Leave += txt_instrument_Leave;
-            // 
-            // label60
-            // 
-            label60.AutoSize = true;
-            label60.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label60.ForeColor = SystemColors.ControlLightLight;
-            label60.Location = new Point(28, 571);
-            label60.Name = "label60";
-            label60.Size = new Size(178, 20);
-            label60.TabIndex = 68;
-            label60.Text = "เลือกการทดสอบที่ต้องการ:";
-            // 
-            // btn_Testbtn
-            // 
-            btn_Testbtn.BackColor = SystemColors.ControlLightLight;
-            btn_Testbtn.Cursor = Cursors.Hand;
-            btn_Testbtn.FlatStyle = FlatStyle.Popup;
-            btn_Testbtn.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btn_Testbtn.Location = new Point(28, 647);
-            btn_Testbtn.Name = "btn_Testbtn";
-            btn_Testbtn.Size = new Size(150, 42);
-            btn_Testbtn.TabIndex = 66;
-            btn_Testbtn.Text = "☝ปุ่มและ LED";
-            btn_Testbtn.UseVisualStyleBackColor = false;
-            btn_Testbtn.Click += btn_Testbtn_Click;
-            // 
-            // btn_setparameter
-            // 
-            btn_setparameter.BackColor = SystemColors.ControlLightLight;
-            btn_setparameter.Cursor = Cursors.Hand;
-            btn_setparameter.FlatStyle = FlatStyle.Popup;
-            btn_setparameter.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btn_setparameter.Location = new Point(27, 701);
-            btn_setparameter.Name = "btn_setparameter";
-            btn_setparameter.Size = new Size(309, 53);
-            btn_setparameter.TabIndex = 67;
-            btn_setparameter.Text = "⚙ตั้งค่าพารามิเตอร์";
-            btn_setparameter.UseVisualStyleBackColor = false;
-            btn_setparameter.Click += btn_setparameter_Click;
-            // 
-            // label45
-            // 
-            label45.AutoSize = true;
-            label45.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label45.ForeColor = SystemColors.ControlLightLight;
-            label45.Location = new Point(53, 416);
-            label45.Name = "label45";
-            label45.Size = new Size(51, 20);
-            label45.TabIndex = 65;
-            label45.Text = "F-PD :";
-            // 
-            // txt_Rev
-            // 
-            txt_Rev.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_Rev.Location = new Point(111, 411);
-            txt_Rev.Margin = new Padding(3, 4, 3, 4);
-            txt_Rev.Name = "txt_Rev";
-            txt_Rev.Size = new Size(226, 25);
-            txt_Rev.TabIndex = 64;
-            txt_Rev.Leave += txt_Rev_Leave;
+            portRelay.ArrowColor = Color.FromArgb(154, 167, 184);
+            portRelay.BackColor = Color.FromArgb(16, 22, 30);
+            portRelay.BorderColor = Color.FromArgb(46, 59, 78);
+            portRelay.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            portRelay.BorderRadius = 5;
+            portRelay.BorderSize = 1;
+            portRelay.DrawMode = DrawMode.OwnerDrawFixed;
+            portRelay.DropDownStyle = ComboBoxStyle.DropDownList;
+            portRelay.FlatStyle = FlatStyle.Flat;
+            portRelay.Font = new Font("Leelawadee UI", 12F, FontStyle.Bold);
+            portRelay.ForeColor = Color.White;
+            portRelay.FormattingEnabled = true;
+            portRelay.ItemHeight = 28;
+            portRelay.ItemHoverColor = Color.FromArgb(0, 120, 215);
+            portRelay.Location = new Point(159, 179);
+            portRelay.Name = "portRelay";
+            portRelay.Size = new Size(174, 34);
+            portRelay.TabIndex = 83;
             // 
             // label29
             // 
             label29.AutoSize = true;
-            label29.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label29.ForeColor = SystemColors.ControlLightLight;
-            label29.Location = new Point(70, 143);
+            label29.Font = new Font("Leelawadee UI", 10.2F);
+            label29.ForeColor = Color.FromArgb(154, 167, 184);
+            label29.Location = new Point(29, 184);
             label29.Name = "label29";
-            label29.Size = new Size(70, 23);
+            label29.Size = new Size(67, 23);
             label29.TabIndex = 63;
-            label29.Text = "PH-01  :";
+            label29.Text = "PH-01  ";
             // 
-            // btnManualInput
+            // txt_help
             // 
-            btnManualInput.BackColor = SystemColors.ControlLightLight;
-            btnManualInput.Cursor = Cursors.Hand;
-            btnManualInput.FlatStyle = FlatStyle.Popup;
-            btnManualInput.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnManualInput.Location = new Point(28, 601);
-            btnManualInput.Name = "btnManualInput";
-            btnManualInput.Size = new Size(150, 42);
-            btnManualInput.TabIndex = 60;
-            btnManualInput.Text = "🌡อุณหภูมิ Manual";
-            btnManualInput.UseVisualStyleBackColor = false;
-            btnManualInput.Click += btnManualInput_Click;
+            txt_help.BackColor = Color.FromArgb(32, 43, 57);
+            txt_help.BorderColor = Color.FromArgb(46, 59, 78);
+            txt_help.BorderRadius = 5;
+            txt_help.BorderThickness = 1;
+            txt_help.FlatAppearance.BorderSize = 0;
+            txt_help.FlatStyle = FlatStyle.Flat;
+            txt_help.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txt_help.ForeColor = Color.FromArgb(232, 237, 243);
+            txt_help.Location = new Point(286, 18);
+            txt_help.Name = "txt_help";
+            txt_help.Size = new Size(50, 29);
+            txt_help.TabIndex = 86;
+            txt_help.Text = "Help";
+            txt_help.UseVisualStyleBackColor = false;
             // 
-            // portRelay
+            // txt_note
             // 
-            portRelay.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            portRelay.FormattingEnabled = true;
-            portRelay.Location = new Point(148, 138);
-            portRelay.Name = "portRelay";
-            portRelay.Size = new Size(130, 28);
-            portRelay.TabIndex = 14;
+            txt_note.BackColor = Color.FromArgb(32, 43, 57);
+            txt_note.BorderColor = Color.FromArgb(46, 59, 78);
+            txt_note.BorderRadius = 5;
+            txt_note.BorderThickness = 1;
+            txt_note.FlatAppearance.BorderSize = 0;
+            txt_note.FlatStyle = FlatStyle.Flat;
+            txt_note.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            txt_note.ForeColor = Color.FromArgb(232, 237, 243);
+            txt_note.Location = new Point(189, 389);
+            txt_note.Name = "txt_note";
+            txt_note.Size = new Size(149, 38);
+            txt_note.TabIndex = 89;
+            txt_note.Text = "หมายเหตุ";
+            txt_note.UseVisualStyleBackColor = false;
             // 
-            // customLine5
+            // btn_equipment
             // 
-            customLine5.IsVertical = false;
-            customLine5.LineColor = Color.FromArgb(64, 84, 103);
-            customLine5.Location = new Point(26, 556);
-            customLine5.Margin = new Padding(3, 4, 3, 4);
-            customLine5.Name = "customLine5";
-            customLine5.Size = new Size(309, 13);
-            customLine5.TabIndex = 59;
-            customLine5.Text = "customLine5";
-            customLine5.Thickness = 1;
+            btn_equipment.BackColor = Color.FromArgb(32, 43, 57);
+            btn_equipment.BorderColor = Color.FromArgb(46, 59, 78);
+            btn_equipment.BorderRadius = 5;
+            btn_equipment.BorderThickness = 1;
+            btn_equipment.FlatAppearance.BorderSize = 0;
+            btn_equipment.FlatStyle = FlatStyle.Flat;
+            btn_equipment.Font = new Font("Leelawadee UI", 7.8F, FontStyle.Bold);
+            btn_equipment.ForeColor = Color.FromArgb(232, 237, 243);
+            btn_equipment.Location = new Point(31, 389);
+            btn_equipment.Name = "btn_equipment";
+            btn_equipment.Size = new Size(149, 38);
+            btn_equipment.TabIndex = 88;
+            btn_equipment.Text = "รายละเอียด";
+            btn_equipment.UseVisualStyleBackColor = false;
             // 
             // label8
             // 
             label8.AutoSize = true;
-            label8.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            label8.ForeColor = SystemColors.ControlLightLight;
-            label8.Location = new Point(58, 383);
+            label8.Font = new Font("Leelawadee UI", 10.2F);
+            label8.ForeColor = Color.FromArgb(154, 167, 184);
+            label8.Location = new Point(26, 186);
             label8.Name = "label8";
-            label8.Size = new Size(46, 20);
+            label8.Size = new Size(52, 23);
             label8.TabIndex = 49;
             label8.Text = "ECN :";
             // 
             // txt_ECN
             // 
-            txt_ECN.Font = new Font("Segoe UI Semibold", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txt_ECN.Location = new Point(111, 379);
-            txt_ECN.Margin = new Padding(3, 4, 3, 4);
+            txt_ECN.BackColor = Color.FromArgb(16, 22, 30);
+            txt_ECN.BorderColor = Color.FromArgb(16, 22, 30);
+            txt_ECN.BorderFocusColor = Color.FromArgb(0, 120, 215);
+            txt_ECN.BorderRadius = 5;
+            txt_ECN.BorderSize = 1;
+            txt_ECN.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txt_ECN.ForeColor = Color.White;
+            txt_ECN.InnerPadding = 12;
+            txt_ECN.Location = new Point(84, 179);
             txt_ECN.Name = "txt_ECN";
-            txt_ECN.Size = new Size(226, 25);
-            txt_ECN.TabIndex = 47;
+            txt_ECN.Size = new Size(254, 38);
+            txt_ECN.TabIndex = 85;
             txt_ECN.Leave += txt_ECN_Leave;
+            // 
+            // label60
+            // 
+            label60.AutoSize = true;
+            label60.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label60.ForeColor = SystemColors.ControlLightLight;
+            label60.Location = new Point(10, 59);
+            label60.Name = "label60";
+            label60.Size = new Size(160, 20);
+            label60.TabIndex = 68;
+            label60.Text = "เลือกการทดสอบที่ต้องการ:";
             // 
             // cmsSelectTests
             // 
@@ -2051,38 +2217,140 @@ namespace TEST_DEF_03N
             cmsNTC10K03.Size = new Size(164, 24);
             cmsNTC10K03.Text = "NTC 10K (03)";
             // 
-            // myRoundedPanel6
+            // label61
             // 
-            myRoundedPanel6.BackColor = Color.FromArgb(12, 29, 46);
-            myRoundedPanel6.BorderRadius = 10;
-            myRoundedPanel6.Location = new Point(-7, 870);
-            myRoundedPanel6.Name = "myRoundedPanel6";
-            myRoundedPanel6.Size = new Size(1295, 23);
-            myRoundedPanel6.TabIndex = 49;
+            label61.AutoSize = true;
+            label61.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            label61.ForeColor = SystemColors.ControlLightLight;
+            label61.Location = new Point(86, 52);
+            label61.Name = "label61";
+            label61.Size = new Size(94, 20);
+            label61.TabIndex = 72;
+            label61.Text = "Version 1.0.0";
+            // 
+            // myRoundedPanel8
+            // 
+            myRoundedPanel8.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel8.BorderRadius = 20;
+            myRoundedPanel8.Controls.Add(label63);
+            myRoundedPanel8.Controls.Add(txt_name);
+            myRoundedPanel8.Controls.Add(label3);
+            myRoundedPanel8.Controls.Add(txt_SN);
+            myRoundedPanel8.Controls.Add(label13);
+            myRoundedPanel8.Controls.Add(txt_Lot);
+            myRoundedPanel8.Controls.Add(txt_templatePath);
+            myRoundedPanel8.Controls.Add(customLine2);
+            myRoundedPanel8.Controls.Add(txt_help);
+            myRoundedPanel8.Controls.Add(label53);
+            myRoundedPanel8.Controls.Add(label40);
+            myRoundedPanel8.Controls.Add(txt_note);
+            myRoundedPanel8.Controls.Add(txt_ECN);
+            myRoundedPanel8.Controls.Add(label8);
+            myRoundedPanel8.Controls.Add(btn_equipment);
+            myRoundedPanel8.Controls.Add(btn_browseTemplate);
+            myRoundedPanel8.Location = new Point(14, 394);
+            myRoundedPanel8.Name = "myRoundedPanel8";
+            myRoundedPanel8.Size = new Size(361, 443);
+            myRoundedPanel8.TabIndex = 82;
+            // 
+            // label63
+            // 
+            label63.AutoSize = true;
+            label63.Font = new Font("Leelawadee UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label63.ForeColor = Color.FromArgb(154, 167, 184);
+            label63.Location = new Point(26, 307);
+            label63.Name = "label63";
+            label63.Size = new Size(134, 23);
+            label63.TabIndex = 91;
+            label63.Text = "Name Operator:";
+            // 
+            // pnConnect
+            // 
+            pnConnect.BackColor = Color.FromArgb(242, 154, 149);
+            pnConnect.BorderRadius = 15;
+            pnConnect.Controls.Add(label54);
+            pnConnect.Location = new Point(1018, 19);
+            pnConnect.Name = "pnConnect";
+            pnConnect.Size = new Size(112, 33);
+            pnConnect.TabIndex = 96;
+            // 
+            // myRoundedPanel3
+            // 
+            myRoundedPanel3.BackColor = Color.FromArgb(24, 32, 43);
+            myRoundedPanel3.BorderRadius = 20;
+            myRoundedPanel3.Controls.Add(label59);
+            myRoundedPanel3.Controls.Add(label45);
+            myRoundedPanel3.Controls.Add(label14);
+            myRoundedPanel3.Controls.Add(label5);
+            myRoundedPanel3.Controls.Add(btn_setparameter);
+            myRoundedPanel3.Controls.Add(label60);
+            myRoundedPanel3.Controls.Add(btnCheckRelay);
+            myRoundedPanel3.Controls.Add(btn_Testbtn);
+            myRoundedPanel3.Controls.Add(btnManualInput);
+            myRoundedPanel3.Controls.Add(btnSelectTestPopup);
+            myRoundedPanel3.Location = new Point(912, 503);
+            myRoundedPanel3.Name = "myRoundedPanel3";
+            myRoundedPanel3.Size = new Size(289, 334);
+            myRoundedPanel3.TabIndex = 97;
+            // 
+            // label59
+            // 
+            label59.AutoSize = true;
+            label59.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label59.ForeColor = SystemColors.ControlLightLight;
+            label59.Location = new Point(10, 252);
+            label59.Name = "label59";
+            label59.Size = new Size(38, 20);
+            label59.TabIndex = 94;
+            label59.Text = "ระบบ";
+            // 
+            // label45
+            // 
+            label45.AutoSize = true;
+            label45.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label45.ForeColor = SystemColors.ControlLightLight;
+            label45.Location = new Point(12, 172);
+            label45.Name = "label45";
+            label45.Size = new Size(54, 20);
+            label45.TabIndex = 92;
+            label45.Text = "อุปกรณ์";
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Font = new Font("Leelawadee UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label14.ForeColor = SystemColors.ControlLightLight;
+            label14.Location = new Point(10, 93);
+            label14.Name = "label14";
+            label14.Size = new Size(56, 20);
+            label14.TabIndex = 69;
+            label14.Text = "อุณหภูมิ";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(8, 21, 34);
-            ClientSize = new Size(1263, 885);
+            BackColor = Color.FromArgb(16, 22, 30);
+            ClientSize = new Size(1218, 849);
+            Controls.Add(btn_login);
+            Controls.Add(pnConnect);
+            Controls.Add(label61);
+            Controls.Add(myRoundedPanel8);
+            Controls.Add(label9);
+            Controls.Add(pictureBox1);
             Controls.Add(myRoundedPanel2);
-            Controls.Add(myRoundedPanel6);
+            Controls.Add(lblTimer);
             Controls.Add(myRoundedPanel11);
             Controls.Add(myRoundedPanel10);
             Controls.Add(myRoundedPanel4);
             Controls.Add(label15);
             Controls.Add(myRoundedPanel1);
-            Controls.Add(btnSendCustom);
-            Controls.Add(panel11);
+            Controls.Add(myRoundedPanel3);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 4, 3, 4);
             Name = "Form1";
+            Text = "Calibrate and Test DEF-03N Series";
             Load += Form1_Load;
-            panel11.ResumeLayout(false);
-            panel11.PerformLayout();
-            pnConnect.ResumeLayout(false);
-            pnConnect.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel6.ResumeLayout(false);
             panel6.PerformLayout();
@@ -2136,26 +2404,30 @@ namespace TEST_DEF_03N
             myRoundedPanel10.PerformLayout();
             myRoundedPanel11.ResumeLayout(false);
             myRoundedPanel11.PerformLayout();
-            myRoundedPanel5.ResumeLayout(false);
-            myRoundedPanel5.PerformLayout();
+            myRoundedPanel7.ResumeLayout(false);
+            myRoundedPanel7.PerformLayout();
             myRoundedPanel1.ResumeLayout(false);
             myRoundedPanel1.PerformLayout();
             cmsSelectTests.ResumeLayout(false);
+            myRoundedPanel8.ResumeLayout(false);
+            myRoundedPanel8.PerformLayout();
+            pnConnect.ResumeLayout(false);
+            pnConnect.PerformLayout();
+            myRoundedPanel3.ResumeLayout(false);
+            myRoundedPanel3.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
         private Label label4;
-        private Panel panel11;
         private Label label9;
         private Label Regis0;
         private System.Windows.Forms.Timer timer1;
         private System.ComponentModel.BackgroundWorker backgroundWorkerOhm;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private RichTextBox richTextBoxRx;
-        private TextBox Regis1;
-        private Button btnSendCustom;
+        private Label Regis1;
         private Label lblTimer;
         private System.Windows.Forms.Timer timerCal;
         private Label label12;
@@ -2180,6 +2452,7 @@ namespace TEST_DEF_03N
         private Label label18;
         private Label label17;
         private PictureBox pic_qa_step9;
+        public StepTimelineControl stepTimeline;
         private TabControl tabcontrol;
         private TabPage tabPage1;
         private TabPage tabPage2;
@@ -2220,7 +2493,6 @@ namespace TEST_DEF_03N
         private PictureBox pic_ntc10ka_step1;
         private Panel panel30;
         private Label lbl_QA_result;
-        private CustomLine customLine3;
         private Label label10;
         private MyRoundedPanel myRoundedPanel4;
         //private MyRoundedPanel myRoundedPanel8;
@@ -2230,20 +2502,20 @@ namespace TEST_DEF_03N
         private MyRoundedPanel myRoundedPanel2;
         private MyRoundedPanel myRoundedPanel10;
         private MyRoundedPanel myRoundedPanel11;
-        private ComboBox portOhm;
-        private ComboBox portDEF;
-        private TextBox txt_SN;
+        private CustomComboBox portOhm;
+        private CustomComboBox portDEF;
+        private CustomTextBox txt_SN;
         private Label label2;
         private Label label13;
         private Label label1;
         private Label label47;
-        private Button btnConnect;
+        private CustomRoundedButton btnConnect;
         private Label label3;
         private CustomLine customLine1;
-        private Button btnRefresh;
-        private TextBox txt_Lot;
-        private TextBox txt_templatePath;
-        private Button btn_browseTemplate;
+        private CustomRoundedButton btnRefresh;
+        private CustomTextBox txt_Lot;
+        private CustomTextBox txt_templatePath;
+        private CustomRoundedButton btn_browseTemplate;
         private CustomLine customLine2;
         private Label label53;
         private CheckBox chkMultiplyBy100;
@@ -2253,22 +2525,19 @@ namespace TEST_DEF_03N
         private Label label27;
         private CheckBox chkTestForAll;
         private CheckBox chkCalibration;
-        private Button btnStop;
-        private Button btnRun;
-        private MyRoundedPanel pnConnect;
+        private CustomRoundedButton btnStop;
+        private CustomRoundedButton btnRun;
         private ProgressBar progressBarRun;
         private Label label54;
-        private Label label14;
         private Label label8;
-        private TextBox txt_ECN;
-        private TextBox Regis26;
-        private Button btnSelectTestPopup;
+        private CustomTextBox txt_ECN;
+        private Label Regis26;
+        private CustomRoundedButton btnSelectTestPopup;
         private ContextMenuStrip cmsSelectTests;
         private ToolStripMenuItem cmsPTC2K;
         private ToolStripMenuItem cmsNTC10K01;
         private ToolStripMenuItem cmsNTC2K;
         private ToolStripMenuItem cmsNTC10K03;
-        private MyRoundedPanel myRoundedPanel5;
         private Label lblProgressPercent;
         private Label label58;
         private Label label25;
@@ -2280,21 +2549,17 @@ namespace TEST_DEF_03N
         private Label label38;
         private Panel panel5;
         private CustomLine customLine4;
-        private MyRoundedPanel myRoundedPanel6;
         private Label label41;
-        private CustomLine customLine5;
-        private Button btnClearMessage;
-        private Button btnManualInput;
-        private ComboBox txt_model;
+        private CustomRoundedButton btnClearMessage;
+        private CustomRoundedButton btnManualInput;
+        private CustomComboBox txt_model;
         private Label label11;
         private CheckBox chkDebugWrite;
-        private Button btnCheckRelay;
-        private ComboBox portRelay;
+        private CustomRoundedButton btnCheckRelay;
+        private CustomComboBox portRelay;
         private Label label29;
-        private Label label45;
-        private TextBox txt_Rev;
-        private Button btn_Testbtn;
-        private ComboBox txt_supply;
+        private CustomRoundedButton btn_Testbtn;
+        private CustomComboBox txt_supply;
         private TabPage tabPage6;
         private PictureBox step4;
         private PictureBox step3;
@@ -2304,9 +2569,26 @@ namespace TEST_DEF_03N
         private Label label52;
         private Label label48;
         private Label label6;
-        private Button btn_setparameter;
+        private CustomRoundedButton btn_setparameter;
         private Label label60;
+        private CustomRoundedButton btn_equipment;
+        private Label label61;
+        private CustomCheckBox sent_server;
+        private CustomRoundedButton txt_note;
+        private CustomRoundedButton txt_help;
+        private CustomRoundedButton btn_login;
+        private MyRoundedPanel myRoundedPanel7;
+        private MyRoundedPanel myRoundedPanel8;
+        private CustomLine customLine8;
+        private CustomLine customLine7;
+        private Label label62;
+        private MyRoundedPanel pnConnect;
+        private MyRoundedPanel myRoundedPanel3;
+        private Label label14;
         private Label label59;
-        private TextBox txt_instrument;
+        private Label label45;
+        private CustomTextBox txt_name;
+        private Label label63;
+        private CustomLine customLine3;
     }
 }

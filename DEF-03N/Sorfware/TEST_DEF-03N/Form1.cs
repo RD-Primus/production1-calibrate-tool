@@ -28,6 +28,12 @@ namespace TEST_DEF_03N
         private List<byte> relayRxBuffer = new List<byte>();
         private TaskCompletionSource<short>? _pendingRelayReadTcs;
 
+        private bool _isConnected = false;
+        private bool _defPortConnected = false;
+        private bool _ohmPortConnected = false;
+        private bool _relayPortConnected = false;
+        private bool IsAnyPortOpen => (_serialPort?.IsOpen == true) || (_ohmPort?.IsOpen == true) || (_relayPort?.IsOpen == true);
+
         private ushort lastRequestedStart = 0; // ตัวแปรเก็บค่าเริ่มต้นล่าสุด
 
         //-- สำหรับการเขียน
@@ -96,6 +102,7 @@ namespace TEST_DEF_03N
 
         // ป้องกันการเลือก Model ซ้ำระหว่างเขียน
         private bool _isChangingModelRegister;
+        private string _lastConfirmedModel = string.Empty;
 
         // Register สำหรับกำหนด Option A/A-B
         private const ushort ModelOptionRegister = 23;
@@ -109,6 +116,22 @@ namespace TEST_DEF_03N
         private bool _runSequenceActive;
         private bool _runWaitingForButtonRetry;
         private bool _testFailureMessageShown;
+        private readonly List<string> _currentRunFailures = new List<string>();
+
+        private void ClearRunFailures()
+        {
+            _currentRunFailures.Clear();
+        }
+
+        private void RecordRunFailure(string failureDetail)
+        {
+            if (string.IsNullOrWhiteSpace(failureDetail)) return;
+            if (!_currentRunFailures.Contains(failureDetail))
+            {
+                _currentRunFailures.Add(failureDetail);
+            }
+            RecordAutomaticFailureReason(failureDetail);
+        }
         private TaskCompletionSource<bool>? _pendingRunButtonRetryTcs;
 
         private readonly System.Windows.Forms.Timer _snCheckTimer = new System.Windows.Forms.Timer();
@@ -118,6 +141,10 @@ namespace TEST_DEF_03N
         private int _duplicateSNRow = -1;
         private string _lastCheckedSN = string.Empty;
 
+        private Color _defaultSnBackColor;
+        private Color _defaultSnForeColor;
+        private Color _defaultTemplatePathForeColor;
+
         #endregion
 
         #region 02 เริ่มต้นหน้าจอและโหลดการตั้งค่า
@@ -125,6 +152,14 @@ namespace TEST_DEF_03N
         public Form1()
         {
             InitializeComponent();
+            _defaultSnBackColor = txt_SN.BackColor;
+            _defaultSnForeColor = txt_SN.ForeColor;
+            _defaultTemplatePathForeColor = txt_templatePath.ForeColor;
+            InitializeServerAddressFeature();
+            InitializeEquipmentAndApiFeature();
+            InitializeLoginFeature();
+            InitializeDescriptionFeature();
+            InitializeHelpFeature();
             InitializeModelSelection();
 
             // ทำงานเฉพาะเมื่อผู้ใช้เลือก Model จาก ComboBox
@@ -157,27 +192,45 @@ namespace TEST_DEF_03N
 
             // 🟢 ใส่ตรงนี้เลยครับ เปิดมาปุ๊บ สั่งเซ็ตค่ารอก่อนทันที
             Control[] foundTextBox1 = this.Controls.Find("Regis1", true);
-            if (foundTextBox1.Length > 0 && foundTextBox1[0] is System.Windows.Forms.TextBox txt1)
+            if (foundTextBox1.Length > 0)
             {
-                txt1.Text = "_";
-                txt1.ForeColor = Color.Black; // สีดำตามที่ต้องการ
+                if (foundTextBox1[0] is System.Windows.Forms.Label lbl1)
+                {
+                    lbl1.Text = "_°C";
+                }
+                else if (foundTextBox1[0] is System.Windows.Forms.TextBox txt1)
+                {
+                    txt1.Text = "_";
+                    txt1.ForeColor = Color.Black; // สีดำตามที่ต้องการ
+                }
             }
 
             Control[] foundTextBox26 = this.Controls.Find("Regis26", true);
-            if (foundTextBox26.Length > 0 &&
-                foundTextBox26[0] is System.Windows.Forms.TextBox txt28)
+            if (foundTextBox26.Length > 0)
             {
-                txt28.Text = "_";
-                txt28.ForeColor = Color.Black;
+                if (foundTextBox26[0] is System.Windows.Forms.Label lbl28)
+                {
+                    lbl28.Text = "XXXX";
+                }
+                else if (foundTextBox26[0] is System.Windows.Forms.TextBox txt28)
+                {
+                    txt28.Text = "_";
+                    txt28.ForeColor = Color.Black;
+                }
             }
 
 
         }
 
+        private void ResetSnColorsToDefault()
+        {
+            txt_SN.BackColor = _defaultSnBackColor;
+            txt_SN.ForeColor = _defaultSnForeColor;
+        }
+
         private void ScheduleSnDuplicateCheck()
         {
-            txt_SN.ForeColor = SystemColors.WindowText;
-            txt_SN.BackColor = SystemColors.Window;
+            ResetSnColorsToDefault();
             _isDuplicateSN = false;
             _duplicateSNRow = -1;
             _lastCheckedSN = string.Empty;
@@ -191,6 +244,24 @@ namespace TEST_DEF_03N
         private const string DefaultECN = "RD-CN-24-6-0121";
         private const string DefaultRev = "F-RD-07 Rev.6";
         private const string DefaultInstrument = "OS-276 หมดอายุ 3/2/27";
+        private const string DefaultFirmware = "FW DEF_03_c_V3.d43";
+
+        private string _currentRevision = DefaultRev;
+        private string _currentInstrument = DefaultInstrument;
+        private string _currentFirmware = DefaultFirmware;
+
+        private string GetOhmSourceInstrumentText()
+        {
+            var ohmRecord = _equipmentDatabaseRecords.FirstOrDefault(r => r.Name.Contains("Ohm", StringComparison.OrdinalIgnoreCase))
+                            ?? _equipmentDatabaseRecords.FirstOrDefault();
+            if (ohmRecord != null && !string.IsNullOrWhiteSpace(ohmRecord.EquipmentId))
+            {
+                if (!string.IsNullOrWhiteSpace(ohmRecord.ExpireDate) && ohmRecord.ExpireDate != "-")
+                    return $"{ohmRecord.EquipmentId} หมดอายุ {ohmRecord.ExpireDate}";
+                return ohmRecord.EquipmentId;
+            }
+            return _currentInstrument;
+        }
 
         private void SaveConfig()
         {
@@ -202,8 +273,10 @@ namespace TEST_DEF_03N
                     txt_templatePath.Text.Trim(),
                     txt_Lot.Text.Trim(),
                     txt_ECN.Text.Trim(),
-                    txt_Rev.Text.Trim(),
-                    txt_instrument.Text.Trim()
+                    _currentRevision.Trim(),
+                    GetOhmSourceInstrumentText().Trim(),
+                    _currentFirmware.Trim(),
+                    txt_name.Text.Trim()
                 };
                 File.WriteAllLines(configPath, lines);
             }
@@ -211,6 +284,9 @@ namespace TEST_DEF_03N
         }
         private void LoadConfig()
         {
+            txt_name.PlaceholderText = "กรุณาลงชื่อ";
+            txt_name.TextChanged += (s, e) => SaveConfig();
+
             try
             {
                 string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "path_config.txt");
@@ -219,13 +295,22 @@ namespace TEST_DEF_03N
                 {
                     string[] lines = File.ReadAllLines(configPath);
 
-                    txt_Rev.Text = (lines.Length > 3 && !string.IsNullOrWhiteSpace(lines[3]))
+                    _currentRevision = (lines.Length > 3 && !string.IsNullOrWhiteSpace(lines[3]))
                                      ? lines[3].Trim()
                                      : DefaultRev;
 
-                    txt_instrument.Text = (lines.Length > 4 && !string.IsNullOrWhiteSpace(lines[4]))
+                    _currentInstrument = (lines.Length > 4 && !string.IsNullOrWhiteSpace(lines[4]))
                         ? lines[4].Trim()
                         : DefaultInstrument;
+
+                    _currentFirmware = (lines.Length > 5 && !string.IsNullOrWhiteSpace(lines[5]))
+                        ? lines[5].Trim()
+                        : DefaultFirmware;
+
+                    if (lines.Length > 6 && !string.IsNullOrWhiteSpace(lines[6]))
+                    {
+                        txt_name.Text = lines[6].Trim();
+                    }
 
                     if (lines.Length > 0 && !string.IsNullOrWhiteSpace(lines[0]))
                     {
@@ -233,7 +318,7 @@ namespace TEST_DEF_03N
                         txt_templatePath.Text = savedPath;
 
                         if (Directory.Exists(savedPath))
-                            txt_templatePath.ForeColor = Color.Black;
+                            txt_templatePath.ForeColor = _defaultTemplatePathForeColor;
                         else
                         {
                             txt_templatePath.ForeColor = Color.Red;
@@ -255,15 +340,17 @@ namespace TEST_DEF_03N
                 {
                     // ไม่มีไฟล์ config เลย (เปิดโปรแกรมครั้งแรก) ให้ตั้งค่า default ไว้ก่อน
                     txt_ECN.Text = DefaultECN;
-                    txt_Rev.Text = DefaultRev;
-                    txt_instrument.Text = DefaultInstrument;
+                    _currentRevision = DefaultRev;
+                    _currentInstrument = DefaultInstrument;
+                    _currentFirmware = DefaultFirmware;
                 }
             }
             catch (Exception ex)
             {
                 txt_ECN.Text = DefaultECN;
-                txt_Rev.Text = DefaultRev;
-                txt_instrument.Text = DefaultInstrument;
+                _currentRevision = DefaultRev;
+                _currentInstrument = DefaultInstrument;
+                _currentFirmware = DefaultFirmware;
                 LogToRx($"⚠️ อ่านไฟล์ Config ไม่สำเร็จ: {ex.Message}", Color.Orange);
             }
         }
@@ -275,6 +362,7 @@ namespace TEST_DEF_03N
             LoadConfig();
 
             // 2. จัดการ TapPage และไฟสถานะตามเดิม
+            stepTimeline?.ShowOverviewMode();
             tabcontrol.SelectedTab = tabPage6;
 
             for (int i = 0; i < 9; i++) SetStepLight(i, Color.LightGray, true);
@@ -330,56 +418,127 @@ namespace TEST_DEF_03N
         {
             try
             {
-                if (!_serialPort.IsOpen)
+                if (!_isConnected && !IsAnyPortOpen)
                 {
                     _disconnectInProgress = false;
                     ResetCommunicationHealthCounters();
 
-                    if (portDEF.SelectedItem == null || portOhm.SelectedItem == null || portRelay.SelectedItem == null)
+                    bool isDebug = chkDebugWrite != null && chkDebugWrite.Checked;
+
+                    if (!isDebug)
                     {
-                        MessageBox.Show("กรุณาเลือก Port อุปกรณ์, Port Ohm Source และ Port Relay ให้ครบถ้วน!",
-                                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        if (portDEF.SelectedItem == null || portOhm.SelectedItem == null || portRelay.SelectedItem == null)
+                        {
+                            MessageBox.Show("กรุณาเลือก Port อุปกรณ์, Port Ohm Source และ Port Relay ให้ครบถ้วน!",
+                                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if (portDEF.SelectedItem == null && portOhm.SelectedItem == null && portRelay.SelectedItem == null)
+                        {
+                            MessageBox.Show("กรุณาเลือกอย่างน้อย 1 Port เพื่อเชื่อมต่อ (โหมด Debug)",
+                                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                    }
+
+                    bool defOpened = false;
+                    bool ohmOpened = false;
+                    bool relayOpened = false;
+
+                    //  ตั้งค่าและเปิด _serialPort (Modbus)
+                    if (portDEF.SelectedItem != null && !string.IsNullOrWhiteSpace(portDEF.SelectedItem.ToString()))
+                    {
+                        try
+                        {
+                            _serialPort.PortName = portDEF.SelectedItem.ToString()!;
+                            _serialPort.BaudRate = 19200;
+                            //_serialPort.BaudRate = int.Parse(BuadBox.SelectedItem!.ToString()!);
+                            _serialPort.Parity = Parity.None;
+                            _serialPort.DataBits = 8;
+                            _serialPort.StopBits = StopBits.One;
+                            _serialPort.ReadTimeout = 500;
+                            _serialPort.WriteTimeout = 500;
+                            _serialPort.Open();
+                            portDEF.Enabled = false;
+                            defOpened = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!isDebug) throw;
+                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port DEF-03N ({portDEF.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                        }
+                    }
+
+                    //  ตั้งค่าและเปิด _ohmPort (Ohm Source)
+                    if (portOhm.SelectedItem != null && !string.IsNullOrWhiteSpace(portOhm.SelectedItem.ToString()))
+                    {
+                        try
+                        {
+                            _ohmPort.PortName = portOhm.SelectedItem.ToString()!;
+                            _ohmPort.BaudRate = 9600;
+                            _ohmPort.Parity = Parity.None;
+                            _ohmPort.DataBits = 8;
+                            _ohmPort.StopBits = StopBits.One;
+                            _ohmPort.Open();
+                            portOhm.Enabled = false;
+                            ohmOpened = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!isDebug) throw;
+                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port Ohm Source ({portOhm.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                        }
+                    }
+
+                    //  เปิด Relay Port
+                    if (portRelay.SelectedItem != null && !string.IsNullOrWhiteSpace(portRelay.SelectedItem.ToString()))
+                    {
+                        try
+                        {
+                            _relayPort.PortName = portRelay.SelectedItem.ToString()!;
+                            _relayPort.BaudRate = 19200;
+                            _relayPort.Parity = Parity.None;
+                            _relayPort.DataBits = 8;
+                            _relayPort.StopBits = StopBits.One;
+                            _relayPort.ReadTimeout = 500;
+                            _relayPort.WriteTimeout = 500;
+                            _relayPort.Open();
+                            portRelay.Enabled = false;
+                            relayOpened = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!isDebug) throw;
+                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port Relay ({portRelay.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                        }
+                    }
+
+                    if (!defOpened && !ohmOpened && !relayOpened)
+                    {
+                        MessageBox.Show("ไม่สามารถเปิดพอร์ตใดๆ ได้ กรุณาตรวจสอบการเชื่อมต่อ",
+                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
 
-                    //  ตั้งค่าและเปิด _serialPort (Modbus)
-                    _serialPort.PortName = portDEF.SelectedItem.ToString()!;
-                    _serialPort.BaudRate = 19200;
-                    //_serialPort.BaudRate = int.Parse(BuadBox.SelectedItem!.ToString()!);
-                    _serialPort.Parity = Parity.None;
-                    _serialPort.DataBits = 8;
-                    _serialPort.StopBits = StopBits.One;
-                    _serialPort.ReadTimeout = 500;
-                    _serialPort.WriteTimeout = 500;
-                    _serialPort.Open();
-
-                    //  ตั้งค่าและเปิด _ohmPort (Ohm Source)
-                    _ohmPort.PortName = portOhm.SelectedItem.ToString()!;
-                    _ohmPort.BaudRate = 9600;
-                    _ohmPort.Parity = Parity.None;
-                    _ohmPort.DataBits = 8;
-                    _ohmPort.StopBits = StopBits.One;
-                    _ohmPort.Open();
-
-                    //  เปิด Relay Port
-                    _relayPort.PortName = portRelay.SelectedItem.ToString()!;
-                    _relayPort.BaudRate = 19200;
-                    _relayPort.Parity = Parity.None;
-                    _relayPort.DataBits = 8;
-                    _relayPort.StopBits = StopBits.One;
-                    _relayPort.ReadTimeout = 500;
-                    _relayPort.WriteTimeout = 500;
-                    _relayPort.Open();
-
-                    portDEF.Enabled = false;
-                    portOhm.Enabled = false;
-                    portRelay.Enabled = false;
+                    _defPortConnected = defOpened;
+                    _ohmPortConnected = ohmOpened;
+                    _relayPortConnected = relayOpened;
+                    _isConnected = true;
 
                     timer1.Interval = 200;
                     timer1.Start();
 
                     btnConnect.Text = "🔗Disconnect";
-                    LogToRx($"[CONNECTED] เชื่อมต่อสำเร็จ", Color.Green);
+
+                    var connectedList = new List<string>();
+                    if (defOpened) connectedList.Add($"DEF-03N ({_serialPort.PortName})");
+                    if (ohmOpened) connectedList.Add($"Ohm ({_ohmPort.PortName})");
+                    if (relayOpened) connectedList.Add($"Relay ({_relayPort.PortName})");
+
+                    LogToRx($"[CONNECTED] เชื่อมต่อสำเร็จ: {string.Join(", ", connectedList)}", Color.Green);
                     SetConnectionStatusUI(true); // 🟢 เปลี่ยน badge เป็นเขียว + "•Connect"
                 }
                 else
@@ -399,24 +558,42 @@ namespace TEST_DEF_03N
                     timer1.Stop();
                     HandleDisconnect("UserDisconnect");
 
+                    _isConnected = false;
+                    _defPortConnected = false;
+                    _ohmPortConnected = false;
+                    _relayPortConnected = false;
+
                     if (_serialPort.IsOpen) _serialPort.Close();
                     if (_ohmPort.IsOpen) _ohmPort.Close();
+                    if (_relayPort.IsOpen) _relayPort.Close();
 
                     btnConnect.Text = "🔗Connect";
                     LogToRx($"[DISCONNECTED] ยกเลิกการเชื่อมต่อสำเร็จ", Color.Red);
 
                     portDEF.Enabled = true;
                     portOhm.Enabled = true;
+                    portRelay.Enabled = true;
 
                     SetConnectionStatusUI(false); // 🟢 กลับเป็นแดง + "•DisConnect"
                 }
             }
             catch (Exception ex)
             {
+                _isConnected = false;
+                _defPortConnected = false;
+                _ohmPortConnected = false;
+                _relayPortConnected = false;
+
                 // หากเกิด Error ให้พยายามปิดพอร์ตที่อาจค้างอยู่
                 if (_serialPort.IsOpen) _serialPort.Close();
                 if (_ohmPort.IsOpen) _ohmPort.Close();
                 if (_relayPort.IsOpen) _relayPort.Close();
+
+                portDEF.Enabled = true;
+                portOhm.Enabled = true;
+                portRelay.Enabled = true;
+
+                SetConnectionStatusUI(false);
                 MessageBox.Show($"Error during connection: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -480,6 +657,7 @@ namespace TEST_DEF_03N
                     SetStepLight(i, Color.LightGray, false); // false = ฝั่ง QC (pic_qc_step)
                 }
                 ResetRunStepLights();
+                stepTimeline?.ShowOverviewMode();
                 tabcontrol.SelectedTab = tabPage6;
 
                 chkCalibration.Checked = false;
@@ -500,6 +678,10 @@ namespace TEST_DEF_03N
                 btnConnect.Enabled = true;
 
                 SetConnectionStatusUI(false);
+                _isConnected = false;
+                _defPortConnected = false;
+                _ohmPortConnected = false;
+                _relayPortConnected = false;
 
                 portDEF.Enabled = true;
                 portOhm.Enabled = true;
@@ -539,9 +721,9 @@ namespace TEST_DEF_03N
                 byte[] buffer = new byte[count];
                 _serialPort.Read(buffer, 0, count);
 
-                LogWriteDebug(
-                    $"[RAW RX] {BitConverter.ToString(buffer).Replace("-", " ")}",
-                        Color.OrangeRed);
+                //LogWriteDebug(
+                //    $"[RAW RX] {BitConverter.ToString(buffer).Replace("-", " ")}",
+                //        Color.OrangeRed);
 
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
                 foreach (byte b in buffer)
@@ -650,6 +832,11 @@ namespace TEST_DEF_03N
 
             ResetCommunicationHealthCounters();
 
+            _isConnected = false;
+            _defPortConnected = false;
+            _ohmPortConnected = false;
+            _relayPortConnected = false;
+
             btnConnect.Text = "🔗Connect";
             btnConnect.Enabled = true;
 
@@ -704,6 +891,7 @@ namespace TEST_DEF_03N
                 SetStepLight(i, Color.LightGray, false);
 
             ResetRunStepLights();
+            stepTimeline?.ShowOverviewMode();
             tabcontrol.SelectedTab = tabPage6;
 
             chkCalibration.Checked = false;
@@ -998,14 +1186,20 @@ namespace TEST_DEF_03N
                             System.Windows.Forms.Control[] foundRegister1 =
                                 Controls.Find("Regis1", true);
 
-                            if (foundRegister1.Length > 0 &&
-                                foundRegister1[0] is System.Windows.Forms.TextBox textBox1 &&
-                                !textBox1.Focused)
+                            if (foundRegister1.Length > 0)
                             {
-                                textBox1.Text =
-                                    _currentSV.ToString("0.#");
+                                if (foundRegister1[0] is System.Windows.Forms.Label label1)
+                                {
+                                    label1.Text = _currentSV.ToString("0.#") + "°C";
+                                }
+                                else if (foundRegister1[0] is System.Windows.Forms.TextBox textBox1 &&
+                                         !textBox1.Focused)
+                                {
+                                    textBox1.Text =
+                                        _currentSV.ToString("0.#");
 
-                                textBox1.ForeColor = Color.Blue;
+                                    textBox1.ForeColor = Color.Blue;
+                                }
                             }
                         }
 
@@ -1033,8 +1227,8 @@ namespace TEST_DEF_03N
                                 else if (foundRegister26[0] is System.Windows.Forms.TextBox textBox28 &&
                                          !textBox28.Focused)
                                 {
-                                    Regis26.Text = hexValue;
-                                    Regis26.ForeColor = Color.Blue;
+                                    textBox28.Text = hexValue;
+                                    textBox28.ForeColor = Color.Blue;
                                 }
                             }
                         }
@@ -1421,6 +1615,14 @@ namespace TEST_DEF_03N
                 _calProtocolGate.Release();
             }
         }
+
+        private void ThrowIfStopRequested(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            if (_userRequestedStop)
+                throw new OperationCanceledException(token);
+        }
+
         private void SendCalibrationOhm(double ohmValue)
         {
             if (_ohmPort == null || !_ohmPort.IsOpen)
@@ -1455,7 +1657,7 @@ namespace TEST_DEF_03N
 
             for (int i = 0; i < ohmValues.Count; i++)
             {
-                token.ThrowIfCancellationRequested();
+                ThrowIfStopRequested(token);
 
                 int ohm = ohmValues[i];
 
@@ -1515,6 +1717,7 @@ namespace TEST_DEF_03N
                     Color.DarkGreen);
 
                 IncrementRunProgress();
+                ThrowIfStopRequested(token);
             }
 
             return adcValues;
@@ -1727,55 +1930,82 @@ namespace TEST_DEF_03N
 
             try
             {
+                bool isDebug = chkDebugWrite != null && chkDebugWrite.Checked;
 
-                if (_serialPort == null || !_serialPort.IsOpen)
+                if (!isDebug)
                 {
-                    HandleDisconnect("พอร์ต DEF-03N หลุด");
-                    return;
-                }
-
-                if (_ohmPort == null || !_ohmPort.IsOpen)
-                {
-                    HandleDisconnect("พอร์ต Ohmsource หลุด");
-                    return;
-                }
-                if (_relayPort == null || !_relayPort.IsOpen)
-                {
-                    HandleDisconnect("พอร์ต PH-01 Relay / Alarm หลุด");
-                    return;
-                }
-
-
-                // ── 4. ส่ง Modbus Read ───────────────────────────────────
-                await ExecuteReadCycleAsync();
-
-                if (_mainPollTimeoutCount >= CommunicationFailureThreshold)
-                {
-                    HandleDisconnect(
-                        $"DEF-03N ไม่ตอบ Modbus ติดต่อกัน {_mainPollTimeoutCount} ครั้ง");
-                    return;
-                }
-
-                if (DateTime.UtcNow >= _nextRelayHealthCheckUtc)
-                {
-                    _nextRelayHealthCheckUtc =
-                        DateTime.UtcNow.Add(RelayHealthCheckInterval);
-
-                    string? missingPort = FindUnavailableConnectedPort();
-                    if (missingPort != null)
+                    if (_serialPort == null || !_serialPort.IsOpen)
                     {
-                        HandleDisconnect($"ไม่พบพอร์ต {missingPort} ใน Windows");
+                        HandleDisconnect("พอร์ต DEF-03N หลุด");
                         return;
                     }
 
-                    await CheckRelayCommunicationAsync();
+                    if (_ohmPort == null || !_ohmPort.IsOpen)
+                    {
+                        HandleDisconnect("พอร์ต Ohmsource หลุด");
+                        return;
+                    }
+                    if (_relayPort == null || !_relayPort.IsOpen)
+                    {
+                        HandleDisconnect("พอร์ต PH-01 Relay / Alarm หลุด");
+                        return;
+                    }
+                }
+                else
+                {
+                    if (_defPortConnected && (_serialPort == null || !_serialPort.IsOpen))
+                    {
+                        HandleDisconnect("พอร์ต DEF-03N หลุด");
+                        return;
+                    }
+                    if (_ohmPortConnected && (_ohmPort == null || !_ohmPort.IsOpen))
+                    {
+                        HandleDisconnect("พอร์ต Ohmsource หลุด");
+                        return;
+                    }
+                    if (_relayPortConnected && (_relayPort == null || !_relayPort.IsOpen))
+                    {
+                        HandleDisconnect("พอร์ต PH-01 Relay / Alarm หลุด");
+                        return;
+                    }
+                }
 
-                    if (_relayPollTimeoutCount >= CommunicationFailureThreshold)
+                // ── 4. ส่ง Modbus Read ───────────────────────────────────
+                if (_serialPort != null && _serialPort.IsOpen)
+                {
+                    await ExecuteReadCycleAsync();
+
+                    if (_mainPollTimeoutCount >= CommunicationFailureThreshold)
                     {
                         HandleDisconnect(
-                            $"PH-01 Relay / Alarm ไม่ตอบ Modbus " +
-                            $"ติดต่อกัน {_relayPollTimeoutCount} ครั้ง");
+                            $"DEF-03N ไม่ตอบ Modbus ติดต่อกัน {_mainPollTimeoutCount} ครั้ง");
                         return;
+                    }
+                }
+
+                if (_relayPort != null && _relayPort.IsOpen)
+                {
+                    if (DateTime.UtcNow >= _nextRelayHealthCheckUtc)
+                    {
+                        _nextRelayHealthCheckUtc =
+                            DateTime.UtcNow.Add(RelayHealthCheckInterval);
+
+                        string? missingPort = FindUnavailableConnectedPort();
+                        if (missingPort != null)
+                        {
+                            HandleDisconnect($"ไม่พบพอร์ต {missingPort} ใน Windows");
+                            return;
+                        }
+
+                        await CheckRelayCommunicationAsync();
+
+                        if (_relayPollTimeoutCount >= CommunicationFailureThreshold)
+                        {
+                            HandleDisconnect(
+                                $"PH-01 Relay / Alarm ไม่ตอบ Modbus " +
+                                $"ติดต่อกัน {_relayPollTimeoutCount} ครั้ง");
+                            return;
+                        }
                     }
                 }
             }
@@ -1873,15 +2103,15 @@ namespace TEST_DEF_03N
                 SerialPort.GetPortNames(),
                 StringComparer.OrdinalIgnoreCase);
 
-            if (_serialPort != null &&
+            if (_serialPort != null && _serialPort.IsOpen &&
                 !availablePorts.Contains(_serialPort.PortName))
                 return $"DEF-03N ({_serialPort.PortName})";
 
-            if (_ohmPort != null &&
+            if (_ohmPort != null && _ohmPort.IsOpen &&
                 !availablePorts.Contains(_ohmPort.PortName))
                 return $"Ohm Source ({_ohmPort.PortName})";
 
-            if (_relayPort != null &&
+            if (_relayPort != null && _relayPort.IsOpen &&
                 !availablePorts.Contains(_relayPort.PortName))
                 return $"PH-01 Relay / Alarm ({_relayPort.PortName})";
 
@@ -2312,10 +2542,6 @@ namespace TEST_DEF_03N
             }
         }
 
-
-        private void btnSendCustom_Click(object sender, EventArgs e) { }
-
-
         #endregion
 
         #region 10 ตรวจ Relay และ Alarm แบบแยก
@@ -2324,26 +2550,32 @@ namespace TEST_DEF_03N
         {
             if (_relayPort == null || !_relayPort.IsOpen)
             {
-                LogToRx("[RELAY CHECK] ยังไม่ได้เชื่อมต่อพอร์ต Relay", Color.Red);
+                LogToRx("ยังไม่ได้เชื่อมต่ออุปกรณ์ตรวจสอบ Relay", Color.Red);
+                LogWriteDebug("[RELAY CHECK] ยังไม่ได้เชื่อมต่อพอร์ต Relay", Color.Red);
                 return;
             }
 
-            LogToRx($"[RELAY OUT CHECK] กำลังอ่านสถานะ Relay Out (ID 3, Register {RelayStatusRegister})...", Color.Black);
+            LogToRx("กำลังตรวจสอบ Relay Output...", Color.Blue);
+            LogWriteDebug($"[RELAY OUT CHECK] กำลังอ่านสถานะ Relay Out (ID 3, Register {RelayStatusRegister})...", Color.Black);
 
             try
             {
                 short value = await ReadRelaySingleRegisterAsync(RelayStatusRegister, timeoutMs: 1000, retries: 2);
 
                 if (value == 1)
-                    LogToRx("[RELAY OUT CHECK] ผลลัพธ์: Relay Out ON (1)", Color.Green);
+                    LogToRx("Relay Output: ON", Color.Green);
                 else if (value == 0)
-                    LogToRx("[RELAY OUT CHECK] ผลลัพธ์: Relay Out OFF (0)", Color.Gray);
+                    LogToRx("Relay Output: OFF", Color.Gray);
                 else
-                    LogToRx($"[RELAY OUT CHECK] ค่าที่อ่านได้ผิดปกติ: {value}", Color.Orange);
+                    LogToRx("Relay Output ส่งสถานะผิดปกติ", Color.Orange);
+
+                LogWriteDebug($"[RELAY OUT CHECK] ID 3, Register {RelayStatusRegister} = {value}",
+                    value == 1 ? Color.Green : value == 0 ? Color.Gray : Color.Orange);
             }
             catch (Exception ex)
             {
-                LogToRx($"[RELAY OUT CHECK] ล้มเหลว: {ex.Message}", Color.Red);
+                LogToRx("ตรวจสอบ Relay Output ไม่สำเร็จ", Color.Red);
+                LogWriteDebug($"[RELAY OUT CHECK] ล้มเหลว: {ex.Message}", Color.Red);
             }
         }
 
@@ -2351,26 +2583,32 @@ namespace TEST_DEF_03N
         {
             if (_relayPort == null || !_relayPort.IsOpen)
             {
-                LogToRx("[RELAY CHECK] ยังไม่ได้เชื่อมต่อพอร์ต Relay", Color.Red);
+                LogToRx("ยังไม่ได้เชื่อมต่ออุปกรณ์ตรวจสอบ Relay", Color.Red);
+                LogWriteDebug("[RELAY CHECK] ยังไม่ได้เชื่อมต่อพอร์ต Relay", Color.Red);
                 return;
             }
 
-            LogToRx($"[RELAY ALARM CHECK] กำลังอ่านสถานะ Relay Alarm (ID 3, Register {AlarmStatusRegister})...", Color.Black);
+            LogToRx("กำลังตรวจสอบ Alarm Relay...", Color.Blue);
+            LogWriteDebug($"[RELAY ALARM CHECK] กำลังอ่านสถานะ Relay Alarm (ID 3, Register {AlarmStatusRegister})...", Color.Black);
 
             try
             {
                 short value = await ReadRelaySingleRegisterAsync(AlarmStatusRegister, timeoutMs: 1000, retries: 2);
 
                 if (value == 1)
-                    LogToRx("[RELAY ALARM CHECK] ผลลัพธ์: Relay Alarm ON (1)", Color.Green);
+                    LogToRx("Alarm Relay: ON", Color.Green);
                 else if (value == 0)
-                    LogToRx("[RELAY ALARM CHECK] ผลลัพธ์: Relay Alarm OFF (0)", Color.Gray);
+                    LogToRx("Alarm Relay: OFF", Color.Gray);
                 else
-                    LogToRx($"[RELAY ALARM CHECK] ค่าที่อ่านได้ผิดปกติ: {value}", Color.Orange);
+                    LogToRx("Alarm Relay ส่งสถานะผิดปกติ", Color.Orange);
+
+                LogWriteDebug($"[RELAY ALARM CHECK] ID 3, Register {AlarmStatusRegister} = {value}",
+                    value == 1 ? Color.Green : value == 0 ? Color.Gray : Color.Orange);
             }
             catch (Exception ex)
             {
-                LogToRx($"[RELAY CHECK] ล้มเหลว: {ex.Message}", Color.Red);
+                LogToRx("ตรวจสอบ Alarm Relay ไม่สำเร็จ", Color.Red);
+                LogWriteDebug($"[RELAY CHECK] ล้มเหลว: {ex.Message}", Color.Red);
             }
         }
 
@@ -2405,6 +2643,8 @@ namespace TEST_DEF_03N
                     expectedMask: 0x00,
                     token: token);
 
+                ThrowIfStopRequested(token);
+
                 LogToRx(
                     "✅ เข้าสู่โหมด Calibration สำเร็จ",
                     Color.Green);
@@ -2423,6 +2663,8 @@ namespace TEST_DEF_03N
                         "PTC2K",
                         ptc2kOhms,
                         token);
+
+                ThrowIfStopRequested(token);
 
                 await SendCalibrationFrameAsync(
                     BuildCalibrationDataFrame(0x00, ptc2kAdc),
@@ -2450,6 +2692,8 @@ namespace TEST_DEF_03N
                         ntc2kOhms,
                         token);
 
+                ThrowIfStopRequested(token);
+
                 await SendCalibrationFrameAsync(
                     BuildCalibrationDataFrame(0x01, ntc2kAdc),
                     expectedCommand: 0x02,
@@ -2475,6 +2719,8 @@ namespace TEST_DEF_03N
                         "NTC10K",
                         ntc10kOhms,
                         token);
+
+                ThrowIfStopRequested(token);
 
                 await SendCalibrationFrameAsync(
                     BuildCalibrationDataFrame(0x02, ntc10kAdc),
@@ -2538,6 +2784,9 @@ namespace TEST_DEF_03N
 
         //── ส่วนของ ของการ Test ───────────────────────────────────
         private bool _skipExcelWrite = false; // true = ทดสอบอย่างเดียว ไม่เขียน Excel
+        private string? _autoReportStagingFolder;
+        private string? _autoReportStagedPath;
+        private string? _autoReportFinalPath;
         #endregion
 
         #region 12 ตรวจข้อมูลและเตรียมไฟล์รายงาน
@@ -2567,11 +2816,237 @@ namespace TEST_DEF_03N
 
             return true;
         }
+
+        private string GetSelectedReportModelCode()
+        {
+            string supplyCode = txt_supply.SelectedIndex == 0 ? "220" : "24";
+            return $"{txt_model.Text.Trim()}-{supplyCode}";
+        }
+
+        private void BeginAutoReportTransaction(string outputFolder, string lotName)
+        {
+            DiscardAutoReportTransaction(logDiscard: false);
+
+            string safeLotName = string.Join(
+                "_",
+                lotName.Split(Path.GetInvalidFileNameChars()));
+            string finalPath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string stagingFolder = Path.Combine(
+                outputFolder,
+                $".def03n-stage-{Guid.NewGuid():N}");
+            string stagedPath = Path.Combine(stagingFolder, $"{safeLotName}.xlsx");
+
+            Directory.CreateDirectory(stagingFolder);
+            if (File.Exists(finalPath))
+                File.Copy(finalPath, stagedPath, overwrite: true);
+
+            _autoReportStagingFolder = stagingFolder;
+            _autoReportStagedPath = stagedPath;
+            _autoReportFinalPath = finalPath;
+        }
+
+        private bool CommitAutoReportTransaction()
+        {
+            if (string.IsNullOrWhiteSpace(_autoReportStagingFolder) ||
+                string.IsNullOrWhiteSpace(_autoReportStagedPath) ||
+                string.IsNullOrWhiteSpace(_autoReportFinalPath) ||
+                !File.Exists(_autoReportStagedPath))
+            {
+                return false;
+            }
+
+            string stagingFolder = _autoReportStagingFolder;
+            string stagedPath = _autoReportStagedPath;
+            string finalPath = _autoReportFinalPath;
+            string backupPath = Path.Combine(stagingFolder, "previous-report.backup.xlsx");
+
+            while (true)
+            {
+                try
+                {
+                    if (File.Exists(finalPath))
+                    {
+                        File.Replace(stagedPath, finalPath, backupPath, ignoreMetadataErrors: true);
+                    }
+                    else
+                    {
+                        File.Move(stagedPath, finalPath);
+                    }
+
+                    foreach (ModelReportTarget target in _modelReportTargets)
+                    {
+                        if (target.Path.Equals(stagedPath, StringComparison.OrdinalIgnoreCase))
+                            target.Path = finalPath;
+                    }
+
+                    _autoReportStagingFolder = null;
+                    _autoReportStagedPath = null;
+                    _autoReportFinalPath = null;
+
+                    try
+                    {
+                        if (Directory.Exists(stagingFolder))
+                            Directory.Delete(stagingFolder, recursive: true);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        LogWriteDebug(
+                            $"[AUTO SAVE] ล้างโฟลเดอร์ชั่วคราวไม่สำเร็จ: {cleanupEx.Message}",
+                            Color.Orange);
+                    }
+
+                    return true;
+                }
+                catch (IOException ex)
+                {
+                    DialogResult choice = MessageBox.Show(
+                        this,
+                        "ไม่สามารถบันทึกผลสุดท้ายลง Excel ได้\n\n" +
+                        $"ไฟล์: {Path.GetFileName(finalPath)}\n" +
+                        $"รายละเอียด: {ex.Message}\n\n" +
+                        "กรุณาปิดไฟล์ Excel แล้วกด Retry",
+                        "บันทึกผลสุดท้ายไม่สำเร็จ",
+                        MessageBoxButtons.RetryCancel,
+                        MessageBoxIcon.Warning);
+
+                    if (choice == DialogResult.Cancel)
+                        return false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        $"บันทึกผลสุดท้ายลง Excel ไม่สำเร็จ\n\n{ex.Message}",
+                        "บันทึกผลสุดท้ายไม่สำเร็จ",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return false;
+                }
+            }
+        }
+
+        private void DiscardAutoReportTransaction(bool logDiscard = true)
+        {
+            string? stagingFolder = _autoReportStagingFolder;
+
+            _autoReportStagingFolder = null;
+            _autoReportStagedPath = null;
+            _autoReportFinalPath = null;
+
+            if (!string.IsNullOrWhiteSpace(stagingFolder) &&
+                Directory.Exists(stagingFolder))
+            {
+                try
+                {
+                    Directory.Delete(stagingFolder, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    LogWriteDebug($"[AUTO SAVE] ลบไฟล์ชั่วคราวไม่สำเร็จ: {ex.Message}", Color.Orange);
+                }
+            }
+
+            if (logDiscard)
+                LogToRx("ยกเลิกผลรอบนี้แล้ว — ไม่มีการบันทึกลง Excel", Color.DarkOrange);
+        }
+
+        private bool ValidateLotModelBeforeTest(
+            string outputFolder,
+            string lotName,
+            bool showMessage,
+            out string failureMessage)
+        {
+            failureMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(outputFolder) ||
+                !Directory.Exists(outputFolder) ||
+                string.IsNullOrWhiteSpace(lotName))
+            {
+                return true;
+            }
+
+            string safeLotName = string.Join(
+                "_",
+                lotName.Split(Path.GetInvalidFileNameChars()));
+            string reportPath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+
+            // A new LOT has no assigned model yet. J3 will be initialized when
+            // the first test result is written.
+            if (!File.Exists(reportPath))
+                return true;
+
+            string selectedModelCode = GetSelectedReportModelCode();
+
+            try
+            {
+                using var snapshot = new MemoryStream();
+                using (var source = new FileStream(
+                           reportPath,
+                           FileMode.Open,
+                           FileAccess.Read,
+                           FileShare.ReadWrite | FileShare.Delete))
+                {
+                    source.CopyTo(snapshot);
+                }
+
+                snapshot.Position = 0;
+                using var workbook = new XLWorkbook(snapshot);
+                string lotModelCode = workbook.Worksheet(1)
+                    .Cell("J3")
+                    .GetFormattedString()
+                    .Trim();
+
+                // An untouched template/report may not have a model assigned.
+                if (string.IsNullOrWhiteSpace(lotModelCode) ||
+                    lotModelCode.Equals(selectedModelCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                failureMessage =
+                    "ไม่สามารถเริ่มการทดสอบได้ เนื่องจาก Model ของไฟล์ LOT ไม่ตรงกับรายการที่เลือก\n\n" +
+                    $"ไฟล์: {Path.GetFileName(reportPath)}\n" +
+                    $"Model ของ LOT: {lotModelCode}\n" +
+                    $"Model ที่เลือก: {selectedModelCode}\n\n" +
+                    "กรุณาเปลี่ยน Model และ Supply ให้ตรงกับไฟล์ LOT หรือเลือก LOT ที่ถูกต้อง";
+            }
+            catch (Exception ex)
+            {
+                failureMessage =
+                    "ไม่สามารถตรวจสอบ Model ของไฟล์ LOT ได้ จึงยังไม่อนุญาตให้เริ่มการทดสอบ\n\n" +
+                    $"ไฟล์: {Path.GetFileName(reportPath)}\n" +
+                    $"รายละเอียด: {ex.Message}";
+            }
+
+            LogToRx(failureMessage, Color.Red);
+            if (showMessage)
+            {
+                MessageBox.Show(
+                    this,
+                    failureMessage,
+                    "Model ของ LOT ไม่ตรงกัน",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+
+            return false;
+        }
+
         private (string path, int targetRow) GetOrCreateReportFileQC(string outputFolder, string lotName, bool isQAMode)
         {
             if (!ModelTestResults.IsValidModel(txt_model.Text.Trim()) || txt_supply.SelectedIndex < 0)
                 throw new InvalidOperationException("กรุณาเลือก Model และ supply ก่อนสร้างรายงาน");
-            string templateFileName = isQAMode ? "TempleteQA.xlsx" : "TempleteQC.xlsx";
+
+            if (!ValidateLotModelBeforeTest(
+                    outputFolder,
+                    lotName,
+                    showMessage: false,
+                    out string modelFailureMessage))
+            {
+                throw new InvalidOperationException(modelFailureMessage);
+            }
+
+            string templateFileName = isQAMode ? "TempleteQA.xlsx" : "DEF-03N QC Inspection.xlsx";
             string templateFullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, templateFileName);
 
             if (!File.Exists(templateFullPath))
@@ -2656,6 +3131,7 @@ namespace TEST_DEF_03N
                     break;
             }
 
+            LogToRx($"กำลังปรับ Input เป็น {reg2Value}...", Color.Blue);
             LogWriteDebug($"⏳ กำลังตั้งค่า Register 2 เป็น {reg2Value}...", Color.Black);
 
             bool writeReg2Ok =
@@ -2668,6 +3144,7 @@ namespace TEST_DEF_03N
 
             if (!writeReg2Ok)
             {
+                LogToRx($"ปรับ Input เป็น {reg2Value} ไม่สำเร็จ ยกเลิกการทดสอบ", Color.Red);
                 LogWriteDebug($"❌ ไม่สามารถเขียน Register 2 เป็น {reg2Value} ได้ ขอยกเลิกการทดสอบ", Color.Red);
                 return false;
             }
@@ -2680,13 +3157,15 @@ namespace TEST_DEF_03N
                 // 🎯 เช็กค่ากลับมาตามตัวแปร reg2Value
                 if (readBackReg2 == reg2Value)
                 {
+                    LogToRx($"ปรับ Input เป็น {reg2Value} สำเร็จ", Color.Green);
                     LogWriteDebug($"✅ Register 2 เปลี่ยนเป็น {reg2Value} เรียบร้อยแล้ว เริ่มการทดสอบ...", Color.Green);
                     return true;
                 }
                 await Task.Delay(500);
             }
 
-            LogToRx($"❌ ข้อผิดพลาด: Hardware ไม่ยอมเปลี่ยนค่า Register 2 เป็น {reg2Value} ยกเลิกการทดสอบ", Color.Red);
+            LogToRx($"ปรับ Input เป็น {reg2Value} ไม่สำเร็จ ยกเลิกการทดสอบ", Color.Red);
+            LogWriteDebug($"❌ ข้อผิดพลาด: Hardware ไม่ยอมเปลี่ยนค่า Register 2 เป็น {reg2Value} ยกเลิกการทดสอบ", Color.Red);
             return false;
         }
         private void WriteSNToReport(string reportPath, int startRow, string sn)
@@ -2814,10 +3293,20 @@ namespace TEST_DEF_03N
                         cell.Value = Math.Round(actualPv, 2);
                         cell.Style.NumberFormat.Format = "0.00";
                         cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+
+                        // 🟢 ไฮไลต์สีเทาอ่อนเมื่อไม่ผ่านเกณฑ์ (Fail)
+                        if (!pass)
+                        {
+                            cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(217, 217, 217);
+                        }
+                        else
+                        {
+                            cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.NoColor;
+                        }
                     }
                     else
                     {
-                        // โหมด QC: ค้นหาคอลัมน์แบบไดนามิกจากแถวที่ 12
+                        // โหมด QC: ค้นหาคอลัมน์แบบไดนามิกจากแถวที่ 9 หรือ 12
                         int targetColumnIndex = -1;
                         string searchKey = "";
 
@@ -2832,7 +3321,11 @@ namespace TEST_DEF_03N
 
                         for (int col = 2; col <= 18; col++)
                         {
-                            string headerText = sheet.Cell(12, col).GetFormattedString().Trim();
+                            string headerText = sheet.Cell(9, col).GetFormattedString().Trim();
+                            if (string.IsNullOrEmpty(headerText))
+                            {
+                                headerText = sheet.Cell(12, col).GetFormattedString().Trim();
+                            }
                             if (headerText.Contains(searchKey, System.StringComparison.OrdinalIgnoreCase))
                             {
                                 targetColumnIndex = col;
@@ -2860,9 +3353,19 @@ namespace TEST_DEF_03N
                             cell.Style.NumberFormat.Format = "0.00";
                             cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
 
+                            // 🟢 ไฮไลต์สีเทาอ่อนเมื่อไม่ผ่านเกณฑ์ (Fail)
+                            if (!pass)
+                            {
+                                cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(217, 217, 217);
+                            }
+                            else
+                            {
+                                cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.NoColor;
+                            }
+
                             if (sheet.Cell(startRow, 1).IsEmpty())
                             {
-                                sheet.Cell(startRow, 1).Value = (startRow - 14);
+                                sheet.Cell(startRow, 1).Value = isQAMode ? (startRow - 14) : (startRow - QcReportLayout.FirstDataRow + 1);
                                 sheet.Cell(startRow, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
                             }
 
@@ -2890,9 +3393,24 @@ namespace TEST_DEF_03N
         private void LogFinalResult(string sn, bool isAllPass)
         {
             if (isAllPass)
+            {
                 LogToRx($"🎉 [ S/N: {sn} ] ผล: PASS ทั้งตาราง! ", Color.DarkGreen);
+            }
             else
-                LogToRx($"❌ [ S/N: {sn} ] ผล: มีบางจุดตกเกณฑ์ ", Color.DarkRed);
+            {
+                if (_currentRunFailures.Count > 0)
+                {
+                    LogToRx($"❌ [ S/N: {sn} ] ผล: FAIL — จุดที่ผิดพลาด:", Color.DarkRed);
+                    foreach (string failure in _currentRunFailures)
+                    {
+                        LogToRx($"   • {failure}", Color.Red);
+                    }
+                }
+                else
+                {
+                    LogToRx($"❌ [ S/N: {sn} ] ผล: FAIL (มีบางจุดไม่ผ่านเกณฑ์การทดสอบ)", Color.DarkRed);
+                }
+            }
         }
 
 
@@ -2911,6 +3429,7 @@ namespace TEST_DEF_03N
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
                     txt_templatePath.Text = folderDialog.SelectedPath;
+                    txt_templatePath.ForeColor = _defaultTemplatePathForeColor;
                     LogToRx($"📁 ตั้งค่าโฟลเดอร์สำหรับเซฟรายงาน: {folderDialog.SelectedPath}", Color.DarkGreen);
                     SaveConfig();
                 }
@@ -2972,7 +3491,9 @@ namespace TEST_DEF_03N
                 double tolerance = 1.0,
                 bool showCompletionPopup = true)
         {
-            string selectedTemplatePath = txt_templatePath.Text.Trim();
+            string selectedTemplatePath = !string.IsNullOrWhiteSpace(_autoReportStagingFolder)
+                ? _autoReportStagingFolder
+                : txt_templatePath.Text.Trim();
             string currentSN = txt_SN.Text.Trim();
             string currentLOT = txt_Lot.Text.Trim();
             bool isQAMode = _manualPopupQAChecked;
@@ -3003,11 +3524,13 @@ namespace TEST_DEF_03N
             if (isQAMode)
             {
                 if (qaTab != null && qaTab.Parent is System.Windows.Forms.TabControl tc) tc.SelectedTab = qaTab;
+                stepTimeline?.ShowTempMode(true, testType, testCases.Select(c => $"{c.ExpectedTemp:0.#} °C"));
                 LogToRx($"=== เริ่มต้นการทดสอบ {testName} [โหมด QA] ===", Color.Purple);
             }
             else
             {
                 if (qcTab != null && qcTab.Parent is System.Windows.Forms.TabControl tc) tc.SelectedTab = qcTab;
+                stepTimeline?.ShowTempMode(false, testType, testCases.Select(c => $"{c.ExpectedTemp:0.#} °C"));
                 LogToRx($"==== เริ่มต้นการทดสอบ {testName} [โหมด QC] ===", Color.Purple);
             }
 
@@ -3052,13 +3575,14 @@ namespace TEST_DEF_03N
                         {
                             if (sheet.Cell(targetStartRow, 1).IsEmpty())
                             {
-                                SetReportCell(sheet.Cell(targetStartRow, 1), (targetStartRow - 14));
+                                SetReportCell(sheet.Cell(targetStartRow, 1), (targetStartRow - QcReportLayout.FirstDataRow + 1));
                             }
                             sheet.Cell(targetStartRow, QcReportLayout.SerialColumn).Value = currentSN;
                         }
 
                         if (!SaveWorkbookWithRetry(workbook, targetReportPath, $"[{testName}] จองแถว/บันทึกหัวเอกสารก่อนเริ่มทดสอบ"))
                         {
+                            RecordRunFailure($"{testName}: บันทึกไฟล์ Excel ไม่สำเร็จ");
                             LogToRx($"🛑 ยกเลิกการทดสอบ {testName} เนื่องจากบันทึกไฟล์ Excel ไม่สำเร็จ", Color.Red);
                             if (_runSequenceActive || _modelTestAllActive)
                                 ShowRunFailureMessage($"{testName}\nสาเหตุ: บันทึกไฟล์ Excel ไม่สำเร็จ");
@@ -3072,6 +3596,7 @@ namespace TEST_DEF_03N
                 if (!await PrepareHardwareForCalibrationAsync(testType))
                 {
                     isAllPass = false;
+                    RecordRunFailure($"{testName}: ไม่สามารถตั้งค่า Register 2 บน Hardware ได้");
                     if (_runSequenceActive || _modelTestAllActive)
                     {
                         ShowRunFailureMessage(
@@ -3091,7 +3616,7 @@ namespace TEST_DEF_03N
 
                 for (int i = 0; i < testCases.Length; i++)
                 {
-                    if (_cts.Token.IsCancellationRequested)
+                    if (_userRequestedStop || _cts.Token.IsCancellationRequested)
                     {
                         LogToRx("🛑 การทดสอบถูกสั่งหยุดโดยผู้ใช้งาน", Color.Red);
                         isAllPass = false;
@@ -3116,6 +3641,12 @@ namespace TEST_DEF_03N
                         SetStepLight(i, Color.Red, isQAMode, testType);
                         isAllPass = false;
 
+                        string reasonText = string.IsNullOrWhiteSpace(pointResult.FailureReason)
+                            ? $"ค่า PV ต่างจากเป้าหมายเกินเกณฑ์ (เป้าหมาย {test.ExpectedTemp:0.##}°C, ค่าจริง {pointResult.ActualPv:0.##}°C)"
+                            : pointResult.FailureReason;
+                        string failDetail = $"{testName} จุดที่ {i + 1} ({test.ExpectedTemp:0.##}°C): ค่าจริง {pointResult.ActualPv:0.##}°C ({reasonText})";
+                        RecordRunFailure(failDetail);
+
                         if (_runSequenceActive || _modelTestAllActive)
                         {
                             ShowRunFailureMessage(
@@ -3130,22 +3661,27 @@ namespace TEST_DEF_03N
                     IncrementRunProgress();
 
                     if ((_modelTestAllActive || _runSequenceActive) && !pointPass) break;
-                    if (_cts.Token.IsCancellationRequested)
+                    if (_userRequestedStop || _cts.Token.IsCancellationRequested)
                     {
-                        LogToRx("🛑 การทดสอบถูกสั่งหยุดโดยผู้ใช้งาน", Color.Red);
+                        LogToRx("🛑 จุดปัจจุบันเสร็จแล้ว หยุดการทดสอบตามคำสั่ง", Color.DarkOrange);
                         isAllPass = false;
                         break;
                     }
                 }
 
-                completed = !_cts.Token.IsCancellationRequested;
+                completed = !_userRequestedStop && !_cts.Token.IsCancellationRequested;
+                string resText = _userRequestedStop ? "STOPPED" : isAllPass ? "PASS" : "FAIL";
+                Color resColor = _userRequestedStop
+                    ? Color.DarkOrange
+                    : isAllPass ? Color.FromArgb(22, 163, 74) : Color.FromArgb(220, 38, 38);
+                stepTimeline?.SetResult(resText, resColor);
                 if (resultLabel != null)
                 {
-                    resultLabel.Text = isAllPass ? "PASS" : "FAIL";
-                    resultLabel.ForeColor = isAllPass ? Color.Green : Color.Red;
+                    resultLabel.Text = resText;
+                    resultLabel.ForeColor = resColor;
                 }
 
-                if (!_skipExcelWrite && !string.IsNullOrEmpty(targetReportPath))
+                if (!_userRequestedStop && !_skipExcelWrite && !string.IsNullOrEmpty(targetReportPath))
                 {
                     summarySaved = WriteSummaryToReport(targetReportPath, targetStartRow, isAllPass);
                 }
@@ -3173,6 +3709,7 @@ namespace TEST_DEF_03N
             {
                 LogToRx($"เกิดข้อผิดพลาดระหว่างทดสอบ: {ex.Message}", Color.Red);
                 isAllPass = false;
+                RecordRunFailure($"{testName}: {ex.Message}");
                 if ((_runSequenceActive || _modelTestAllActive) && !_userRequestedStop)
                     ShowRunFailureMessage($"{testName}\nสาเหตุ: {ex.Message}");
                 if (!_skipExcelWrite && !string.IsNullOrEmpty(targetReportPath))
@@ -3207,6 +3744,8 @@ namespace TEST_DEF_03N
 
         private void SetStepLight(int stepIndex, Color lightColor, bool isQAMode, string testType = "")
         {
+            stepTimeline?.SetTempStepStatus(stepIndex, lightColor);
+
             // 🎯 ถ้า testType เป็นค่าว่าง ให้เดาว่าเป็น "ntc2k" (ปุ่มเดิมของคุณ) เพื่อไม่ให้ระบบพัง
             if (string.IsNullOrEmpty(testType))
             {
@@ -3246,6 +3785,8 @@ namespace TEST_DEF_03N
 
         private void SetRunStepLight(int stepIndex, Color lightColor)
         {
+            stepTimeline?.SetOverviewStepStatus(stepIndex, lightColor);
+
             Control[] found = Controls.Find($"step{stepIndex + 1}", true);
             if (found.Length == 0 || found[0] is not PictureBox pic)
                 return;
@@ -3271,12 +3812,14 @@ namespace TEST_DEF_03N
 
         private void ResetRunStepLights()
         {
+            stepTimeline?.ResetOverview();
             for (int i = 0; i < 4; i++)
                 SetRunStepLight(i, Color.LightGray);
         }
 
         private void ShowRunOverview()
         {
+            stepTimeline?.ShowOverviewMode();
             if (!tabPage6.IsDisposed)
                 tabcontrol.SelectedTab = tabPage6;
         }
@@ -3285,13 +3828,8 @@ namespace TEST_DEF_03N
         private CancellationTokenSource? _cts;
         private void btn_StopTest_Click(object sender, EventArgs e)
         {
-            if (_modelTestAllActive) _userRequestedStop = true;
-            _modelContactsCts?.Cancel();
-            if (_cts != null)
-            {
-                LogToRx("🛑 [STOP] กำลังส่งสัญญาณยกเลิกการทดสอบทันที...", Color.DarkRed);
-                _cts.Cancel(); // 🎯 ส่งสัญญาณหยุดไปยังลูปการทดสอบ
-            }
+            _userRequestedStop = true;
+            LogToRx("🛑 รับคำสั่ง Stop แล้ว — จะหยุดหลังจากจุดปัจจุบันเสร็จ", Color.DarkRed);
         }
 
 
@@ -3428,44 +3966,90 @@ namespace TEST_DEF_03N
                 cell.Style.NumberFormat.Format = numberFormat;
             }
         }
+        private static IXLCell? FindHeaderCell(IXLWorksheet sheet, string keyword, int startRow = 1, int endRow = 10)
+        {
+            for (int r = startRow; r <= endRow; r++)
+            {
+                for (int c = 1; c <= 24; c++)
+                {
+                    string text = sheet.Cell(r, c).GetString().Trim();
+                    if (!string.IsNullOrEmpty(text) && text.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return sheet.Cell(r, c);
+                    }
+                }
+            }
+            return null;
+        }
+
         private void UpdateReportHeaderInfo(IXLWorksheet sheet, string lotName, bool? qaMode = null)
         {
             bool isQa = qaMode ?? _manualPopupQAChecked;
             if (!isQa) QcReportLayout.Validate(sheet);
             UpdateModelReportHeader(sheet, isQa);
-            SetReportCell(sheet.Cell(isQa ? "N3" : "O3"), lotName, alignment: XLAlignmentHorizontalValues.Left);
-            SetReportCell(sheet.Cell(isQa ? "L5" : "N6"), $"ECN NO:{txt_ECN.Text.Trim()}", alignment: XLAlignmentHorizontalValues.Left); // 🟢 เติม prefix เฉพาะตอนบันทึกลงไฟล์
-            SetReportCell(sheet.Cell("N5"), txt_instrument.Text.Trim(), alignment: XLAlignmentHorizontalValues.Left);
+
+            if (isQa)
+            {
+                SetReportCell(sheet.Cell("N3"), lotName, alignment: XLAlignmentHorizontalValues.Left);
+                SetReportCell(sheet.Cell("L5"), $"ECN NO:{txt_ECN.Text.Trim()}", alignment: XLAlignmentHorizontalValues.Left);
+                SetReportCell(sheet.Cell("N5"), GetOhmSourceInstrumentText(), alignment: XLAlignmentHorizontalValues.Left);
+                SetReportCell(sheet.Cell("N9"), _currentFirmware.Trim(), alignment: XLAlignmentHorizontalValues.Left);
+            }
+            else
+            {
+                // QC: ค้นหาตำแหน่งเซลล์จากชื่อ/คำสำคัญ
+                var lotCell = FindHeaderCell(sheet, "Lot:");
+                if (lotCell != null)
+                    SetReportCell(sheet.Cell(lotCell.Address.RowNumber, lotCell.Address.ColumnNumber + 1), lotName, alignment: XLAlignmentHorizontalValues.Left);
+                else
+                    SetReportCell(sheet.Cell("N2"), lotName, alignment: XLAlignmentHorizontalValues.Left);
+
+                var ecnCell = FindHeaderCell(sheet, "ECN NO") ?? FindHeaderCell(sheet, "ECN");
+                if (ecnCell != null)
+                    SetReportCell(ecnCell, $"ECN NO:{txt_ECN.Text.Trim()}", alignment: XLAlignmentHorizontalValues.Left);
+
+                var instCell = FindHeaderCell(sheet, "เครื่องมือ");
+                if (instCell != null)
+                    SetReportCell(instCell, GetOhmSourceInstrumentText(), alignment: XLAlignmentHorizontalValues.Left);
+
+                var fwCell = FindHeaderCell(sheet, "FW");
+                if (fwCell != null)
+                    SetReportCell(fwCell, _currentFirmware.Trim(), alignment: XLAlignmentHorizontalValues.Left);
+            }
 
             int testedSNCount = 0;
             int lastReportRow = sheet.LastRowUsed()?.RowNumber() ?? 500;
-            for (int row = 15; row <= lastReportRow; row++)
+            for (int row = isQa ? 15 : QcReportLayout.FirstDataRow; row <= lastReportRow; row++)
             {
                 if ((isQa || QcReportLayout.IsDataRow(sheet, row)) && !sheet.Cell(row, isQa ? 18 : QcReportLayout.SerialColumn).IsEmpty())
                 {
                     testedSNCount++;
                 }
             }
-            SetReportCell(sheet.Cell(isQa ? "Q3" : "T3"), testedSNCount, alignment: XLAlignmentHorizontalValues.Center);
-            SetReportCell(sheet.Cell(isQa ? "R3" : "X3"), $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
-
-            string revision = txt_Rev.Text.Trim();
-
-            sheet.Cell(isQa ? "R41" : "X43").Value = revision;
 
             if (isQa)
             {
+                SetReportCell(sheet.Cell("Q3"), testedSNCount, alignment: XLAlignmentHorizontalValues.Center);
+                SetReportCell(sheet.Cell("R3"), $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
+
+                string revision = _currentRevision.Trim();
+                sheet.Cell("R41").Value = revision;
                 sheet.Cell("R66").Value = revision;
             }
             else
             {
-                foreach (int footerRow in QcReportLayout.GetFooterRows(sheet))
-                {
-                    sheet.Cell(footerRow, QcReportLayout.SerialColumn)
-                        .Value = revision;
-                }
-            }
+                var lotSizeCell = FindHeaderCell(sheet, "Lot Size:");
+                if (lotSizeCell != null)
+                    SetReportCell(sheet.Cell(lotSizeCell.Address.RowNumber, lotSizeCell.Address.ColumnNumber + 1), testedSNCount, alignment: XLAlignmentHorizontalValues.Center);
+                else
+                    SetReportCell(sheet.Cell("T2"), testedSNCount, alignment: XLAlignmentHorizontalValues.Center);
 
+                var dateCell = FindHeaderCell(sheet, "Date:");
+                if (dateCell != null)
+                    SetReportCell(dateCell, $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
+                else
+                    SetReportCell(sheet.Cell("X2"), $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
+            }
         }
 
         private bool SaveWorkbookWithRetry(XLWorkbook workbook, string filePath, string context)
@@ -3474,7 +4058,7 @@ namespace TEST_DEF_03N
             {
                 try
                 {
-                    QcReportLayout.UpdateSummary(workbook.Worksheet(1));
+                    QcReportLayout.UpdateSummary(workbook.Worksheet(1), txt_name.Text.Trim());
                     QcReportLayout.ProtectTestResults(workbook.Worksheet(1));
                     workbook.Save();
                     return true;
@@ -3628,8 +4212,7 @@ namespace TEST_DEF_03N
             // SN ว่าง ให้แสดงสีปกติ
             if (string.IsNullOrWhiteSpace(sn))
             {
-                txt_SN.ForeColor = SystemColors.WindowText;
-                txt_SN.BackColor = SystemColors.Window;
+                ResetSnColorsToDefault();
                 return;
             }
 
@@ -3639,8 +4222,7 @@ namespace TEST_DEF_03N
                 !Directory.Exists(outputFolder) ||
                 string.IsNullOrWhiteSpace(lotName))
             {
-                txt_SN.ForeColor = SystemColors.WindowText;
-                txt_SN.BackColor = SystemColors.Window;
+                ResetSnColorsToDefault();
                 return;
             }
 
@@ -3670,12 +4252,19 @@ namespace TEST_DEF_03N
                 using var workbook = new XLWorkbook(snapshot);
                 var sheet = workbook.Worksheet(1);
 
-                // ตรวจ SN ถึงแถวสุดท้าย เพื่อรองรับรายงาน QC ที่ขยายเกิน 52 รายการ
+                // ตรวจ SN ถึงแถวสุดท้าย (เริ่มที่แถว 12 สำหรับ QC ใหม่ หรือแถว 15 สำหรับ QA)
                 int lastReportRow = sheet.LastRowUsed()?.RowNumber() ?? 500;
-                for (int row = 15; row <= lastReportRow; row++)
+                int startRow = _manualPopupQAChecked ? 15 : QcReportLayout.FirstDataRow;
+                int serialCol = _manualPopupQAChecked ? 18 : QcReportLayout.SerialColumn;
+
+                for (int row = startRow; row <= lastReportRow; row++)
                 {
-                    string existingSN =
-                        sheet.Cell(row, _manualPopupQAChecked ? 18 : QcReportLayout.SerialColumn).GetFormattedString().Trim();
+                    if (!_manualPopupQAChecked && !QcReportLayout.IsDataRow(sheet, row))
+                        continue;
+
+                    string existingSN = sheet.Cell(row, serialCol).GetString().Trim();
+                    if (string.IsNullOrEmpty(existingSN))
+                        existingSN = sheet.Cell(row, serialCol).GetFormattedString().Trim();
 
                     if (!string.IsNullOrEmpty(existingSN) &&
                         existingSN.Equals(
@@ -3701,8 +4290,7 @@ namespace TEST_DEF_03N
             catch (Exception ex)
             {
                 // ระหว่างพิมพ์ไม่ต้องเด้งข้อความรบกวน
-                txt_SN.ForeColor = SystemColors.WindowText;
-                txt_SN.BackColor = SystemColors.Window;
+                ResetSnColorsToDefault();
 
                 _isDuplicateSN = false;
                 _duplicateSNRow = -1;
@@ -3784,6 +4372,14 @@ namespace TEST_DEF_03N
             bool modelQcTest = doTest && !_manualPopupQAChecked;
             if (!ValidateTestModel(out _)) return;
 
+            // ⚠️ ป้องกันกรณีเลือก QA ร่วมกับการทดสอบอื่น
+            if (_manualPopupQAChecked && doCal)
+            {
+                MessageBox.Show("ไม่สามารถเลือกรายการอื่นร่วมกับโหมด QA ได้ครับ\nหากต้องการทดสอบ QA ต้องเลือกโหมด QA อย่างเดียวเท่านั้น",
+                                "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             _skipExcelWrite = false;
 
             if (!doCal && !doTest)
@@ -3795,6 +4391,13 @@ namespace TEST_DEF_03N
 
             if (doTest)
             {
+                if (string.IsNullOrWhiteSpace(txt_name.Text))
+                {
+                    MessageBox.Show("กรุณากรอกชื่อผู้ทดสอบก่อนเริ่มการทดสอบ!", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txt_name.Focus();
+                    return;
+                }
+
                 string currentSN = txt_SN.Text.Trim();
 
                 // SN ว่าง ใช้พฤติกรรมเดิม
@@ -3813,6 +4416,15 @@ namespace TEST_DEF_03N
                 if (!EnsureReportFileClosedBeforeRun(
                         txt_templatePath.Text.Trim(),
                         txt_Lot.Text.Trim()))
+                {
+                    return;
+                }
+
+                if (!ValidateLotModelBeforeTest(
+                        txt_templatePath.Text.Trim(),
+                        txt_Lot.Text.Trim(),
+                        showMessage: true,
+                        out _))
                 {
                     return;
                 }
@@ -3859,6 +4471,7 @@ namespace TEST_DEF_03N
             _userRequestedStop = false;
             _enableRunProgress = true;
             _runSequenceActive = true;
+            ClearRunFailures();
 
             ResetRunStepLights();
             ShowRunOverview();
@@ -3880,7 +4493,9 @@ namespace TEST_DEF_03N
             int testPoints = 0;
             if (doTest)
             {
-                var defsForCount = GetTestDefinitions();
+                var defsForCount = isQAModeForProgress
+                    ? GetTestDefinitions().Where(d => d.TestType == "ntc2k").ToList()
+                    : GetTestDefinitions();
                 testPoints = defsForCount.Sum(d => d.GetTestCases(isQAModeForProgress).Length);
             }
 
@@ -3902,9 +4517,9 @@ namespace TEST_DEF_03N
             var runInputStates = new Dictionary<Control, bool>();
             foreach (string name in new[]
                      {
-                         "txt_SN", "txt_Lot", "txt_templatePath",
-                         "txt_ECN", "txt_Rev", "txt_instrument",
-                         "txt_model", "txt_supply"
+                         "txt_name", "txt_SN", "txt_Lot", "txt_templatePath",
+                         "txt_ECN",
+                         "txt_model", "txt_supply", "sent_server"
                      })
             {
                 Control? control = Controls.Find(name, true).FirstOrDefault();
@@ -3936,6 +4551,13 @@ namespace TEST_DEF_03N
                 else if (doTest && (!calOk || _userRequestedStop))
                 {
                     LogToRx("⏭️ ข้าม Test For All เนื่องจาก Calibration ไม่สำเร็จ/ถูกหยุด", Color.Orange);
+                    if (!_userRequestedStop)
+                    {
+                        LogFinalResult(txt_SN.Text.Trim(), false);
+                        ShowRunFailureMessage(_currentRunFailures.Count > 0
+                            ? string.Join(Environment.NewLine, _currentRunFailures)
+                            : "Calibration ไม่สำเร็จ");
+                    }
                 }
             }
             finally
@@ -3954,6 +4576,8 @@ namespace TEST_DEF_03N
                         item.Key.Enabled = item.Value;
                 }
 
+                btn_equipment.Enabled = true;
+
                 // หลังออกจากกระบวนการ Run ห้ามส่วนอื่นอัปเดต Progress
                 _enableRunProgress = false;
                 _runSequenceActive = false;
@@ -3970,20 +4594,8 @@ namespace TEST_DEF_03N
         private void btnStop_Click(object sender, EventArgs e)
         {
             _userRequestedStop = true;
-            _modelContactsCts?.Cancel();
             _pendingRunButtonRetryTcs?.TrySetResult(false);
-
-            if (_isCalibrating && _ctsCal != null)
-            {
-                LogToRx("🛑 [STOP] สั่งหยุด Calibration ทันที...", Color.DarkRed);
-                _ctsCal.Cancel();
-            }
-
-            if (_cts != null)
-            {
-                LogToRx("🛑 [STOP] สั่งหยุด Test ทันที...", Color.DarkRed);
-                _cts.Cancel();
-            }
+            LogToRx("🛑 รับคำสั่ง Stop แล้ว — จะหยุดหลังจากขั้นตอนปัจจุบันเสร็จ", Color.DarkRed);
         }
         private async void btnStartTest_Click(object sender, EventArgs e)
         {
@@ -3995,6 +4607,15 @@ namespace TEST_DEF_03N
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(txt_name.Text))
+            {
+                MessageBox.Show("กรุณากรอกชื่อผู้ทดสอบก่อนเริ่มการทดสอบ!", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txt_name.Focus();
+                return;
+            }
+
+            _userRequestedStop = false;
+
             string currentSN = txt_SN.Text.Trim();
 
             _skipExcelWrite = string.IsNullOrEmpty(currentSN);
@@ -4002,8 +4623,36 @@ namespace TEST_DEF_03N
             {
                 LogToRx("ℹ️ ไม่ได้กรอก S/N — จะทดสอบแบบไม่บันทึกผลลง Excel", Color.Gray);
             }
+            else
+            {
+                if (!ValidateBeforeTest(
+                        txt_templatePath.Text.Trim(),
+                        currentSN,
+                        txt_Lot.Text.Trim()))
+                {
+                    return;
+                }
 
-            var selected = GetTestDefinitions().Where(d => _selectedTestTypes[d.TestType]).ToList();
+                if (!EnsureReportFileClosedBeforeRun(
+                        txt_templatePath.Text.Trim(),
+                        txt_Lot.Text.Trim()))
+                {
+                    return;
+                }
+
+                if (!ValidateLotModelBeforeTest(
+                        txt_templatePath.Text.Trim(),
+                        txt_Lot.Text.Trim(),
+                        showMessage: true,
+                        out _))
+                {
+                    return;
+                }
+            }
+
+            var selected = _manualPopupQAChecked
+                ? GetTestDefinitions().Where(d => d.TestType == "ntc2k").ToList()
+                : GetTestDefinitions().Where(d => _selectedTestTypes[d.TestType]).ToList();
             if (selected.Count == 0)
             {
                 MessageBox.Show("กรุณาเลือกอย่างน้อย 1 รายการที่จะทดสอบ (ติ๊ก checkbox ก่อนนะครับ)",
@@ -4021,6 +4670,20 @@ namespace TEST_DEF_03N
             progressBarRun.Value = 0;
             lblProgressPercent.Text = "0%";
 
+            ClearRunFailures();
+            var runInputStates = new Dictionary<Control, bool>();
+            foreach (string name in new[]
+                     {
+                         "txt_name", "txt_SN", "txt_Lot", "txt_templatePath",
+                         "txt_ECN", "txt_model", "txt_supply"
+                     })
+            {
+                Control? control = Controls.Find(name, true).FirstOrDefault();
+                if (control == null) continue;
+                runInputStates[control] = control.Enabled;
+                control.Enabled = false;
+            }
+
             try
             {
                 LogToRx("==============================================", Color.Purple);
@@ -4035,11 +4698,11 @@ namespace TEST_DEF_03N
                     var testCases = def.GetTestCases(isQAMode);
                     var result = await RunCalibrationTestAsync(
                         def.TestName, def.TestType, testCases, def.QaTab, def.QcTab,
-                        sender as System.Windows.Forms.Button, 2.0, showCompletionPopup: false);
+                        sender as System.Windows.Forms.Button, 1.0, showCompletionPopup: false);
 
                     allResults.Add(result);
 
-                    if (_cts?.Token.IsCancellationRequested == true) break;
+                    if (_userRequestedStop || _cts?.Token.IsCancellationRequested == true) break;
                     if (i < selected.Count - 1) await Task.Delay(1500);
                 }
 
@@ -4051,6 +4714,12 @@ namespace TEST_DEF_03N
             }
             finally
             {
+                foreach (var item in runInputStates)
+                {
+                    if (!item.Key.IsDisposed)
+                        item.Key.Enabled = item.Value;
+                }
+
                 foreach (var definition in GetTestDefinitions())
                 {
                     _selectedTestTypes[definition.TestType] = false;
@@ -4096,6 +4765,7 @@ namespace TEST_DEF_03N
             catch (Exception ex)
             {
                 timerCal.Stop();
+                RecordRunFailure($"Calibration เกิดข้อผิดพลาด: {ex.Message}");
                 LogToRx($"❌ Calibration เกิดข้อผิดพลาด: {ex.Message}", Color.Red);
                 return false;
             }
@@ -4125,7 +4795,9 @@ namespace TEST_DEF_03N
             }
 
             bool isQAMode = _manualPopupQAChecked;
-            var defs = GetTestDefinitions(); // ครบทั้ง 4 รายการเสมอ
+            var defs = isQAMode
+                ? GetTestDefinitions().Where(d => d.TestType == "ntc2k").ToList()
+                : GetTestDefinitions();
             var allResults = new List<TestRunResult>();
 
             for (int i = 0; i < defs.Count; i++)
@@ -4142,7 +4814,7 @@ namespace TEST_DEF_03N
                 var testCases = def.GetTestCases(isQAMode);
                 var result = await RunCalibrationTestAsync(
                     def.TestName, def.TestType, testCases, def.QaTab, def.QcTab,
-                    null, 2.0, showCompletionPopup: false);
+                    null, 1.0, showCompletionPopup: false);
 
                 allResults.Add(result);
 
@@ -4288,10 +4960,25 @@ namespace TEST_DEF_03N
 
         private bool CheckManualConnections(bool main, bool ohm, bool relay)
         {
+            bool isDebug = chkDebugWrite != null && chkDebugWrite.Checked;
             var missing = new List<string>();
-            if (main && _serialPort?.IsOpen != true) missing.Add("DEF-03N");
-            if (ohm && _ohmPort?.IsOpen != true) missing.Add("Ohm Source");
-            if (relay && _relayPort?.IsOpen != true) missing.Add("PH-01 (Relay / Alarm)");
+
+            if (main && _serialPort?.IsOpen != true)
+            {
+                if (!isDebug || _defPortConnected)
+                    missing.Add("DEF-03N");
+            }
+            if (ohm && _ohmPort?.IsOpen != true)
+            {
+                if (!isDebug || _ohmPortConnected)
+                    missing.Add("Ohm Source");
+            }
+            if (relay && _relayPort?.IsOpen != true)
+            {
+                if (!isDebug || _relayPortConnected)
+                    missing.Add("PH-01 (Relay / Alarm)");
+            }
+
             if (missing.Count == 0) return true;
             MessageBox.Show(this, "กรุณาเชื่อมต่อ " + string.Join(", ", missing) + " ก่อนใช้งาน",
                 "ยังไม่ได้เชื่อมต่อ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -4441,11 +5128,7 @@ namespace TEST_DEF_03N
                     Cursor = Cursors.Hand
                 };
 
-            chkQAPopup.CheckedChanged += (s, ev) =>
-            {
-                _manualPopupQAChecked =
-                    chkQAPopup.Checked;
-            };
+            // chkQAPopup.CheckedChanged จะถูกผูกด้านล่างหลังสร้าง clb เสร็จ
 
             var pnlQARow =
                 new System.Windows.Forms.Panel
@@ -4493,19 +5176,50 @@ namespace TEST_DEF_03N
 
             clb.Items.Add(
                 "PTC 2K (00)",
-                _selectedTestTypes["ptc2k"]);
+                !_manualPopupQAChecked && _selectedTestTypes["ptc2k"]);
 
             clb.Items.Add(
                 "NTC 10K (01)",
-                _selectedTestTypes["ntc10ka"]);
+                !_manualPopupQAChecked && _selectedTestTypes["ntc10ka"]);
 
             clb.Items.Add(
                 "NTC 2K (02)",
-                _selectedTestTypes["ntc2k"]);
+                !_manualPopupQAChecked && _selectedTestTypes["ntc2k"]);
 
             clb.Items.Add(
                 "NTC 10K (03)",
-                _selectedTestTypes["ntc10kb"]);
+                !_manualPopupQAChecked && _selectedTestTypes["ntc10kb"]);
+
+            bool isUpdatingQa = false;
+            chkQAPopup.CheckedChanged += (s, ev) =>
+            {
+                if (isUpdatingQa) return;
+
+                if (chkQAPopup.Checked)
+                {
+                    bool hasSelectedItem =
+                        Enumerable
+                            .Range(0, clb.Items.Count)
+                            .Any(i => clb.GetItemChecked(i));
+
+                    if (hasSelectedItem)
+                    {
+                        isUpdatingQa = true;
+                        chkQAPopup.Checked = false;
+                        isUpdatingQa = false;
+
+                        MessageBox.Show(
+                            "ไม่สามารถเลือกรายการอื่นร่วมกับโหมด QA ได้ครับ\nหากต้องการทดสอบ QA ต้องเลือกโหมด QA อย่างเดียวเท่านั้น",
+                            "แจ้งเตือน",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+
+                        return;
+                    }
+                }
+
+                _manualPopupQAChecked = chkQAPopup.Checked;
+            };
 
 
 
@@ -4588,6 +5302,7 @@ namespace TEST_DEF_03N
 
             // ตรวจสถานะเริ่มต้น
             bool initiallyAllChecked =
+                !_manualPopupQAChecked &&
                 Enumerable
                     .Range(0, clb.Items.Count)
                     .All(i => clb.GetItemChecked(i));
@@ -4599,6 +5314,16 @@ namespace TEST_DEF_03N
 
             btnSelectAllPopup.Click += (s, ev) =>
             {
+                if (chkQAPopup.Checked)
+                {
+                    MessageBox.Show(
+                        "ไม่สามารถเลือกรายการอื่นร่วมกับโหมด QA ได้ครับ\nหากต้องการทดสอบ QA ต้องเลือกโหมด QA อย่างเดียวเท่านั้น",
+                        "แจ้งเตือน",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
                 bool allChecked =
                     Enumerable
                         .Range(0, clb.Items.Count)
@@ -4636,6 +5361,17 @@ namespace TEST_DEF_03N
             // อัปเดตข้อความปุ่ม เมื่อผู้ใช้ติ๊กเอง
             clb.ItemCheck += (s, ev) =>
             {
+                if (chkQAPopup.Checked && ev.NewValue == CheckState.Checked)
+                {
+                    ev.NewValue = CheckState.Unchecked;
+                    MessageBox.Show(
+                        "ไม่สามารถเลือกรายการอื่นร่วมกับโหมด QA ได้ครับ\nหากต้องการทดสอบ QA ต้องเลือกโหมด QA อย่างเดียวเท่านั้น",
+                        "แจ้งเตือน",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
                 BeginInvoke(new Action(() =>
                 {
                     if (clb.IsDisposed)
@@ -4659,15 +5395,17 @@ namespace TEST_DEF_03N
 
             btnTestPopup.Click += (s, ev) =>
             {
+                bool isQa = chkQAPopup.Checked;
                 bool hasSelectedItem =
                     Enumerable
                         .Range(0, clb.Items.Count)
                         .Any(i => clb.GetItemChecked(i));
 
-                if (!hasSelectedItem)
+                // ⚠️ ถ้าผู้ใช้งานเผลอกด QA ร่วมกับตัวอื่น ให้แจ้งเตือนว่าไม่ได้
+                if (isQa && hasSelectedItem)
                 {
                     MessageBox.Show(
-                        "กรุณาเลือกอย่างน้อย 1 รายการที่จะทดสอบ",
+                        "ไม่สามารถเลือกรายการอื่นร่วมกับโหมด QA ได้ครับ\nหากต้องการทดสอบ QA ต้องเลือกโหมด QA อย่างเดียวเท่านั้น",
                         "แจ้งเตือน",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
@@ -4675,20 +5413,42 @@ namespace TEST_DEF_03N
                     return;
                 }
 
-                _selectedTestTypes["ptc2k"] =
-                    clb.GetItemChecked(0);
+                if (isQa)
+                {
+                    // สำหรับ QA ทดสอบเฉพาะ NTC 2K เพียงชนิดเดียว 9 จุด
+                    // ไม่ตั้งค่าใน _selectedTestTypes เป็น true เพื่อไม่ให้หน้าต่างเปิดมาแล้วขึ้นติ๊ก
+                    _selectedTestTypes["ptc2k"] = false;
+                    _selectedTestTypes["ntc10ka"] = false;
+                    _selectedTestTypes["ntc2k"] = false;
+                    _selectedTestTypes["ntc10kb"] = false;
+                }
+                else
+                {
+                    if (!hasSelectedItem)
+                    {
+                        MessageBox.Show(
+                            "กรุณาเลือกอย่างน้อย 1 รายการที่จะทดสอบ",
+                            "แจ้งเตือน",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
 
-                _selectedTestTypes["ntc10ka"] =
-                    clb.GetItemChecked(1);
+                        return;
+                    }
 
-                _selectedTestTypes["ntc2k"] =
-                    clb.GetItemChecked(2);
+                    _selectedTestTypes["ptc2k"] =
+                        clb.GetItemChecked(0);
 
-                _selectedTestTypes["ntc10kb"] =
-                    clb.GetItemChecked(3);
+                    _selectedTestTypes["ntc10ka"] =
+                        clb.GetItemChecked(1);
 
-                _manualPopupQAChecked =
-                    chkQAPopup.Checked;
+                    _selectedTestTypes["ntc2k"] =
+                        clb.GetItemChecked(2);
+
+                    _selectedTestTypes["ntc10kb"] =
+                        clb.GetItemChecked(3);
+                }
+
+                _manualPopupQAChecked = isQa;
 
                 // ไม่ปิด Popup
                 btnStartTest_Click(
@@ -4775,10 +5535,20 @@ namespace TEST_DEF_03N
             // เมื่อตัว popup ปิด
             dropDown.FormClosed += (s, ev) =>
             {
-                _selectedTestTypes["ptc2k"] = clb.GetItemChecked(0);
-                _selectedTestTypes["ntc10ka"] = clb.GetItemChecked(1);
-                _selectedTestTypes["ntc2k"] = clb.GetItemChecked(2);
-                _selectedTestTypes["ntc10kb"] = clb.GetItemChecked(3);
+                if (chkQAPopup.Checked)
+                {
+                    _selectedTestTypes["ptc2k"] = false;
+                    _selectedTestTypes["ntc10ka"] = false;
+                    _selectedTestTypes["ntc2k"] = false;
+                    _selectedTestTypes["ntc10kb"] = false;
+                }
+                else
+                {
+                    _selectedTestTypes["ptc2k"] = clb.GetItemChecked(0);
+                    _selectedTestTypes["ntc10ka"] = clb.GetItemChecked(1);
+                    _selectedTestTypes["ntc2k"] = clb.GetItemChecked(2);
+                    _selectedTestTypes["ntc10kb"] = clb.GetItemChecked(3);
+                }
                 _manualPopupQAChecked = chkQAPopup.Checked;
                 _isDraggingPopup = false;
                 lblHeader.Capture = false;
@@ -5734,6 +6504,11 @@ namespace TEST_DEF_03N
             SaveConfig();
         }
 
+        private void txt_firmware_Leave(object? sender, EventArgs e)
+        {
+            SaveConfig();
+        }
+
         #endregion
 
         #region 25 ข้อความแนะนำการเลือก Model และ Supply
@@ -5776,6 +6551,7 @@ namespace TEST_DEF_03N
             txt_model.Items.AddRange(new object[] { ModelA, ModelAB });
             txt_model.DropDownStyle = ComboBoxStyle.DropDownList;
             txt_model.SelectedIndex = previous == ModelA ? 0 : previous == ModelAB ? 1 : -1;
+            _lastConfirmedModel = txt_model.SelectedIndex >= 0 ? txt_model.Text.Trim() : string.Empty;
             ConfigureSelectionHint(txt_model, "กรุณาเลือก โมเดล");
             txt_supply.Items.Clear();
             txt_supply.Items.AddRange(new object[] { "220 Volt", "24 Volt" });
@@ -5786,15 +6562,22 @@ namespace TEST_DEF_03N
 
         private async void txt_model_SelectionChangeCommitted(object? sender, EventArgs e)
         {
-            // เขียน Register เฉพาะเมื่อเปิด Debug
-            if (!_writeDebugEnabled)
-                return;
-
             // ป้องกันการทำงานซ้ำ
             if (_isChangingModelRegister)
                 return;
 
             string selectedModel = txt_model.Text.Trim();
+
+            // ถ้าที่หน้าจอเลือก Type เดิมซ้ำอยู่แล้ว ไม่ต้องทำอะไรเลย (ข้ามทันที)
+            if (!string.IsNullOrEmpty(_lastConfirmedModel) &&
+                string.Equals(selectedModel, _lastConfirmedModel, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            string previousModel = !string.IsNullOrEmpty(_lastConfirmedModel)
+                ? _lastConfirmedModel
+                : (selectedModel == ModelA ? ModelAB : ModelA);
 
             short requestedValue;
 
@@ -5824,17 +6607,20 @@ namespace TEST_DEF_03N
                 return;
             }
 
-            bool wasEnabled = txt_model.Enabled;
+            string friendlyModelName = selectedModel == ModelA ? "DEF-03N Type A" :
+                                       selectedModel == ModelAB ? "DEF-03N Type A-B" : selectedModel;
+            string shortTypeName = selectedModel == ModelA ? "Type A" :
+                                   selectedModel == ModelAB ? "Type A-B" : selectedModel;
+
+            List<KeyValuePair<Control, bool>>? lockedControls = null;
 
             try
             {
                 _isChangingModelRegister = true;
-                txt_model.Enabled = false;
+                lockedControls = LockAllInteractiveControls();
+                UseWaitCursor = true;
 
-                LogToRx(
-                    $"[MODEL] กำลังเขียน {selectedModel} " +
-                    $"ไปยัง Register {ModelOptionRegister} = {requestedValue}",
-                    Color.Blue);
+                LogToRx($"[MODEL] กำลังเปลี่ยน Model เป็น {friendlyModelName}...", Color.Blue);
 
                 // ขั้นที่ 1: เขียนและตรวจ Write Echo
                 bool writeSuccess =
@@ -5847,8 +6633,10 @@ namespace TEST_DEF_03N
 
                 if (!writeSuccess)
                 {
+                    RevertModelSelection(previousModel);
+                    LogToRx($"[MODEL ERROR] เปลี่ยน Model เป็น {friendlyModelName} ไม่สำเร็จ", Color.Red);
                     MessageBox.Show(
-                        $"เขียน Register {ModelOptionRegister} ไม่สำเร็จ",
+                        $"เปลี่ยนเป็น {friendlyModelName} ไม่สำเร็จ\nกรุณาตรวจสอบการเชื่อมต่อกับอุปกรณ์",
                         "Model Option",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
@@ -5867,14 +6655,12 @@ namespace TEST_DEF_03N
                 if (actualValue != requestedValue)
                 {
                     LogToRx(
-                        $"[MODEL ERROR] Register {ModelOptionRegister} " +
-                        $"อ่านกลับได้ {actualValue} แต่ต้องการ {requestedValue}",
+                        $"[MODEL ERROR] ตรวจสอบค่า Model ไม่ถูกต้อง (อ่านได้ {actualValue})",
                         Color.Red);
 
+                    RevertModelSelection(previousModel);
                     MessageBox.Show(
-                        $"เขียน Model ไม่สมบูรณ์\n\n" +
-                        $"ค่าที่ต้องการ: {requestedValue}\n" +
-                        $"ค่าที่อ่านกลับ: {actualValue}",
+                        $"เปลี่ยนเป็น {friendlyModelName} ไม่สมบูรณ์\nกรุณาลองใหม่อีกครั้ง",
                         "Model Option",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
@@ -5882,17 +6668,26 @@ namespace TEST_DEF_03N
                     return;
                 }
 
-                LogToRx(
-                    $"[MODEL OK] {selectedModel} → " +
-                    $"Register {ModelOptionRegister} = {actualValue}",
-                    Color.Green);
+                _lastConfirmedModel = selectedModel;
+                LogToRx($"[MODEL] เปลี่ยนเป็น {shortTypeName} เรียบร้อย", Color.Green);
+                LogWriteDebug($"[MODEL DEBUG] Register {ModelOptionRegister} = {actualValue}", Color.DarkGray);
+
+                // รอ 3 วินาทีตามที่ผู้ใช้กำหนด พร้อมนับถอยหลัง
+                for (int s = 3; s > 0; s--)
+                {
+                    LogToRx($"[MODEL] รอการเตรียมความพร้อมอุปกรณ์ {s} วินาที...", Color.DarkOrange);
+                    await Task.Delay(1000);
+                }
+
+                LogToRx($"[MODEL] อุปกรณ์พร้อมทำงานแล้ว ({friendlyModelName})", Color.Green);
             }
             catch (Exception ex)
             {
                 LogToRx(
-                    $"[MODEL ERROR] {ex.Message}",
+                    $"[MODEL ERROR] เปลี่ยน Model เป็น {friendlyModelName} ไม่สำเร็จ: {ex.Message}",
                     Color.Red);
 
+                RevertModelSelection(previousModel);
                 MessageBox.Show(
                     $"เปลี่ยน Model ไม่สำเร็จ\n{ex.Message}",
                     "Model Option",
@@ -5902,7 +6697,46 @@ namespace TEST_DEF_03N
             finally
             {
                 _isChangingModelRegister = false;
-                txt_model.Enabled = wasEnabled;
+                UseWaitCursor = false;
+                if (lockedControls != null)
+                {
+                    RestoreInteractiveControls(lockedControls);
+                }
+            }
+        }
+
+        private void RevertModelSelection(string previousModel)
+        {
+            txt_model.SelectedIndex = previousModel == ModelA ? 0 : previousModel == ModelAB ? 1 : -1;
+        }
+
+        private List<KeyValuePair<Control, bool>> LockAllInteractiveControls()
+        {
+            var locked = new List<KeyValuePair<Control, bool>>();
+            void Collect(Control parent)
+            {
+                foreach (Control child in parent.Controls)
+                {
+                    if (child is ButtonBase or ComboBox or TextBox or CheckBox or CustomTextBox or CustomComboBox)
+                    {
+                        locked.Add(new KeyValuePair<Control, bool>(child, child.Enabled));
+                        child.Enabled = false;
+                    }
+                    if (child.HasChildren)
+                    {
+                        Collect(child);
+                    }
+                }
+            }
+            Collect(this);
+            return locked;
+        }
+
+        private static void RestoreInteractiveControls(List<KeyValuePair<Control, bool>> lockedControls)
+        {
+            foreach (var item in lockedControls)
+            {
+                item.Key.Enabled = item.Value;
             }
         }
 
@@ -5943,9 +6777,123 @@ namespace TEST_DEF_03N
                 _modelReportTargets.Add(new ModelReportTarget { Path = path, Row = row });
         }
 
+        private static string GetFirmwareRegisterName(ushort address)
+        {
+            switch (address)
+            {
+                case 0: return "PV";
+                case 1: return "SV";
+                case 2: return "Input";
+                case 3: return "PV Adjust";
+                case 4: return "PV Filter";
+                case 5: return "Decimal Point";
+                case 6: return "Scale C/F";
+                case 7: return "Lock Key";
+                case 8: return "Start Time";
+                case 9: return "Function Relay";
+                case 10: return "Mode Control";
+                case 11: return "Position On 1";
+                case 12: return "Position Off 1";
+                case 13: return "Output Delay On";
+                case 14: return "Output Delay Off";
+                case 15: return "Function Alarm 1";
+                case 16: return "Alarm Limit High 1";
+                case 17: return "Alarm Limit Low 1";
+                case 18: return "Hysteresis Alarm 1";
+                case 19: return "Function Alarm 2";
+                case 20: return "Alarm Limit High 2";
+                case 21: return "Alarm Limit Low 2";
+                case 22: return "Hysteresis Alarm 2";
+                case 23: return "Option";
+                case 24: return "Meter Command";
+                case 25: return "Meter Status";
+                case 26: return "ADC Value";
+                case 27: return "Front Key Status";
+                default: return $"Register {address}";
+            }
+        }
+
+        private static string GetContactDisplayName(string name)
+        {
+            return name == "RELAY OUTPUT" ? "Relay Output" :
+                   name == "ALARM" ? "Alarm Relay" : name;
+        }
+
+        private async Task<bool> WaitForTemperatureAsync(
+            double expectedTemp,
+            double tolerance = 1.0,
+            int maxLoops = 20,
+            CancellationToken cancellationToken = default)
+        {
+            LogToRx($"[RELAY SETUP] กำลังรออุณหภูมิเข้าใกล้ {expectedTemp:0.#}°C...", Color.Blue);
+
+            short rawPv = 0;
+            int stableCount = 0;
+            const int requiredStableReads = 2;
+            double actualPv = 0;
+
+            for (int loop = 0; loop < maxLoops; loop++)
+            {
+                if (_userRequestedStop || cancellationToken.IsCancellationRequested)
+                    return false;
+
+                try
+                {
+                    rawPv = await ReadSingleRegisterAsync(0, timeoutMs: 1000, retries: 1, slaveId: TargetID, cancellationToken: cancellationToken);
+                }
+                catch { }
+
+                double realTimePv = (_lastKnownDp == 0) ? rawPv : (rawPv / 10.0);
+                _currentPv = realTimePv;
+                actualPv = realTimePv;
+
+                Control[] foundLabel0 = Controls.Find("Regis0", true);
+                if (foundLabel0.Length > 0 && foundLabel0[0] is Label lbl0)
+                {
+                    lbl0.Text = realTimePv.ToString("F0") + "°C";
+                }
+
+                Control[] foundStatus = Controls.Find("lbl_testStatus", true);
+                if (foundStatus.Length > 0)
+                {
+                    foundStatus[0].Text = $"🎯 เตรียมทดสอบ Relay ({expectedTemp:0.#}°C) | PV ปัจจุบัน = {realTimePv:F0}°C";
+                    foundStatus[0].ForeColor = Color.DarkOrange;
+                }
+
+                if (Math.Abs(realTimePv - expectedTemp) <= tolerance)
+                {
+                    stableCount++;
+                    if (stableCount >= requiredStableReads)
+                    {
+                        LogToRx($"⚡ [RELAY SETUP] อุณหภูมินิ่งเข้าเป้าแล้วที่ {realTimePv:0.#}°C", Color.Green);
+                        LogWriteDebug($"[RELAY SETUP] อุณหภูมินิ่งเข้าเป้าแล้วที่รอบ {loop + 1}/{maxLoops} (PV = {realTimePv:0.#}°C)", Color.DarkCyan);
+                        return true;
+                    }
+                }
+                else
+                {
+                    stableCount = 0;
+                }
+
+                try
+                {
+                    await Task.Delay(250, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return false;
+                }
+            }
+
+            LogToRx($"[RELAY SETUP] อุณหภูมิปัจจุบัน = {actualPv:0.#}°C (เป้าหมาย: {expectedTemp:0.#}°C)", Color.DarkOrange);
+            return Math.Abs(actualPv - expectedTemp) <= tolerance;
+        }
+
         private async Task<string> ReadModelContactAsync(string name, ushort address)
         {
             if (_userRequestedStop) return "CANCELLED";
+            string displayName = GetContactDisplayName(name);
+            LogToRx($"กำลังตรวจสอบ {displayName}...", Color.Blue);
             try
             {
                 if (_relayPort == null || !_relayPort.IsOpen)
@@ -5956,13 +6904,16 @@ namespace TEST_DEF_03N
                     cancellationToken: _modelContactsCts!.Token);
                 if (_userRequestedStop) return "CANCELLED";
                 string result = ModelTestResults.ContactResult(value);
-                LogToRx($"[{name}] ID 3, Register {address} = {value}: {result}",
+                LogToRx($"ตรวจสอบ {displayName}: {(value == 1 ? "ผ่าน" : "ไม่ผ่าน")}",
+                    value == 1 ? Color.Green : Color.Red);
+                LogWriteDebug($"[{name}] ID 3, Register {address} = {value}: {result}",
                     value == 1 ? Color.Green : Color.Red);
                 return result;
             }
             catch (Exception ex)
             {
-                LogToRx($"[{name}] ตรวจสอบไม่สำเร็จ: {ex.Message}", Color.Red);
+                LogToRx($"ตรวจสอบ {displayName} ไม่สำเร็จ", Color.Red);
+                LogWriteDebug($"[{name}] ตรวจสอบไม่สำเร็จ: {ex.Message}", Color.Red);
                 return _userRequestedStop ? "CANCELLED" : "ERROR";
             }
         }
@@ -5972,7 +6923,13 @@ namespace TEST_DEF_03N
             short value,
             string description)
         {
-            LogToRx(
+            string registerName = GetFirmwareRegisterName(address);
+            string action = description.IndexOf("RESET", StringComparison.OrdinalIgnoreCase) >= 0
+                ? "คืนค่า"
+                : "ปรับ";
+
+            LogToRx($"กำลัง{action} {registerName} เป็น {value}...", Color.Blue);
+            LogWriteDebug(
                 $"[{description}] กำลังเขียน Register {address} = {value}",
                 Color.Blue);
 
@@ -5985,7 +6942,8 @@ namespace TEST_DEF_03N
 
             if (!writeOk)
             {
-                LogToRx(
+                LogToRx($"{action} {registerName} เป็น {value} ไม่สำเร็จ", Color.Red);
+                LogWriteDebug(
                     $"[{description} ERROR] เขียน Register {address} = {value} ไม่สำเร็จ",
                     Color.Red);
                 return false;
@@ -6007,33 +6965,40 @@ namespace TEST_DEF_03N
 
                     if (actualValue == value)
                     {
-                        LogToRx(
+                        LogToRx($"{action} {registerName} เป็น {value} สำเร็จ", Color.Green);
+                        LogWriteDebug(
                             $"[{description}] Register {address} = {actualValue} สำเร็จ",
                             Color.Green);
                         return true;
                     }
 
-                    LogToRx(
+                    LogWriteDebug(
                         $"[{description}] Register {address} อ่านกลับได้ {actualValue}, " +
                         $"รอค่า {value} ({attempt}/{maxReadBackAttempts})",
                         Color.Orange);
                 }
                 catch (Exception ex)
                 {
-                    LogToRx(
+                    LogWriteDebug(
                         $"[{description}] อ่านกลับ Register {address} ไม่สำเร็จ " +
                         $"({attempt}/{maxReadBackAttempts}): {ex.Message}",
                         Color.Orange);
                 }
             }
 
-            LogToRx(
+            LogToRx($"{action} {registerName} เป็น {value} ไม่สำเร็จ", Color.Red);
+            LogWriteDebug(
                 $"[{description} ERROR] Register {address} ไม่เปลี่ยนเป็น {value}",
                 Color.Red);
             return false;
         }
 
-        private bool SaveModelResults(string relay, string alarm, bool pass)
+        private bool SaveModelResults(
+            string relay,
+            string alarm,
+            bool pass,
+            IReadOnlyList<bool>? buttonResults = null,
+            IReadOnlyList<bool>? ledProblems = null)
         {
             if (_skipExcelWrite || _modelReportTargets.Count == 0) return false;
             bool saved = true;
@@ -6047,8 +7012,18 @@ namespace TEST_DEF_03N
                         foreach (var target in group)
                         {
                             ModelTestResults.WriteRow(sheet, target.Row, relay, alarm, pass, txt_model.Text.Trim());
+                            if (buttonResults != null && ledProblems != null)
+                            {
+                                QcReportLayout.WriteButtons(
+                                    sheet,
+                                    target.Row,
+                                    buttonResults,
+                                    ledProblems,
+                                    txt_model.Text.Trim());
+                            }
                         }
-                        if (!SaveWorkbookWithRetry(workbook, group.Key, "บันทึก Relay / Alarm และผล Test For All"))
+                        if (!SaveWorkbookWithRetry(workbook, group.Key,
+                                "บันทึกผล Test For All หลังคืนค่าอุปกรณ์"))
                             saved = false;
                     }
                 }
@@ -6070,12 +7045,31 @@ namespace TEST_DEF_03N
                 return;
             }
 
+            DateTime inspectionStartTime = DateTime.Now;
+
+            try
+            {
+                BeginAutoReportTransaction(
+                    txt_templatePath.Text.Trim(),
+                    txt_Lot.Text.Trim());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    $"ไม่สามารถเตรียมไฟล์ผลทดสอบชั่วคราวได้\n\n{ex.Message}",
+                    "เริ่มการทดสอบไม่ได้",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
             // This workflow is dispatched only for QC. QA keeps its original layout and tests.
             bool isQAMode = false;
             var defs = GetTestDefinitions();
             var results = new List<TestRunResult>();
             var lockedControls = new List<KeyValuePair<Control, bool>>();
-            foreach (string name in new[] { "txt_supply", "txt_model", "txt_SN", "txt_Lot", "txt_templatePath" })
+            foreach (string name in new[] { "txt_name", "txt_supply", "txt_model", "txt_SN", "txt_Lot", "txt_templatePath" })
             {
                 var control = Controls.Find(name, true).FirstOrDefault();
                 if (control == null) continue;
@@ -6094,8 +7088,9 @@ namespace TEST_DEF_03N
             bool relayPass = false;
             bool relayStarted = false;
             bool alarmRegisterTouched = false;
-            bool buttonTestStarted = false;
             string contactFailureDetail = string.Empty;
+            _pendingAutoButtonResults = null;
+            _pendingAutoLedProblems = null;
             try
             {
                 for (int i = 0; i < defs.Count && !_userRequestedStop; i++)
@@ -6103,7 +7098,7 @@ namespace TEST_DEF_03N
                     var def = defs[i];
                     results.Add(await RunCalibrationTestAsync(def.TestName, def.TestType,
                         def.GetTestCases(isQAMode), def.QaTab, def.QcTab,
-                        null, 2.0, showCompletionPopup: false));
+                        null, 1.0, showCompletionPopup: false));
                     if (_userRequestedStop || !results.Last().Completed || !results.Last().IsAllPass) break;
                     if (i < defs.Count - 1) await Task.Delay(1500);
                 }
@@ -6127,27 +7122,58 @@ namespace TEST_DEF_03N
 
                     try
                     {
-                        if (model == ModelAB)
+                        // 1. ปรับ Input (Register 2) เป็น 0 (PTC 2K) เสมอ ทั้ง Type A และ Type A-B
+                        contactSetupOk = await WriteAndVerifyModelRegisterAsync(
+                            address: 2,
+                            value: 0,
+                            description: "SET INPUT PTC 2K (INP = 00)");
+
+                        if (!contactSetupOk)
+                        {
+                            contactFailureDetail = "ตั้งค่า Input: Register 2 = 0 ไม่สำเร็จ";
+                            RecordRunFailure(contactFailureDetail);
+                        }
+
+                        // 2. ถ้าเป็น Type A-B ให้ตั้งค่า rL (Reg 9) = 21 และ FU2 (Reg 19) = 1
+                        if (contactSetupOk && model == ModelAB && !_userRequestedStop)
                         {
                             contactSetupOk = await WriteAndVerifyModelRegisterAsync(
                                 address: 9,
                                 value: 21,
-                                description: "A-B ALARM SETUP");
+                                description: "A-B ALARM SETUP (rL = 21)");
 
                             if (!contactSetupOk)
+                            {
                                 contactFailureDetail = "ตั้งค่า Alarm: Register 9 = 21 ไม่สำเร็จ";
+                                RecordRunFailure(contactFailureDetail);
+                            }
 
-                            if (contactSetupOk)
+                            if (contactSetupOk && !_userRequestedStop)
                             {
                                 alarmRegisterTouched = true;
                                 contactSetupOk = await WriteAndVerifyModelRegisterAsync(
                                     address: 19,
                                     value: 1,
-                                    description: "A-B ALARM ENABLE");
+                                    description: "A-B ALARM ENABLE (FU2 = 1)");
 
                                 if (!contactSetupOk)
+                                {
                                     contactFailureDetail = "เปิด Alarm: Register 19 = 1 ไม่สำเร็จ";
+                                    RecordRunFailure(contactFailureDetail);
+                                }
                             }
+                        }
+
+                        // 3. จ่าย Ohm ให้เป็นอุณหภูมิ 40 องศา (PTC 2K คือ 2283 โอห์ม) และรอให้อุณหภูมิใกล้เคียง 40°C
+                        if (contactSetupOk && !_userRequestedStop)
+                        {
+                            const int ohm40C = 2283;
+                            const double targetTemp = 40.0;
+                            LogToRx($"[RELAY SETUP] กำลังจ่าย Ohm = {ohm40C}Ω (เป้าหมาย 40°C สำหรับทดสอบ Relay)...", Color.Blue);
+                            SendOhm(ohm40C);
+
+                            // รอให้อุณหภูมิเข้าใกล้ 40°C เหมือนตอนทดสอบอุณหภูมิ
+                            await WaitForTemperatureAsync(targetTemp, tolerance: 1.0, maxLoops: 20, cancellationToken: _modelContactsCts.Token);
                         }
 
                         if (contactSetupOk && !_userRequestedStop)
@@ -6155,28 +7181,22 @@ namespace TEST_DEF_03N
                             relay = await ReadModelContactAsync("RELAY OUTPUT", RelayStatusRegister);
                             if (!_userRequestedStop) IncrementRunProgress();
 
-                            if (model == ModelAB && !_userRequestedStop && relay == "OK")
+                            if (model == ModelAB && !_userRequestedStop && QcReportLayout.IsPass(relay))
                             {
                                 alarm = await ReadModelContactAsync("ALARM", AlarmStatusRegister);
                                 if (!_userRequestedStop) IncrementRunProgress();
                             }
                         }
-                        else if (!contactSetupOk)
-                        {
-                            relay = "ERROR";
-                            if (model == ModelAB) alarm = "ERROR";
-                        }
                     }
                     catch (Exception ex)
                     {
                         contactSetupOk = false;
-                        relay = "ERROR";
-                        if (model == ModelAB) alarm = "ERROR";
                         contactFailureDetail = $"ช่วงทดสอบ Relay / Alarm: {ex.Message}";
+                        RecordRunFailure(contactFailureDetail);
                         LogToRx($"[RELAY / ALARM ERROR] {ex.Message}", Color.Red);
                     }
 
-                    if (model == ModelAB && !_userRequestedStop && relay != "OK")
+                    if (model == ModelAB && !_userRequestedStop && !QcReportLayout.IsPass(relay))
                     {
                         // ชดเชย progress ของ Alarm ที่ไม่ได้อ่านเพราะ Relay ไม่ผ่าน
                         IncrementRunProgress();
@@ -6199,12 +7219,14 @@ namespace TEST_DEF_03N
                     {
                         ShowRunFailureMessage(contactFailureDetail);
                     }
-                    else if (relay != "OK")
+                    else if (!QcReportLayout.IsPass(relay))
                     {
+                        RecordRunFailure($"Relay Output: ผลที่อ่านได้ '{relay}' (ไม่ผ่านเกณฑ์)");
                         ShowRunFailureMessage($"Relay Output\nผลที่อ่านได้: {relay}");
                     }
-                    else if (model == ModelAB && alarm != "OK")
+                    else if (model == ModelAB && !QcReportLayout.IsPass(alarm))
                     {
+                        RecordRunFailure($"Alarm: ผลที่อ่านได้ '{alarm}' (ไม่ผ่านเกณฑ์)");
                         ShowRunFailureMessage($"Alarm\nผลที่อ่านได้: {alarm}");
                     }
                 }
@@ -6232,7 +7254,6 @@ namespace TEST_DEF_03N
                     if (relay == "NOT TESTED") relay = "CANCELLED";
                     if (alarm == "NOT TESTED") alarm = "CANCELLED";
                 }
-                saved = SaveModelResults(relay, alarm, pass);
                 _modelContactsCts?.Dispose();
                 _modelContactsCts = null;
                 _modelTestAllActive = false;
@@ -6247,9 +7268,8 @@ namespace TEST_DEF_03N
 
             try
             {
-                if (pass && saved)
+                if (pass)
                 {
-                    buttonTestStarted = true;
                     ShowRunOverview();
                     SetRunStepLight(3, Color.Gold);
 
@@ -6259,7 +7279,8 @@ namespace TEST_DEF_03N
                         try
                         {
                             ShowButtonTestPopup(txt_SN.Text.Trim(), txt_Lot.Text.Trim(),
-                                txt_templatePath.Text.Trim(), model, saveResults: true);
+                                txt_templatePath.Text.Trim(), model, saveResults: true,
+                                deferSaveUntilCleanup: true);
                             inspection = _lastButtonInspection;
                         }
                         finally
@@ -6282,14 +7303,19 @@ namespace TEST_DEF_03N
                     SetRunStepLight(3, inspection == true ? Color.LimeGreen : Color.Red);
 
                     if (!_userRequestedStop && inspection == false)
+                    {
+                        RecordRunFailure("การทดสอบปุ่มกดหรือหลอด LED ไม่ผ่านเกณฑ์");
                         ShowRunFailureMessage("การทดสอบปุ่มหรือ LED");
+                    }
                 }
             }
             finally
             {
-                // A-B: คง Register 19 = 1 ไว้ตลอดช่วงทดสอบปุ่ม
-                // แล้วคืนเป็น 0 หลังปุ่มจบ หรือเมื่อออกจากขั้นตอนด้วย Stop/Error
-                if (model == ModelAB && alarmRegisterTouched)
+                // A-B: คืนค่า Register 19 = 0 เฉพาะเมื่อผลการทดสอบทั้งหมดผ่าน (PASS)
+                // ถ้าไม่ผ่าน (FAIL / ERROR / Stop): ไม่ต้องคืนค่าใดๆ ทั้งสิ้น ตามคำสั่งของผู้ใช้งาน เพื่อให้ตรวจเช็คหน้างานได้
+                bool testFullyPassed = pass && inspection == true && !_userRequestedStop;
+
+                if (testFullyPassed && model == ModelAB && alarmRegisterTouched)
                 {
                     try
                     {
@@ -6302,50 +7328,67 @@ namespace TEST_DEF_03N
                         {
                             alarm = "ERROR";
                             cleanupOk = false;
-                            cleanupFailures.Add("คืนค่า Register 19 = 0 ไม่สำเร็จ");
+                            string failText = "คืนค่า Register 19 = 0 ไม่สำเร็จ";
+                            RecordRunFailure(failText);
+                            cleanupFailures.Add(failText);
                         }
                     }
                     catch (Exception ex)
                     {
                         alarm = "ERROR";
                         cleanupOk = false;
-                        cleanupFailures.Add($"คืนค่า Register 19 = 0 ไม่สำเร็จ: {ex.Message}");
+                        string failText = $"คืนค่า Register 19 = 0 ไม่สำเร็จ: {ex.Message}";
+                        RecordRunFailure(failText);
+                        cleanupFailures.Add(failText);
                     }
                 }
 
-                // ทั้ง A และ A-B: เมื่อเริ่มขั้นตอนทดสอบปุ่มแล้ว ให้คืน Register 2 เป็น 0
-                if (buttonTestStarted)
-                {
-                    try
-                    {
-                        bool resetRegister2Ok = await WriteAndVerifyModelRegisterAsync(
-                            address: 2,
-                            value: 0,
-                            description: "RESET REGISTER 2 AFTER BUTTON TEST");
-
-                        if (!resetRegister2Ok)
-                        {
-                            cleanupOk = false;
-                            cleanupFailures.Add("คืนค่า Register 2 = 0 ไม่สำเร็จ");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        cleanupOk = false;
-                        cleanupFailures.Add($"คืนค่า Register 2 = 0 ไม่สำเร็จ: {ex.Message}");
-                    }
-                }
+                // หมายเหตุ: ไม่ต้องคืนค่า Register 2 (INP) แล้ว เพราะปรับเป็น 00 ไว้ตั้งแต่ช่วงทดสอบ Relay
+                // และกรณีทดสอบไม่ผ่าน จะคงค่าทุกอย่างไว้ตามที่ผู้ใช้กำหนด
             }
 
             if (!cleanupOk)
             {
                 pass = false;
-                bool cleanupSaved = SaveModelResults(relay, alarm, false);
-                saved = saved && cleanupSaved;
                 ShowRunFailureMessage(string.Join(Environment.NewLine, cleanupFailures));
             }
 
-            bool? finalResult = inspection;
+            if (_userRequestedStop)
+            {
+                // All point-by-point writes were made only to the staging copy.
+                // Discarding it leaves the real LOT file exactly as it was.
+                DiscardAutoReportTransaction();
+                saved = false;
+            }
+            else
+            {
+                // PASS and FAIL are committed once, after hardware cleanup.
+                saved = SaveModelResults(
+                    relay,
+                    alarm,
+                    pass,
+                    _pendingAutoButtonResults,
+                    _pendingAutoLedProblems);
+
+                if (saved)
+                    saved = CommitAutoReportTransaction();
+
+                if (!saved)
+                    DiscardAutoReportTransaction(logDiscard: false);
+
+                LogToRx(
+                    saved
+                        ? $"บันทึกผล S/N {txt_SN.Text.Trim()} ลง Excel หลังคืนค่าอุปกรณ์เรียบร้อย"
+                        : $"บันทึกผล S/N {txt_SN.Text.Trim()} ลง Excel ไม่สำเร็จ",
+                    saved ? Color.DarkGreen : Color.Red);
+                LogWriteDebug(
+                    saved
+                        ? "[AUTO SAVE] บันทึกผลสุดท้ายและย้ายเข้าไฟล์ LOT สำเร็จ"
+                        : "[AUTO SAVE] บันทึกผลสุดท้ายลงไฟล์ LOT ไม่สำเร็จ",
+                    saved ? Color.DarkGreen : Color.Red);
+            }
+
+            bool? finalResult = _userRequestedStop ? null : inspection;
             if (!cleanupOk)
                 finalResult = false;
             //if (inspection == true && !_userRequestedStop)
@@ -6357,16 +7400,31 @@ namespace TEST_DEF_03N
             //    finalResult = parameterPass;
             //}
 
-            string overall = finalResult.HasValue
-                ? (finalResult.Value ? "PASS" : "FAIL")
-                : "รอผลปุ่ม / LED";
-            if (finalResult.HasValue) LogFinalResult(txt_SN.Text.Trim(), finalResult.Value);
+            string overall = _userRequestedStop
+                ? "CANCELLED"
+                : finalResult.HasValue
+                    ? (finalResult.Value ? "PASS" : "FAIL")
+                    : "รอผลปุ่ม / LED";
+            if (!_userRequestedStop && finalResult.HasValue)
+                LogFinalResult(txt_SN.Text.Trim(), finalResult.Value);
             var statusLabel = Controls.Find("lbl_testStatus", true).FirstOrDefault();
             if (statusLabel != null)
             {
                 statusLabel.Text = $"Test For All ({model}): {overall}";
-                statusLabel.ForeColor = finalResult == true ? Color.Green : finalResult == false ? Color.Red : Color.DarkOrange;
+                statusLabel.ForeColor = _userRequestedStop
+                    ? Color.DarkOrange
+                    : finalResult == true ? Color.Green : finalResult == false ? Color.Red : Color.DarkOrange;
             }
+
+            ServerPostResult serverPostResult = ServerPostResult.Skipped;
+            if (!_userRequestedStop && finalResult.HasValue && saved && sent_server.Checked)
+            {
+                serverPostResult = await PostQcResultAsync(
+                    inspectionStartTime,
+                    DateTime.Now,
+                    finalResult.Value);
+            }
+
             if (_userRequestedStop)
             {
                 MessageBox.Show(
@@ -6378,19 +7436,32 @@ namespace TEST_DEF_03N
             }
             else if (finalResult == true && saved)
             {
+                string completionText = serverPostResult switch
+                {
+                    ServerPostResult.Success => "ทดสอบสำเร็จ\n\nบันทึก Excel และส่ง Server สำเร็จ",
+                    ServerPostResult.Timeout => "ทดสอบสำเร็จและบันทึก Excel แล้ว\n\nแต่ Server ไม่ตอบกลับภายใน 10 วินาที",
+                    ServerPostResult.Failed => "ทดสอบสำเร็จและบันทึก Excel แล้ว\n\nแต่ส่งข้อมูลไป Server ไม่สำเร็จ",
+                    _ => "ทดสอบสำเร็จ"
+                };
+
                 MessageBox.Show(
                     this,
-                    "ทดสอบสำเร็จ",
+                    completionText,
                     "ผลการทดสอบ",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                    serverPostResult is ServerPostResult.Timeout or ServerPostResult.Failed
+                        ? MessageBoxIcon.Warning
+                        : MessageBoxIcon.Information);
             }
             else if (!_testFailureMessageShown)
             {
-                ShowRunFailureMessage(
-                    saved
+                string failureText = _currentRunFailures.Count > 0
+                    ? string.Join(Environment.NewLine, _currentRunFailures)
+                    : (saved
                         ? "ไม่สามารถระบุจุดผิดพลาดได้ กรุณาตรวจสอบข้อความการทำงาน"
                         : "การบันทึกผลลง Excel ไม่สำเร็จ");
+
+                ShowRunFailureMessage(failureText);
             }
         }
 
@@ -6404,7 +7475,7 @@ namespace TEST_DEF_03N
             if (!ModelTestResults.IsValidModel(model) || txt_supply.SelectedIndex < 0) throw new InvalidOperationException("กรุณาเลือก Model และ supply ก่อนสร้างรายงาน");
 
             string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                isQa ? "TempleteQA.xlsx" : "TempleteQC.xlsx");
+                isQa ? "TempleteQA.xlsx" : "DEF-03N QC Inspection.xlsx");
             // Read a snapshot even when the template is open in Excel. Never edit the template.
             using var snapshot = new MemoryStream();
             using (var source = new FileStream(templatePath, FileMode.Open, FileAccess.Read,
@@ -6413,10 +7484,25 @@ namespace TEST_DEF_03N
             snapshot.Position = 0;
             using var template = new XLWorkbook(snapshot);
             ModelTestResults.WriteHeader(sheet, template.Worksheet(1), model, !isQa);
-            sheet.Cell("J3").Value = model + "-" + (txt_supply.SelectedIndex == 0 ? "220" : "24");
-            sheet.Cell("N10").Value = txt_supply.SelectedIndex == 0
-                ? "Power Supply 220VAC +-15% 50/60Hz"
-                : "Power Supply 24VAC/VDC +-15%";
+            if (isQa)
+            {
+                sheet.Cell("J3").Value = GetSelectedReportModelCode();
+                sheet.Cell("N10").Value = GetSelectedPowerSupplyText();
+            }
+            else
+            {
+                var modelLabelCell = FindHeaderCell(sheet, "Model:");
+                if (modelLabelCell != null)
+                    sheet.Cell(modelLabelCell.Address.RowNumber, modelLabelCell.Address.ColumnNumber + 1).Value = GetSelectedReportModelCode();
+                else
+                    sheet.Cell("J2").Value = GetSelectedReportModelCode();
+
+                var supplyCell = FindHeaderCell(sheet, "Power Supply");
+                if (supplyCell != null)
+                    supplyCell.Value = $"Power Supply {GetSelectedPowerSupplyText()}";
+                else
+                    sheet.Cell("P8").Value = $"Power Supply {GetSelectedPowerSupplyText()}";
+            }
         }
         #endregion
 
@@ -6424,6 +7510,8 @@ namespace TEST_DEF_03N
 
         private bool _buttonTestActive;
         private bool? _lastButtonInspection;
+        private bool[]? _pendingAutoButtonResults;
+        private bool[]? _pendingAutoLedProblems;
         private readonly SemaphoreSlim _mainReadGate = new SemaphoreSlim(1, 1);
         private int _priorityCommandCount;
         private byte _pendingReadSlaveId = 1;
@@ -6451,6 +7539,9 @@ namespace TEST_DEF_03N
             btn_Testbtn.Enabled = true;
 
             LogToRx(
+                "หน้าต่างทดสอบปุ่มถูกปิด กรุณากดปุ่มทดสอบปุ่มเพื่อเริ่มใหม่ หรือกด Stop เพื่อยกเลิก",
+                Color.DarkOrange);
+            LogWriteDebug(
                 "[BUTTON TEST] Popup ถูกปิด กดปุ่มทดสอบปุ่มเพื่อเริ่มใหม่ หรือกด Stop เพื่อยกเลิก",
                 Color.DarkOrange);
 
@@ -6505,8 +7596,13 @@ namespace TEST_DEF_03N
             }
         }
 
-        private void ShowButtonTestPopup(string sn, string lot, string folder,
-            string model, bool saveResults)
+        private void ShowButtonTestPopup(
+            string sn,
+            string lot,
+            string folder,
+            string model,
+            bool saveResults,
+            bool deferSaveUntilCleanup = false)
         {
             _lastButtonInspection = null;
             bool canSave = saveResults && sn.Length > 0 && lot.Length > 0 &&
@@ -6628,7 +7724,7 @@ namespace TEST_DEF_03N
                 cts = new CancellationTokenSource();
                 try
                 {
-                    if (canSave)
+                    if (canSave && !deferSaveUntilCleanup)
                     {
                         // กันผลปุ่ม/LED เดิมของ S/N ซ้ำถูกนำมาคิดระหว่างรอบ Retry
                         (reportPath, reportRow) = GetOrCreateReportFileQC(folder, lot, false);
@@ -6666,10 +7762,29 @@ namespace TEST_DEF_03N
                         lamps[i].Invalidate(); rows[i].BackColor = card;
                         labels[i].Text = $"ปุ่ม {names[i]}: {(results[i] ? "PASS" : "FAIL (หมดเวลา)")}";
 
-                        LogToRx($"[BUTTON TEST] {names[i]} / ID 1 Reg27={expected[i]}: {(results[i] ? "PASS" : "FAIL")}", results[i] ? Color.Green : Color.Red);
+                        LogToRx(
+                            $"ทดสอบปุ่ม {names[i]}: {(results[i] ? "ผ่าน" : "ไม่ผ่าน")}",
+                            results[i] ? Color.Green : Color.Red);
+                        LogWriteDebug(
+                            $"[BUTTON TEST] {names[i]} / ID 1 Reg27={expected[i]}: {(results[i] ? "PASS" : "FAIL")}",
+                            results[i] ? Color.Green : Color.Red);
                         IncrementRunProgress();
+
+                        if (_userRequestedStop)
+                            throw new OperationCanceledException();
                     }
-                    if (canSave)
+                    if (canSave && deferSaveUntilCleanup)
+                    {
+                        _pendingAutoButtonResults = results.ToArray();
+                        _pendingAutoLedProblems = leds.Select(c => c.Checked).ToArray();
+                        _lastButtonInspection = results.All(result => result) &&
+                            leds.Where(led => led.Visible).All(led => !led.Checked);
+
+                        status.Text = "ทดสอบครบแล้ว — กำลังคืนค่าอุปกรณ์ก่อนบันทึก Excel";
+                        LogToRx("ทดสอบปุ่มและ LED ครบแล้ว กำลังคืนค่าอุปกรณ์", Color.Blue);
+                        closeAfterCompletion = true;
+                    }
+                    else if (canSave)
                     {
                         (reportPath, reportRow) = GetOrCreateReportFileQC(folder, lot, false);
                         using var workbook = new XLWorkbook(reportPath);
@@ -6686,6 +7801,11 @@ namespace TEST_DEF_03N
                             QcReportLayout.RefreshInspection(sheet, reportRow, model);
 
                         LogToRx(
+                            saved
+                                ? $"บันทึกผล S/N {sn} ลงรายงานเรียบร้อย"
+                                : $"บันทึกผล S/N {sn} ลงรายงานไม่สำเร็จ",
+                            saved ? Color.DarkGreen : Color.Red);
+                        LogWriteDebug(
                             saved
                                 ? $"[BUTTON TEST] บันทึก S/N {sn} อัตโนมัติแล้ว"
                                 : $"[BUTTON TEST] บันทึก S/N {sn} ไม่สำเร็จ",
@@ -6715,7 +7835,8 @@ namespace TEST_DEF_03N
                 catch (Exception ex)
                 {
                     status.Text = "ทดสอบไม่สำเร็จ: " + ex.Message;
-                    LogToRx("[BUTTON TEST] " + ex.Message, Color.Red);
+                    LogToRx("ทดสอบปุ่มไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่ออุปกรณ์", Color.Red);
+                    LogWriteDebug("[BUTTON TEST] " + ex.Message, Color.Red);
                     if (saveResults)
                     {
                         _lastButtonInspection = false;

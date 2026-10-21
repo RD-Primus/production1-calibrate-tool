@@ -4,33 +4,31 @@ namespace TEST_DEF_03N
 {
     internal static class QcReportLayout
     {
-        internal const int SerialColumn = 24;
-        internal const int FirstDataRow = 15;
-        private const int DataRowsPerExpansion = 28;
-        private const int FinalPageDataRows = 24;
-        private const int RowsInsertedPerExpansion = DataRowsPerExpansion + 1;
-        private const int DataRowsBeforeInsertedFooter =
-            DataRowsPerExpansion - FinalPageDataRows;
+        internal const int SerialColumn = 24;      // Column X (S/N)
+        internal const int FirstDataRow = 12;       // ข้อมูลตัวแรกเริ่มที่แถว 12
+        private const int DataRowsPerExpansion = 41; // 41 แถวต่อหน้า
         internal const string SheetProtectionPassword = "DEF03N";
         private const string StateSheet = "_QCState";
 
-        private const int OkColumn = 22;
-        private const int NgColumn = 23;
-        private const int SummaryValueRowOffsetFromFooter = 3;
+        internal const int OkColumn = 22;           // Column V = ปกติ
+        internal const int NgColumn = 23;           // Column W = ไม่ปกติ
+        internal const string DefaultTemplateFileName = "DEF-03N QC Inspection.xlsx";
 
         internal static bool IsQcLayout(IXLWorksheet sheet)
         {
-            string header = string.Join(" ",
-                Enumerable.Range(12, 3)
-                    .Select(r => sheet.Cell(r, SerialColumn).GetString()));
-
-            return header.Contains("S/N", StringComparison.OrdinalIgnoreCase);
+            for (int r = 8; r <= 14; r++)
+            {
+                string val = sheet.Cell(r, SerialColumn).GetString().Trim();
+                if (val.Contains("S/N", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         internal static void Validate(IXLWorksheet sheet)
         {
             if (!IsQcLayout(sheet))
-                throw new InvalidOperationException("รายงาน QC นี้ยังเป็นรูปแบบเก่า กรุณาใช้ Template ใหม่ที่มี S/N คอลัมน์ X และไฟล์ LOT รูปแบบใหม่");
+                throw new InvalidOperationException("รายงาน QC นี้ยังเป็นรูปแบบเก่า กรุณาใช้ Template ใหม่ DEF-03N QC Inspection.xlsx ที่มี S/N คอลัมน์ X");
         }
 
         internal static bool IsDataRow(IXLWorksheet sheet, int row) =>
@@ -55,18 +53,33 @@ namespace TEST_DEF_03N
             return lastDataRow;
         }
 
+        internal static int FindSummaryHeaderRow(IXLWorksheet sheet)
+        {
+            int lastUsed = sheet.LastRowUsed()?.RowNumber() ?? FirstDataRow;
+            for (int r = FirstDataRow + 1; r <= lastUsed + 20; r++)
+            {
+                string val = sheet.Cell(r, 6).GetString().Trim(); // Column F = Q'ty
+                if (val.Equals("Q'ty", StringComparison.OrdinalIgnoreCase) || val.Equals("Qty", StringComparison.OrdinalIgnoreCase))
+                    return r;
+                string checkBy = sheet.Cell(r, 15).GetString().Trim(); // Column O = Check by
+                if (checkBy.Equals("Check by", StringComparison.OrdinalIgnoreCase))
+                    return r;
+            }
+            return GetLastDataRow(sheet) + 2;
+        }
+
         internal static int GetBottomFooterRow(IXLWorksheet sheet) =>
-            GetLastDataRow(sheet) + 1;
+            FindSummaryHeaderRow(sheet);
 
         internal static IReadOnlyList<int> GetFooterRows(IXLWorksheet sheet)
         {
-            int bottomFooterRow = GetBottomFooterRow(sheet);
+            int summaryHeaderRow = FindSummaryHeaderRow(sheet);
             var footerRows = new List<int>();
 
-            for (int row = FirstDataRow + 1; row <= bottomFooterRow; row++)
+            // รวมแถวสรุปและช่องลายเซ็น
+            for (int row = summaryHeaderRow; row <= summaryHeaderRow + 4; row++)
             {
-                if (IsDataRow(sheet, row - 1) && !IsDataRow(sheet, row))
-                    footerRows.Add(row);
+                footerRows.Add(row);
             }
 
             return footerRows;
@@ -74,11 +87,10 @@ namespace TEST_DEF_03N
 
         private static int ExpandDataRows(IXLWorksheet sheet)
         {
-            int templateRow = GetLastDataRow(sheet);
-            int bottomFooterRow = templateRow + 1;
+            int lastDataRow = GetLastDataRow(sheet);
             int highestNumber = 0;
 
-            for (int row = FirstDataRow; row <= templateRow; row++)
+            for (int row = FirstDataRow; row <= lastDataRow; row++)
             {
                 if (int.TryParse(
                         sheet.Cell(row, 1).GetFormattedString().Trim(),
@@ -88,38 +100,20 @@ namespace TEST_DEF_03N
                 }
             }
 
-            sheet.Row(bottomFooterRow)
-                .InsertRowsAbove(RowsInsertedPerExpansion);
-
-            int insertedFooterRow =
-                bottomFooterRow + DataRowsBeforeInsertedFooter;
-            int movedBottomFooterRow =
-                bottomFooterRow + RowsInsertedPerExpansion;
+            // แทรกแถวใหม่ DataRowsPerExpansion แถวก่อนแถวสรุปผล (ต่อท้าย lastDataRow)
+            int insertAt = lastDataRow + 1;
+            sheet.Row(insertAt).InsertRowsAbove(DataRowsPerExpansion);
 
             for (int offset = 0; offset < DataRowsPerExpansion; offset++)
             {
-                int newRow = bottomFooterRow + offset;
-                if (offset >= DataRowsBeforeInsertedFooter)
-                    newRow++; // เว้นแถว F-RD ระหว่างหน้ารายงาน
-
-                sheet.Range(templateRow, 1, templateRow, SerialColumn)
-                    .CopyTo(sheet.Cell(newRow, 1));
-
-                sheet.Row(newRow).Height = sheet.Row(templateRow).Height;
-                sheet.Range(newRow, 2, newRow, SerialColumn)
-                    .Clear(XLClearOptions.Contents);
-
-                sheet.Cell(newRow, 1).Value = highestNumber + offset + 1;
+                int targetRow = insertAt + offset;
+                sheet.Row(targetRow).Height = sheet.Row(FirstDataRow).Height;
+                sheet.Range(FirstDataRow, 1, FirstDataRow, SerialColumn).CopyTo(sheet.Cell(targetRow, 1));
+                sheet.Range(targetRow, 2, targetRow, SerialColumn).Clear(XLClearOptions.Contents);
+                sheet.Cell(targetRow, 1).Value = highestNumber + offset + 1;
             }
 
-            sheet.Range(
-                    movedBottomFooterRow, 1,
-                    movedBottomFooterRow, SerialColumn)
-                .CopyTo(sheet.Cell(insertedFooterRow, 1));
-            sheet.Row(insertedFooterRow).Height =
-                sheet.Row(movedBottomFooterRow).Height;
-
-            return bottomFooterRow;
+            return insertAt;
         }
 
         internal static int FindRow(
@@ -154,16 +148,16 @@ namespace TEST_DEF_03N
                 if (IsDataRow(sheet, row)) sheet.Range(row, 2, row, SerialColumn).Clear(XLClearOptions.Contents);
         }
 
-        internal static void UpdateSummary(IXLWorksheet sheet)
+        internal static void UpdateSummary(IXLWorksheet sheet, string operatorName = "")
         {
             if (!IsQcLayout(sheet))
                 return;
 
             int good = 0;
             int defect = 0;
-            int footerRow = GetBottomFooterRow(sheet);
+            int summaryHeaderRow = FindSummaryHeaderRow(sheet);
 
-            for (int row = FirstDataRow; row < footerRow; row++)
+            for (int row = FirstDataRow; row < summaryHeaderRow; row++)
             {
                 if (!IsDataRow(sheet, row))
                     continue;
@@ -171,34 +165,51 @@ namespace TEST_DEF_03N
                 string ok = sheet.Cell(row, OkColumn).GetString().Trim();
                 string ng = sheet.Cell(row, NgColumn).GetString().Trim();
 
-                if (ok.Equals("OK", StringComparison.OrdinalIgnoreCase))
+                if (IsPass(ok))
                 {
                     good++;
                 }
-                else if (ng.Equals("NG", StringComparison.OrdinalIgnoreCase) ||
-                         ng.Equals("NOT OK", StringComparison.OrdinalIgnoreCase))
+                else if (IsFail(ng))
                 {
                     defect++;
                 }
             }
 
             int quantity = good + defect;
-            int summaryValueRow = footerRow + SummaryValueRowOffsetFromFooter;
+            int summaryValueRow = summaryHeaderRow + 1;
 
-            sheet.Cell(summaryValueRow, 2).Value = quantity;
-            sheet.Cell(summaryValueRow, 4).Value = good;
-            sheet.Cell(summaryValueRow, 6).Value = defect;
-            sheet.Cell(summaryValueRow, 8).Value =
-                quantity == 0 ? 0d : (double)good / quantity;
-            sheet.Cell(summaryValueRow, 8).Style.NumberFormat.Format = "0.00%";
+            // F55: Qty, H55: Good, J55: Defect, L55: % Yield
+            SetSummaryValueCell(sheet, summaryValueRow, 6, quantity);
+            SetSummaryValueCell(sheet, summaryValueRow, 8, good);
+            SetSummaryValueCell(sheet, summaryValueRow, 10, defect);
+            SetSummaryValueCell(sheet, summaryValueRow, 12, quantity == 0 ? 0d : (double)good / quantity, "0.00%");
 
-            // Qty is a merged B:C value area spanning two rows in the template.
-            // Keep the generated count centered in both directions.
-            var quantityRange = sheet.Range(
-                summaryValueRow, 2,
-                summaryValueRow + 1, 3);
-            quantityRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            quantityRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            // O55: Check by / Operator Name
+            if (!string.IsNullOrWhiteSpace(operatorName))
+            {
+                var opCell = sheet.Cell(summaryValueRow, 15);
+                opCell.Value = operatorName.Trim();
+                opCell.Style.Font.FontName = "Cordia New";
+                opCell.Style.Font.FontSize = 11;
+                opCell.Style.Font.Bold = true;
+                opCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                opCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            }
+        }
+
+        private static void SetSummaryValueCell(IXLWorksheet sheet, int row, int col, object value, string? numberFormat = null)
+        {
+            var cell = sheet.Cell(row, col);
+            cell.Value = XLCellValue.FromObject(value);
+            cell.Style.Font.FontName = "Cordia New";
+            cell.Style.Font.FontSize = 11;
+            cell.Style.Font.Bold = true;
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            if (!string.IsNullOrEmpty(numberFormat))
+            {
+                cell.Style.NumberFormat.Format = numberFormat;
+            }
         }
 
         internal static void ProtectTestResults(IXLWorksheet sheet)
@@ -209,15 +220,15 @@ namespace TEST_DEF_03N
             if (sheet.Protection.IsProtected)
                 sheet.Unprotect(SheetProtectionPassword);
 
-            int signatureRow = GetBottomFooterRow(sheet) + SummaryValueRowOffsetFromFooter;
+            int summaryHeaderRow = FindSummaryHeaderRow(sheet);
+            int signatureRow = summaryHeaderRow + 1;
 
-            // Leave only the three signature entry boxes editable. Their row
-            // follows the footer, so this also works after each 52-row expansion.
+            // ปลดล็อคเฉพาะช่องลายเซ็นต์ Check by (O:R), Confirm by (S:V), Approved by (W:X)
             var signatureRanges = new[]
             {
-                sheet.Range(signatureRow, 11, signatureRow, 14), // Check by: K:N
-                sheet.Range(signatureRow, 15, signatureRow, 20), // Confirm by: O:T
-                sheet.Range(signatureRow, 21, signatureRow, 24)  // Approved by: U:X
+                sheet.Range(signatureRow, 15, signatureRow + 1, 18),
+                sheet.Range(signatureRow, 19, signatureRow + 1, 22),
+                sheet.Range(signatureRow, 23, signatureRow + 1, 24)
             };
 
             foreach (IXLRange signatureRange in signatureRanges)
@@ -227,9 +238,6 @@ namespace TEST_DEF_03N
                 signatureRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             }
 
-            // Test records and the calculated summary are program-generated.
-            // Protecting the worksheet prevents manual changes in Excel; the
-            // application can still update these cells through ClosedXML.
             var protection = sheet.Protect(SheetProtectionPassword);
             protection.AllowElement(XLSheetProtectionElements.EditObjects);
         }
@@ -248,36 +256,58 @@ namespace TEST_DEF_03N
 
         internal static bool RefreshInspection(IXLWorksheet sheet, int row, string model)
         {
-            if (model == ModelTestResults.ModelA) sheet.Cell(row, "T").Value = "N/A";
+            if (model == ModelTestResults.ModelA)
+            {
+                SetSymbolCell(sheet, row, 15, "N/A"); // Column O (Alarm Relay)
+                SetSymbolCell(sheet, row, 20, "N/A"); // Column T (LED AL)
+            }
+
             bool automated = sheet.Workbook.TryGetWorksheet(StateSheet, out var state) &&
                 state.Cell(row, 1).GetString().Equals(sheet.Cell(row, SerialColumn).GetString().Trim(), StringComparison.OrdinalIgnoreCase) &&
                 state.Cell(row, 2).GetString() == model && state.Cell(row, 3).GetString() == "PASS";
 
-            bool contacts = IsOk(sheet.Cell(row, "N").GetString()) &&
-                (model == ModelTestResults.ModelA || IsOk(sheet.Cell(row, "O").GetString()));
+            bool contacts = IsPass(sheet.Cell(row, "N").GetString()) &&
+                (model == ModelTestResults.ModelA || IsPass(sheet.Cell(row, "O").GetString()));
 
-            bool buttonsAndLeds = Enumerable.Range(16, 6).Where(c => c != 20 || model != ModelTestResults.ModelA).All(c => IsOk(sheet.Cell(row, c).GetString()));
+            bool buttonsAndLeds = Enumerable.Range(16, 6)
+                .Where(c => c != 20 || model != ModelTestResults.ModelA)
+                .All(c => IsPass(sheet.Cell(row, c).GetString()));
 
             bool pass = automated && contacts && buttonsAndLeds && ModelTestResults.IsValidModel(model);
-            sheet.Cell(row, "V").Value = pass ? "OK" : "";
+            SetSymbolCell(sheet, row, OkColumn, pass ? "✔" : "");
 
             bool failed = (state != null && state.Cell(row, 1).GetString().Equals(sheet.Cell(row, SerialColumn).GetString().Trim(), StringComparison.OrdinalIgnoreCase) && state.Cell(row, 2).GetString() == model && state.Cell(row, 3).GetString() == "FAIL") ||
                 Enumerable.Range(14, 8).Where(c => (c != 15 && c != 20) || model != ModelTestResults.ModelA)
-                    .Any(c => new[] { "NG", "FAIL", "NOT OK", "ERROR" }.Contains(sheet.Cell(row, c).GetString()));
-            sheet.Cell(row, "W").Value = failed ? "NG" : "";
+                    .Any(c => IsFail(sheet.Cell(row, c).GetString()));
+
+            SetSymbolCell(sheet, row, NgColumn, failed ? "✖" : "");
 
             return pass;
         }
 
-        private static bool IsOk(string value) => value == "OK" || value == "PASS";
+        internal static bool IsPass(string value) =>
+            value == "✔" || value.Equals("OK", StringComparison.OrdinalIgnoreCase) || value.Equals("PASS", StringComparison.OrdinalIgnoreCase);
+
+        internal static bool IsFail(string value) =>
+            value == "✖" || value == "✘" || value.Equals("NG", StringComparison.OrdinalIgnoreCase) || value.Equals("FAIL", StringComparison.OrdinalIgnoreCase) || value.Equals("NOT OK", StringComparison.OrdinalIgnoreCase) || value.Equals("ERROR", StringComparison.OrdinalIgnoreCase);
+
+        internal static void SetSymbolCell(IXLWorksheet sheet, int row, int col, string symbol)
+        {
+            var cell = sheet.Cell(row, col);
+            cell.Value = symbol;
+            cell.Style.Font.FontName = "Segoe UI Symbol";
+            cell.Style.Font.FontSize = 6;
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        }
 
         internal static void WriteButtons(IXLWorksheet sheet, int row, IReadOnlyList<bool> buttons,
             IReadOnlyList<bool> ledProblems, string model)
         {
             for (int i = 0; i < 3; i++)
             {
-                sheet.Cell(row, 16 + i).Value = buttons[i] ? "OK" : "NG";
-                sheet.Cell(row, 19 + i).Value = i == 1 && model == ModelTestResults.ModelA ? "N/A" : ledProblems[i] ? "NG" : "OK";
+                SetSymbolCell(sheet, row, 16 + i, buttons[i] ? "✔" : "✖"); // P: ปุ่ม F, Q: ปุ่ม ลด, R: ปุ่ม เพิ่ม
+                SetSymbolCell(sheet, row, 19 + i, i == 1 && model == ModelTestResults.ModelA ? "N/A" : (ledProblems[i] ? "✖" : "✔")); // S: LED OUT, T: LED AL, U: จอแสดงผล
             }
             RefreshInspection(sheet, row, model);
         }
