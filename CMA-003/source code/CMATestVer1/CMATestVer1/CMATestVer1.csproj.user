@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="CustomLine.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DescriptionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DetailsPopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Approval.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Barcode.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Description.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Details.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.EquipmentExpiration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ExcelHeader.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Help.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.HiddenServerTestButton.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Login.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.OperatorName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.SampleServerPost.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.SchemaV2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ServerAddress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ServerAutoSend.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Token.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form3.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form4.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="HelpPopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="LedBulbControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MyRoundedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
