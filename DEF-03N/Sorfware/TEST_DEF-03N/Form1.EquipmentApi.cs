@@ -1,3 +1,12 @@
+// =========================================================================================
+// [DEVELOPER GUIDE]
+// Form1.EquipmentApi.cs: "การจัดการฐานข้อมูลเครื่องมือวัด (Equipment) และส่งข้อมูล QC API"
+// - บันทึกและโหลดข้อมูลเครื่องมือวัด (DMM, Power Supply, Calibrator) ลงใน Settings
+// - จัดการการแสดงผล Popup หน้าต่างแก้ไขอุปกรณ์เครื่องมือ (EquipmentPopupForm)
+// - ส่ง HTTP POST พร้อมผลการทดสอบ QC ไปยังเซิร์ฟเวอร์ปลายทาง (/api/qc/result)
+// รายละเอียดเชิงลึกดูได้ที่ README_DEVELOPER.md
+// =========================================================================================
+
 using ClosedXML.Excel;
 using System.Globalization;
 using System.Net.Http;

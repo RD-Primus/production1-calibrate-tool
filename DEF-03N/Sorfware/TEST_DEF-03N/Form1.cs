@@ -1,3 +1,14 @@
+// =========================================================================================
+// [DEVELOPER GUIDE]
+// Form1.cs: ทำหน้าที่เป็น "ศูนย์บัญชาการ UI Dashboard (View Controller)" ของ DEF-03N
+// - ผูกการสั่งงานจากหน้าจอเข้ากับ Services ด้านต่างๆ
+// - หากต้องการแก้ไข "ขั้นตอนการทดสอบหลัก (Master Test Sequence)" -> ไปที่ Services/Def03TestRunner.cs
+// - หากต้องการแก้ไข "Modbus, CRC16, Relay, Ohm Source"          -> ไปที่ Services/Def03HardwareService.cs
+// - หากต้องการแก้ไข "การบันทึกรายงาน Excel & เช็ค S/N ซ้ำ"        -> ไปที่ Services/ExcelReportService.cs
+// - หากต้องการแก้ไข "การเชื่อมต่อ Server API & QC Payload V2"   -> ไปที่ Form1.EquipmentApi.cs & Form1.QcPayloadV2.cs
+// รายละเอียดเชิงลึกดูได้ที่ README_DEVELOPER.md
+// =========================================================================================
+
 using ComboBox = System.Windows.Forms.ComboBox;
 using TextBox = System.Windows.Forms.TextBox;
 using Button = System.Windows.Forms.Button;
@@ -10,11 +21,15 @@ using System.IO.Ports;
 using System.Text;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Control = System.Windows.Forms.Control;
+using TEST_DEF_03N.Services;
 
 namespace TEST_DEF_03N
 {
     public partial class Form1 : Form
     {
+        private readonly Def03TestRunner _testRunner = new Def03TestRunner();
+        private readonly ExcelReportService _excelReportService = new ExcelReportService();
+
         #region 01 ตัวแปรและสถานะของ Form1
 
         public SerialPort _serialPort;
@@ -161,6 +176,7 @@ namespace TEST_DEF_03N
             InitializeDescriptionFeature();
             InitializeHelpFeature();
             InitializeModelSelection();
+            InitializeBarcodeScannerFeature();
 
             // ทำงานเฉพาะเมื่อผู้ใช้เลือก Model จาก ComboBox
             txt_model.SelectionChangeCommitted +=
@@ -189,6 +205,10 @@ namespace TEST_DEF_03N
             _relayPort = new SerialPort();
             _relayPort.DataReceived += new SerialDataReceivedEventHandler(RelayDataReceivedHandler);
             portRelay.Items.AddRange(ports);   // ⚠️ ต้องเพิ่ม ComboBox ชื่อ portRelay ใน Designer ก่อน
+
+            ClearComboBox(portDEF);
+            ClearComboBox(portOhm);
+            ClearComboBox(portRelay);
 
             // 🟢 ใส่ตรงนี้เลยครับ เปิดมาปุ๊บ สั่งเซ็ตค่ารอก่อนทันที
             Control[] foundTextBox1 = this.Controls.Find("Regis1", true);
@@ -230,6 +250,8 @@ namespace TEST_DEF_03N
 
         private void ScheduleSnDuplicateCheck()
         {
+            if (_isProcessingBarcode) return;
+
             ResetSnColorsToDefault();
             _isDuplicateSN = false;
             _duplicateSNRow = -1;
@@ -444,102 +466,178 @@ namespace TEST_DEF_03N
                         }
                     }
 
+                    // ปรับสถานะ UI เข้าสู่โหมดกำลังเชื่อมต่อ
+                    btnConnect.Enabled = false;
+                    btnConnect.Text = "⏳ Connecting...";
+                    this.Cursor = Cursors.WaitCursor;
+
                     bool defOpened = false;
                     bool ohmOpened = false;
                     bool relayOpened = false;
 
-                    //  ตั้งค่าและเปิด _serialPort (Modbus)
-                    if (portDEF.SelectedItem != null && !string.IsNullOrWhiteSpace(portDEF.SelectedItem.ToString()))
+                    try
                     {
-                        try
+                        //  ตั้งค่าและเปิด _serialPort (Modbus)
+                        if (portDEF.SelectedItem != null && !string.IsNullOrWhiteSpace(portDEF.SelectedItem.ToString()))
                         {
-                            _serialPort.PortName = portDEF.SelectedItem.ToString()!;
-                            _serialPort.BaudRate = 19200;
-                            //_serialPort.BaudRate = int.Parse(BuadBox.SelectedItem!.ToString()!);
-                            _serialPort.Parity = Parity.None;
-                            _serialPort.DataBits = 8;
-                            _serialPort.StopBits = StopBits.One;
-                            _serialPort.ReadTimeout = 500;
-                            _serialPort.WriteTimeout = 500;
-                            _serialPort.Open();
-                            portDEF.Enabled = false;
-                            defOpened = true;
+                            try
+                            {
+                                _serialPort.PortName = portDEF.SelectedItem.ToString()!;
+                                _serialPort.BaudRate = 19200;
+                                //_serialPort.BaudRate = int.Parse(BuadBox.SelectedItem!.ToString()!);
+                                _serialPort.Parity = Parity.None;
+                                _serialPort.DataBits = 8;
+                                _serialPort.StopBits = StopBits.One;
+                                _serialPort.ReadTimeout = 500;
+                                _serialPort.WriteTimeout = 500;
+                                _serialPort.Open();
+                                portDEF.Enabled = false;
+                                defOpened = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!isDebug) throw;
+                                LogToRx($"[DEBUG] ไม่สามารถเปิด Port DEF-03N ({portDEF.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                            }
                         }
-                        catch (Exception ex)
+
+                        //  ตั้งค่าและเปิด _ohmPort (Ohm Source)
+                        if (portOhm.SelectedItem != null && !string.IsNullOrWhiteSpace(portOhm.SelectedItem.ToString()))
                         {
-                            if (!isDebug) throw;
-                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port DEF-03N ({portDEF.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                            try
+                            {
+                                _ohmPort.PortName = portOhm.SelectedItem.ToString()!;
+                                _ohmPort.BaudRate = 9600;
+                                _ohmPort.Parity = Parity.None;
+                                _ohmPort.DataBits = 8;
+                                _ohmPort.StopBits = StopBits.One;
+                                _ohmPort.Open();
+                                portOhm.Enabled = false;
+                                ohmOpened = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!isDebug) throw;
+                                LogToRx($"[DEBUG] ไม่สามารถเปิด Port Ohm Source ({portOhm.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                            }
+                        }
+
+                        //  เปิด Relay Port
+                        if (portRelay.SelectedItem != null && !string.IsNullOrWhiteSpace(portRelay.SelectedItem.ToString()))
+                        {
+                            try
+                            {
+                                _relayPort.PortName = portRelay.SelectedItem.ToString()!;
+                                _relayPort.BaudRate = 19200;
+                                _relayPort.Parity = Parity.None;
+                                _relayPort.DataBits = 8;
+                                _relayPort.StopBits = StopBits.One;
+                                _relayPort.ReadTimeout = 500;
+                                _relayPort.WriteTimeout = 500;
+                                _relayPort.Open();
+                                portRelay.Enabled = false;
+                                relayOpened = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!isDebug) throw;
+                                LogToRx($"[DEBUG] ไม่สามารถเปิด Port Relay ({portRelay.SelectedItem}): {ex.Message}", Color.OrangeRed);
+                            }
+                        }
+
+                        if (!defOpened && !ohmOpened && !relayOpened)
+                        {
+                            portDEF.Enabled = true;
+                            portOhm.Enabled = true;
+                            portRelay.Enabled = true;
+                            MessageBox.Show("ไม่สามารถเปิดพอร์ตใดๆ ได้ กรุณาตรวจสอบการเชื่อมต่อ",
+                                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        // ── ตรวจสอบการสื่อสารจริงกับอุปกรณ์ (Handshake Pre-Check) ──
+                        if (defOpened)
+                        {
+                            LogToRx("[CONNECT] กำลังตรวจสอบสัญญาณอุปกรณ์ DEF-03N...", Color.DodgerBlue);
+                            try
+                            {
+                                // อ่าน Register 0 (PV) เพื่อพิสูจน์ว่า DEF-03N ตอบ Modbus จริง
+                                short testPv = await ReadSingleRegisterAsync(0, timeoutMs: 1000, retries: 1, slaveId: TargetID);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new InvalidOperationException(
+                                    $"เปิดพอร์ตสำเร็จ แต่ไม่พบการตอบสนองจากอุปกรณ์ DEF-03N (ID: {TargetID})\n\n" +
+                                    "กรุณาตรวจสอบ:\n" +
+                                    "1. สายสัญญาณ RS-485 (ขั้ว A/B หลวมหรือสลับขั้วหรือไม่)\n" +
+                                    "2. แหล่งจ่ายไฟของเครื่อง DEF-03N เปิดอยู่หรือไม่\n" +
+                                    "3. การตั้งค่า Slave ID และ Baud Rate (19200 bps)\n\n" +
+                                    $"รายละเอียด: {ex.Message}");
+                            }
+                        }
+
+                        if (relayOpened)
+                        {
+                            LogToRx("[CONNECT] กำลังตรวจสอบสัญญาณ PH-01 Relay / Alarm...", Color.DodgerBlue);
+                            try
+                            {
+                                await ReadRelaySingleRegisterAsync(RelayStatusRegister, timeoutMs: 800, retries: 1, slaveId: RelayCheckSlaveID);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new InvalidOperationException(
+                                    $"เปิดพอร์ตสำเร็จ แต่ไม่พบการตอบสนองจาก PH-01 Relay / Alarm (ID: {RelayCheckSlaveID})\n\n" +
+                                    "กรุณาตรวจสอบการเชื่อมต่อสายและไฟเลี้ยงบอร์ด Relay\n\n" +
+                                    $"รายละเอียด: {ex.Message}");
+                            }
+                        }
+
+                        _defPortConnected = defOpened;
+                        _ohmPortConnected = ohmOpened;
+                        _relayPortConnected = relayOpened;
+                        _isConnected = true;
+
+                        timer1.Interval = 200;
+                        timer1.Start();
+
+                        btnConnect.Text = "🔗Disconnect";
+
+                        var connectedList = new List<string>();
+                        if (defOpened) connectedList.Add($"DEF-03N ({_serialPort.PortName})");
+                        if (ohmOpened) connectedList.Add($"Ohm ({_ohmPort.PortName})");
+                        if (relayOpened) connectedList.Add($"Relay ({_relayPort.PortName})");
+
+                        LogToRx($"[CONNECTED] เชื่อมต่อและตรวจสอบสัญญาณอุปกรณ์สำเร็จ: {string.Join(", ", connectedList)}", Color.Green);
+                        SetConnectionStatusUI(true); // 🟢 เปลี่ยน badge เป็นเขียว + "•Connect"
+                    }
+                    catch (Exception ex)
+                    {
+                        // หากเปิดพอร์ตหรือตรวจสัญญาณไม่ผ่าน ให้ปิดพอร์ตและคืนค่า UI ทั้งหมด
+                        try { if (_serialPort?.IsOpen == true) _serialPort.Close(); } catch { }
+                        try { if (_ohmPort?.IsOpen == true) _ohmPort.Close(); } catch { }
+                        try { if (_relayPort?.IsOpen == true) _relayPort.Close(); } catch { }
+
+                        portDEF.Enabled = true;
+                        portOhm.Enabled = true;
+                        portRelay.Enabled = true;
+
+                        _isConnected = false;
+                        _defPortConnected = false;
+                        _ohmPortConnected = false;
+                        _relayPortConnected = false;
+                        SetConnectionStatusUI(false);
+
+                        LogToRx($"[CONNECT FAILED] {ex.Message}", Color.Red);
+                        MessageBox.Show(ex.Message, "การเชื่อมต่อไม่สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    finally
+                    {
+                        btnConnect.Enabled = true;
+                        if (!_isConnected)
+                        {
+                            btnConnect.Text = "🔗Connect";
                         }
                     }
-
-                    //  ตั้งค่าและเปิด _ohmPort (Ohm Source)
-                    if (portOhm.SelectedItem != null && !string.IsNullOrWhiteSpace(portOhm.SelectedItem.ToString()))
-                    {
-                        try
-                        {
-                            _ohmPort.PortName = portOhm.SelectedItem.ToString()!;
-                            _ohmPort.BaudRate = 9600;
-                            _ohmPort.Parity = Parity.None;
-                            _ohmPort.DataBits = 8;
-                            _ohmPort.StopBits = StopBits.One;
-                            _ohmPort.Open();
-                            portOhm.Enabled = false;
-                            ohmOpened = true;
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!isDebug) throw;
-                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port Ohm Source ({portOhm.SelectedItem}): {ex.Message}", Color.OrangeRed);
-                        }
-                    }
-
-                    //  เปิด Relay Port
-                    if (portRelay.SelectedItem != null && !string.IsNullOrWhiteSpace(portRelay.SelectedItem.ToString()))
-                    {
-                        try
-                        {
-                            _relayPort.PortName = portRelay.SelectedItem.ToString()!;
-                            _relayPort.BaudRate = 19200;
-                            _relayPort.Parity = Parity.None;
-                            _relayPort.DataBits = 8;
-                            _relayPort.StopBits = StopBits.One;
-                            _relayPort.ReadTimeout = 500;
-                            _relayPort.WriteTimeout = 500;
-                            _relayPort.Open();
-                            portRelay.Enabled = false;
-                            relayOpened = true;
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!isDebug) throw;
-                            LogToRx($"[DEBUG] ไม่สามารถเปิด Port Relay ({portRelay.SelectedItem}): {ex.Message}", Color.OrangeRed);
-                        }
-                    }
-
-                    if (!defOpened && !ohmOpened && !relayOpened)
-                    {
-                        MessageBox.Show("ไม่สามารถเปิดพอร์ตใดๆ ได้ กรุณาตรวจสอบการเชื่อมต่อ",
-                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-                    _defPortConnected = defOpened;
-                    _ohmPortConnected = ohmOpened;
-                    _relayPortConnected = relayOpened;
-                    _isConnected = true;
-
-                    timer1.Interval = 200;
-                    timer1.Start();
-
-                    btnConnect.Text = "🔗Disconnect";
-
-                    var connectedList = new List<string>();
-                    if (defOpened) connectedList.Add($"DEF-03N ({_serialPort.PortName})");
-                    if (ohmOpened) connectedList.Add($"Ohm ({_ohmPort.PortName})");
-                    if (relayOpened) connectedList.Add($"Relay ({_relayPort.PortName})");
-
-                    LogToRx($"[CONNECTED] เชื่อมต่อสำเร็จ: {string.Join(", ", connectedList)}", Color.Green);
-                    SetConnectionStatusUI(true); // 🟢 เปลี่ยน badge เป็นเขียว + "•Connect"
                 }
                 else
                 {
@@ -593,8 +691,15 @@ namespace TEST_DEF_03N
                 portOhm.Enabled = true;
                 portRelay.Enabled = true;
 
+                btnConnect.Text = "🔗Connect";
+                btnConnect.Enabled = true;
+
                 SetConnectionStatusUI(false);
                 MessageBox.Show($"Error during connection: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
             }
         }
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -692,6 +797,7 @@ namespace TEST_DEF_03N
                 timerCal.Stop();
 
                 Get_compoart_list();
+                ClearAllComboBoxes();
 
                 MessageBox.Show("ล้างพอร์ตเรียบร้อย", "Refresh",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -702,6 +808,25 @@ namespace TEST_DEF_03N
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void ClearComboBox(ComboBox? combo)
+        {
+            if (combo == null) return;
+            combo.SelectedIndex = -1;
+            combo.SelectedItem = null;
+            combo.Text = string.Empty;
+        }
+
+        private void ClearAllComboBoxes()
+        {
+            ClearComboBox(portDEF);
+            ClearComboBox(portOhm);
+            ClearComboBox(portRelay);
+            ClearComboBox(txt_model);
+            ClearComboBox(txt_supply);
+            _lastConfirmedModel = string.Empty;
+        }
+
         private void btnClearMessage_Click(object sender, EventArgs e)
         {
             richTextBoxRx.Clear();
@@ -763,13 +888,9 @@ namespace TEST_DEF_03N
                 }
             }
 
-            portDEF.SelectedIndex = 0;
-            portOhm.SelectedIndex = 0;
-            portRelay.SelectedIndex = 0;
-
-            portDEF.Text = "";
-            portOhm.Text = "";
-            portRelay.Text = "";
+            ClearComboBox(portDEF);
+            ClearComboBox(portOhm);
+            ClearComboBox(portRelay);
 
             if (portDEF.Items.Count == 0)
             {
@@ -1668,7 +1789,7 @@ namespace TEST_DEF_03N
                     $"และรอ ADC 5 วินาที...",
                     Color.DarkBlue);
 
-                await Task.Delay(3500, token);
+                await Task.Delay(3000, token);
 
                 short rawValue = await ReadSingleRegisterAsync(
                     RawAdcRegister,
@@ -2827,14 +2948,16 @@ namespace TEST_DEF_03N
         {
             DiscardAutoReportTransaction(logDiscard: false);
 
-            string safeLotName = string.Join(
-                "_",
-                lotName.Split(Path.GetInvalidFileNameChars()));
-            string finalPath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string finalPath = QcReportLayout.GetReportFilePath(outputFolder, lotName);
+            string safeLotFileName = Path.GetFileName(finalPath);
+            string normalizedFolder = QcReportLayout.NormalizeReportFolder(outputFolder);
+            if (string.IsNullOrWhiteSpace(normalizedFolder))
+                normalizedFolder = AppDomain.CurrentDomain.BaseDirectory;
+
             string stagingFolder = Path.Combine(
-                outputFolder,
+                normalizedFolder,
                 $".def03n-stage-{Guid.NewGuid():N}");
-            string stagedPath = Path.Combine(stagingFolder, $"{safeLotName}.xlsx");
+            string stagedPath = Path.Combine(stagingFolder, safeLotFileName);
 
             Directory.CreateDirectory(stagingFolder);
             if (File.Exists(finalPath))
@@ -2958,6 +3081,7 @@ namespace TEST_DEF_03N
         {
             failureMessage = string.Empty;
 
+            outputFolder = QcReportLayout.NormalizeReportFolder(outputFolder);
             if (string.IsNullOrWhiteSpace(outputFolder) ||
                 !Directory.Exists(outputFolder) ||
                 string.IsNullOrWhiteSpace(lotName))
@@ -2965,10 +3089,7 @@ namespace TEST_DEF_03N
                 return true;
             }
 
-            string safeLotName = string.Join(
-                "_",
-                lotName.Split(Path.GetInvalidFileNameChars()));
-            string reportPath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string reportPath = QcReportLayout.GetReportFilePath(outputFolder, lotName);
 
             // A new LOT has no assigned model yet. J3 will be initialized when
             // the first test result is written.
@@ -3054,13 +3175,13 @@ namespace TEST_DEF_03N
                 throw new FileNotFoundException($"ไม่พบไฟล์ Template ต้นฉบับ: {templateFileName} ในโฟลเดอร์โปรแกรม");
             }
 
+            outputFolder = QcReportLayout.NormalizeReportFolder(outputFolder);
             if (string.IsNullOrEmpty(outputFolder) || !Directory.Exists(outputFolder))
             {
                 outputFolder = AppDomain.CurrentDomain.BaseDirectory;
             }
 
-            string safeLotName = string.Join("_", lotName.Split(Path.GetInvalidFileNameChars()));
-            string currentFilePath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string currentFilePath = QcReportLayout.GetReportFilePath(outputFolder, lotName);
 
             if (!File.Exists(currentFilePath))
             {
@@ -3864,6 +3985,14 @@ namespace TEST_DEF_03N
             var icon = overallPass && overallSaved ? MessageBoxIcon.Information : MessageBoxIcon.Warning;
 
             MessageBox.Show(sb.ToString(), title, MessageBoxButtons.OK, icon);
+
+            if (overallSaved && !string.IsNullOrWhiteSpace(txt_SN.Text))
+            {
+                CheckSNWhileTyping();
+                txt_SN.Focus();
+                txt_SN.SelectAll();
+                _isFirstChar = true;
+            }
         }
         #endregion
 
@@ -4216,6 +4345,8 @@ namespace TEST_DEF_03N
                 return;
             }
 
+            outputFolder = QcReportLayout.NormalizeReportFolder(outputFolder);
+
             // ถ้ายังเลือกโฟลเดอร์หรือกรอก LOT ไม่ครบ
             // จะยังไม่แสดงว่า SN ผ่าน
             if (string.IsNullOrWhiteSpace(outputFolder) ||
@@ -4226,12 +4357,7 @@ namespace TEST_DEF_03N
                 return;
             }
 
-            string safeLotName = string.Join(
-                "_",
-                lotName.Split(Path.GetInvalidFileNameChars()));
-
-            string reportPath =
-                Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string reportPath = QcReportLayout.GetReportFilePath(outputFolder, lotName);
 
             // ยังไม่มีไฟล์ LOT นี้ แสดงว่า SN ไม่ซ้ำ
             if (!File.Exists(reportPath))
@@ -4301,6 +4427,7 @@ namespace TEST_DEF_03N
 
         private bool EnsureReportFileClosedBeforeRun(string outputFolder, string lotName)
         {
+            outputFolder = QcReportLayout.NormalizeReportFolder(outputFolder);
             if (string.IsNullOrWhiteSpace(outputFolder) ||
                 !Directory.Exists(outputFolder) ||
                 string.IsNullOrWhiteSpace(lotName))
@@ -4308,10 +4435,7 @@ namespace TEST_DEF_03N
                 return true;
             }
 
-            string safeLotName = string.Join(
-                "_",
-                lotName.Split(Path.GetInvalidFileNameChars()));
-            string reportPath = Path.Combine(outputFolder, $"{safeLotName}.xlsx");
+            string reportPath = QcReportLayout.GetReportFilePath(outputFolder, lotName);
 
             if (!File.Exists(reportPath))
                 return true;
@@ -4586,6 +4710,15 @@ namespace TEST_DEF_03N
                 // ไม่ปล่อยให้ continuation ของงานที่ถูกยกเลิกกลับมาเปลี่ยนไฟเป็นสีแดง
                 if (_disconnectInProgress)
                     ResetUiAfterConnectionLoss();
+
+                // ตรวจ S/N ซ้ำอีกรอบหลังจบกระบวนการ เพื่อให้อัปเดตสีสถานะล่าสุดเสมอ (เปลี่ยนเป็นสีแดงเตือนว่าบันทึกแล้ว)
+                if (!string.IsNullOrWhiteSpace(txt_SN.Text))
+                {
+                    CheckSNWhileTyping();
+                    txt_SN.Focus();
+                    txt_SN.SelectAll();
+                    _isFirstChar = true;
+                }
 
                 //chkCalibration.Checked = false;
                 //chkTestForAll.Checked = false;
@@ -6599,7 +6732,7 @@ namespace TEST_DEF_03N
             {
                 MessageBox.Show(
                     "เลือก Model แล้ว แต่ยังไม่ได้เชื่อมต่อ DEF-03N\n" +
-                    "จึงไม่สามารถเขียน Register 23 ได้",
+                    "จึงไม่สามารถตรวจสอบหรือเขียน Register 23 ได้",
                     "Model Option",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -6612,6 +6745,31 @@ namespace TEST_DEF_03N
             string shortTypeName = selectedModel == ModelA ? "Type A" :
                                    selectedModel == ModelAB ? "Type A-B" : selectedModel;
 
+            // 🟢 ตรวจสอบค่า Register 23 ปัจจุบันบนอุปกรณ์ก่อนว่าตรงกับที่เลือกอยู่แล้วหรือไม่
+            short currentDeviceModelValue = -1;
+            bool readOk = false;
+            try
+            {
+                currentDeviceModelValue = await ReadSingleRegisterAsync(
+                    ModelOptionRegister,
+                    timeoutMs: 1000,
+                    retries: 2,
+                    slaveId: 1);
+                readOk = true;
+            }
+            catch (Exception readEx)
+            {
+                LogToRx($"⚠️ [MODEL] ไม่สามารถอ่าน Register 23 เพื่อเช็ค Model ปัจจุบันได้: {readEx.Message}", Color.Orange);
+            }
+
+            // ถ้าอุปกรณ์บนบอร์ดมีค่าตรงกับ Model ที่เลือกอยู่แล้ว -> ไม่ต้องเขียนซ้ำ และไม่ต้องล็อกหน้าจอรอนับถอยหลัง
+            if (readOk && currentDeviceModelValue == requestedValue)
+            {
+                _lastConfirmedModel = selectedModel;
+                LogToRx($"✅ [MODEL] อุปกรณ์เป็น {friendlyModelName} อยู่แล้ว (Register 23 = {currentDeviceModelValue}) ไม่จำเป็นต้องเปลี่ยน", Color.DarkGreen);
+                return;
+            }
+
             List<KeyValuePair<Control, bool>>? lockedControls = null;
 
             try
@@ -6620,7 +6778,9 @@ namespace TEST_DEF_03N
                 lockedControls = LockAllInteractiveControls();
                 UseWaitCursor = true;
 
-                LogToRx($"[MODEL] กำลังเปลี่ยน Model เป็น {friendlyModelName}...", Color.Blue);
+                string currentTypeName = currentDeviceModelValue == 0 ? "Type A" :
+                                         currentDeviceModelValue == 1 ? "Type A-B" : $"ค่า {currentDeviceModelValue}";
+                LogToRx($"[MODEL] ปัจจุบันอุปกรณ์เป็น {currentTypeName} -> กำลังเปลี่ยนเป็น {friendlyModelName}...", Color.Blue);
 
                 // ขั้นที่ 1: เขียนและตรวจ Write Echo
                 bool writeSuccess =
@@ -6717,11 +6877,20 @@ namespace TEST_DEF_03N
             {
                 foreach (Control child in parent.Controls)
                 {
-                    if (child is ButtonBase or ComboBox or TextBox or CheckBox or CustomTextBox or CustomComboBox)
+                    if (child is CustomTextBox or CustomComboBox)
+                    {
+                        locked.Add(new KeyValuePair<Control, bool>(child, child.Enabled));
+                        child.Enabled = false;
+                        // ไม่ต้องมุดเข้าไปตรวจไส้ในของ Custom Control เพื่อป้องกันการจำสถานะ false ค้างถาวร
+                        continue;
+                    }
+
+                    if (child is ButtonBase or ComboBox or TextBox or CheckBox)
                     {
                         locked.Add(new KeyValuePair<Control, bool>(child, child.Enabled));
                         child.Enabled = false;
                     }
+
                     if (child.HasChildren)
                     {
                         Collect(child);
@@ -6736,7 +6905,8 @@ namespace TEST_DEF_03N
         {
             foreach (var item in lockedControls)
             {
-                item.Key.Enabled = item.Value;
+                if (!item.Key.IsDisposed)
+                    item.Key.Enabled = item.Value;
             }
         }
 
@@ -7376,6 +7546,12 @@ namespace TEST_DEF_03N
                 if (!saved)
                     DiscardAutoReportTransaction(logDiscard: false);
 
+                if (saved)
+                {
+                    // ตรวจ S/N ซ้ำทันทีหลังบันทึกผลลง Excel สำเร็จ เพื่อให้ช่อง S/N เปลี่ยนเป็นสีแดงเตือนว่าบันทึกแล้ว
+                    CheckSNWhileTyping();
+                }
+
                 LogToRx(
                     saved
                         ? $"บันทึกผล S/N {txt_SN.Text.Trim()} ลง Excel หลังคืนค่าอุปกรณ์เรียบร้อย"
@@ -7463,6 +7639,16 @@ namespace TEST_DEF_03N
 
                 ShowRunFailureMessage(failureText);
             }
+
+            // ตรวจ S/N ซ้ำอีกรอบหลังบันทึกผลสำเร็จ และโฟกัสคลุมดำช่อง S/N รอรับการสแกนชิ้นงานถัดไปทันที
+            if (saved)
+            {
+                CheckSNWhileTyping();
+            }
+
+            txt_SN.Focus();
+            txt_SN.SelectAll();
+            _isFirstChar = true;
         }
 
         #endregion
@@ -7859,6 +8045,13 @@ namespace TEST_DEF_03N
                 closeRequested = true; e.Cancel = true; cts?.Cancel();
             };
             popup.ShowDialog(this);
+            if (!string.IsNullOrWhiteSpace(txt_SN.Text))
+            {
+                CheckSNWhileTyping();
+                txt_SN.Focus();
+                txt_SN.SelectAll();
+                _isFirstChar = true;
+            }
         }
 
         private void CreateNewQcReport(string templatePath, string reportPath)

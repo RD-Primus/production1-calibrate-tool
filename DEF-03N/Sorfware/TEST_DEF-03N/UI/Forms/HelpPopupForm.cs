@@ -23,7 +23,8 @@ namespace TEST_DEF_03N
         private const int TotalFormHeight = 680;
         private const int ExampleBoxWidth = 330;
 
-        private int _currentPage = 0; // 0 = วิธีการใช้งาน, 1 = ตัวอย่างการกรอกข้อมูล
+        private int _currentTab = 0; // 0 = วิธีการใช้งาน, 1 = ตัวอย่างการกรอกข้อมูล
+        private int _currentWorkflowSlide = 0; // 0 = Step 1&2, 1 = Step 3&4, 2 = Step 5&6
 
         // UI Controls
         private Button _btnTabWorkflow = null!;
@@ -36,7 +37,13 @@ namespace TEST_DEF_03N
         private Panel _panelWorkflow = null!;
         private Panel _panelDataExample = null!;
 
-        private Image? _workflowImage;
+        private PictureBox _picBoxWorkflow = null!;
+        private Label _lblStepCard1Title = null!;
+        private Label _lblStepCard1Desc = null!;
+        private Label _lblStepCard2Title = null!;
+        private Label _lblStepCard2Desc = null!;
+
+        private readonly Image?[] _workflowImages = new Image?[3];
 
         private bool _isDragging;
         private Point _dragStartCursor;
@@ -68,14 +75,14 @@ namespace TEST_DEF_03N
             Text = "ความช่วยเหลือ (Help)";
             KeyPreview = true;
 
-            LoadWorkflowImage();
+            LoadWorkflowImages();
 
             Controls.Add(BuildHeader());
             Controls.Add(BuildToolbar());
             Controls.Add(BuildContentPanel());
 
             KeyDown += Form_KeyDown;
-            ShowPage(0);
+            SwitchTab(0);
         }
 
         protected override void OnShown(EventArgs e)
@@ -105,31 +112,50 @@ namespace TEST_DEF_03N
         {
             if (disposing)
             {
-                _workflowImage?.Dispose();
+                for (int i = 0; i < _workflowImages.Length; i++)
+                {
+                    _workflowImages[i]?.Dispose();
+                }
             }
             base.Dispose(disposing);
         }
 
-        private void LoadWorkflowImage()
+        private void LoadWorkflowImages()
         {
-            string[] candidatePaths = new[]
+            string[] imageFiles = new[]
             {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "help_workflow.png"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "help_workflow.png"),
-                @"c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\Resources\help_workflow.png"
+                "help_step1_2.png",
+                "help_step3_4.png",
+                "help_step5_6.png"
             };
 
-            foreach (var path in candidatePaths)
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string projectResDir = @"c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\Resources";
+
+            for (int i = 0; i < imageFiles.Length; i++)
             {
-                if (File.Exists(path))
+                string filename = imageFiles[i];
+                string[] candidatePaths = new[]
                 {
-                    try
+                    Path.Combine(baseDir, "Resources", filename),
+                    Path.Combine(baseDir, filename),
+                    Path.Combine(projectResDir, filename),
+                    Path.Combine(baseDir, "Resources", "help_workflow.png"),
+                    Path.Combine(projectResDir, "help_workflow.png")
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (File.Exists(path))
                     {
-                        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                        _workflowImage = Image.FromStream(fs);
-                        return;
+                        try
+                        {
+                            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            _workflowImages[i] = Image.FromStream(fs);
+                            break;
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
             }
         }
@@ -206,7 +232,7 @@ namespace TEST_DEF_03N
                 Cursor = Cursors.Hand
             };
             _btnTabWorkflow.FlatAppearance.BorderSize = 0;
-            _btnTabWorkflow.Click += (_, _) => ShowPage(0);
+            _btnTabWorkflow.Click += (_, _) => SwitchTab(0);
             ApplyRoundedRegion(_btnTabWorkflow, 5);
             toolbar.Controls.Add(_btnTabWorkflow);
 
@@ -221,7 +247,7 @@ namespace TEST_DEF_03N
                 Cursor = Cursors.Hand
             };
             _btnTabDataExample.FlatAppearance.BorderSize = 0;
-            _btnTabDataExample.Click += (_, _) => ShowPage(1);
+            _btnTabDataExample.Click += (_, _) => SwitchTab(1);
             ApplyRoundedRegion(_btnTabDataExample, 5);
             toolbar.Controls.Add(_btnTabDataExample);
 
@@ -240,13 +266,19 @@ namespace TEST_DEF_03N
                 Cursor = Cursors.Hand
             };
             _btnNext.FlatAppearance.BorderSize = 0;
-            _btnNext.Click += (_, _) => ShowPage(_currentPage + 1);
+            _btnNext.Click += (_, _) =>
+            {
+                if (_currentTab == 0 && _currentWorkflowSlide < 2)
+                {
+                    UpdateWorkflowSlide(_currentWorkflowSlide + 1);
+                }
+            };
             ApplyRoundedRegion(_btnNext, 5);
             toolbar.Controls.Add(_btnNext);
 
             _lblPageIndicator = new Label
             {
-                Text = "หน้า 1 / 2",
+                Text = "หน้า 1 / 3",
                 Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold),
                 ForeColor = ExampleTextColor,
                 Size = new Size(80, 36),
@@ -267,7 +299,13 @@ namespace TEST_DEF_03N
                 Cursor = Cursors.Hand
             };
             _btnPrev.FlatAppearance.BorderSize = 0;
-            _btnPrev.Click += (_, _) => ShowPage(_currentPage - 1);
+            _btnPrev.Click += (_, _) =>
+            {
+                if (_currentTab == 0 && _currentWorkflowSlide > 0)
+                {
+                    UpdateWorkflowSlide(_currentWorkflowSlide - 1);
+                }
+            };
             ApplyRoundedRegion(_btnPrev, 5);
             toolbar.Controls.Add(_btnPrev);
 
@@ -308,48 +346,38 @@ namespace TEST_DEF_03N
             {
                 Location = new Point(0, 0),
                 Size = new Size(width, picCardHeight),
-                BackColor = CardBg
+                BackColor = Color.White
             };
             ApplyRoundedRegion(picCard, 6);
 
-            var picBox = new PictureBox
+            _picBoxWorkflow = new PictureBox
             {
                 Dock = DockStyle.Fill,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = CardBg,
-                Image = _workflowImage
+                BackColor = Color.White,
+                Image = _workflowImages[0]
             };
-            picCard.Controls.Add(picBox);
+            picCard.Controls.Add(_picBoxWorkflow);
             panel.Controls.Add(picCard);
 
-            // 2. Step Summary Cards below image
+            // 2. Step Summary Cards below image (2 cards: Left & Right)
             int stepCardY = picCardHeight + 10;
             int stepCardHeight = 95;
-            int cardGap = 12;
-            int stepCardWidth = (width - (cardGap * 2)) / 3;
+            int cardGap = 14;
+            int stepCardWidth = (width - cardGap) / 2;
 
-            // Step 1 Card
-            panel.Controls.Add(CreateStepSummaryCard(
-                "1. Connect Port",
-                "• เลือกพอร์ต Ohm Source, DEF-03N, PH-01\n• กดปุ่ม Connect เพื่อเชื่อมต่อพอร์ตทั้งหมด",
-                0, stepCardY, stepCardWidth, stepCardHeight));
+            // Step Card 1 (Left)
+            var card1 = CreateStepSummaryCard(0, stepCardY, stepCardWidth, stepCardHeight, out _lblStepCard1Title, out _lblStepCard1Desc);
+            panel.Controls.Add(card1);
 
-            // Step 2 Card
-            panel.Controls.Add(CreateStepSummaryCard(
-                "2. กรอกข้อมูลอุปกรณ์",
-                "• ระบุ S/N, LOT, ECN และโฟลเดอร์ Report\n• กดปุ่ม 'รายละเอียด' เพื่อเช็คเครื่องมือทดสอบ",
-                stepCardWidth + cardGap, stepCardY, stepCardWidth, stepCardHeight));
-
-            // Step 3 Card
-            panel.Controls.Add(CreateStepSummaryCard(
-                "3. เลือกรุ่นและกด Run",
-                "• เลือกรุ่นและโหมด (Calibration/Test All)\n• ล็อกอินเลือกส่ง Server แล้วกด Run ทดสอบ",
-                (stepCardWidth + cardGap) * 2, stepCardY, stepCardWidth, stepCardHeight));
+            // Step Card 2 (Right)
+            var card2 = CreateStepSummaryCard(stepCardWidth + cardGap, stepCardY, stepCardWidth, stepCardHeight, out _lblStepCard2Title, out _lblStepCard2Desc);
+            panel.Controls.Add(card2);
 
             return panel;
         }
 
-        private Panel CreateStepSummaryCard(string title, string description, int x, int y, int width, int height)
+        private Panel CreateStepSummaryCard(int x, int y, int width, int height, out Label lblTitle, out Label lblDesc)
         {
             var card = new Panel
             {
@@ -359,28 +387,28 @@ namespace TEST_DEF_03N
             };
             ApplyRoundedRegion(card, 5);
 
-            var lblTitle = new Label
+            lblTitle = new Label
             {
-                Text = title,
+                Text = "",
                 Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold),
                 ForeColor = AccentColor,
-                Location = new Point(12, 8),
-                Size = new Size(width - 24, 22),
+                Location = new Point(14, 8),
+                Size = new Size(width - 28, 24),
                 TextAlign = ContentAlignment.MiddleLeft
             };
+            card.Controls.Add(lblTitle);
 
-            var lblDesc = new Label
+            lblDesc = new Label
             {
-                Text = description,
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                Text = "",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
                 ForeColor = SubTextColor,
-                Location = new Point(12, 32),
-                Size = new Size(width - 24, height - 38),
+                Location = new Point(14, 32),
+                Size = new Size(width - 28, height - 38),
                 TextAlign = ContentAlignment.TopLeft
             };
-
-            card.Controls.Add(lblTitle);
             card.Controls.Add(lblDesc);
+
             return card;
         }
 
@@ -566,14 +594,11 @@ namespace TEST_DEF_03N
             return pnl;
         }
 
-        private void ShowPage(int pageIndex)
+        private void SwitchTab(int tabIndex)
         {
-            if (pageIndex < 0) pageIndex = 0;
-            if (pageIndex > 1) pageIndex = 1;
+            _currentTab = Math.Clamp(tabIndex, 0, 1);
 
-            _currentPage = pageIndex;
-
-            if (_currentPage == 0)
+            if (_currentTab == 0)
             {
                 _panelWorkflow.Visible = true;
                 _panelDataExample.Visible = false;
@@ -584,12 +609,11 @@ namespace TEST_DEF_03N
                 _btnTabDataExample.BackColor = CardBg;
                 _btnTabDataExample.ForeColor = ExampleTextColor;
 
-                _btnPrev.Enabled = false;
-                _btnPrev.ForeColor = Color.FromArgb(100, 120, 135);
-                _btnNext.Enabled = true;
-                _btnNext.ForeColor = Color.White;
+                _lblPageIndicator.Visible = true;
+                _btnPrev.Visible = true;
+                _btnNext.Visible = true;
 
-                _lblPageIndicator.Text = "หน้า 1 / 2";
+                UpdateWorkflowSlide(_currentWorkflowSlide);
             }
             else
             {
@@ -602,13 +626,55 @@ namespace TEST_DEF_03N
                 _btnTabDataExample.BackColor = AccentColor;
                 _btnTabDataExample.ForeColor = Color.FromArgb(7, 23, 35);
 
-                _btnPrev.Enabled = true;
-                _btnPrev.ForeColor = Color.White;
-                _btnNext.Enabled = false;
-                _btnNext.ForeColor = Color.FromArgb(100, 120, 135);
-
-                _lblPageIndicator.Text = "หน้า 2 / 2";
+                // ในหน้าตัวอย่าง ให้ซ่อนปุ่มเปลี่ยนสไลด์ เพื่อให้สลับแท็บผ่านการคลิกเท่านั้น
+                _lblPageIndicator.Visible = false;
+                _btnPrev.Visible = false;
+                _btnNext.Visible = false;
             }
+        }
+
+        private void UpdateWorkflowSlide(int slideIndex)
+        {
+            _currentWorkflowSlide = Math.Clamp(slideIndex, 0, 2);
+
+            if (_workflowImages[_currentWorkflowSlide] != null)
+            {
+                _picBoxWorkflow.Image = _workflowImages[_currentWorkflowSlide];
+            }
+
+            switch (_currentWorkflowSlide)
+            {
+                case 0: // Steps 1 & 2
+                    _lblStepCard1Title.Text = "1. Connect Port";
+                    _lblStepCard1Desc.Text = "• เลือกพอร์ต Ohm Source, DEF-03N, PH-01\n• กดปุ่ม Connect เพื่อเชื่อมต่อพอร์ตสื่อสารทั้งหมด";
+
+                    _lblStepCard2Title.Text = "2. Save Report (กรอกข้อมูลอุปกรณ์)";
+                    _lblStepCard2Desc.Text = "• ระบุ S/N, LOT, ECN และเลือกโฟลเดอร์สำหรับเซฟ Report\n• กดปุ่ม 'รายละเอียด' เพื่อเช็คและตั้งค่าเครื่องมือทดสอบ";
+                    break;
+
+                case 1: // Steps 3 & 4
+                    _lblStepCard1Title.Text = "3. เลือกโมเดลและแรงดัน (Model & Supply)";
+                    _lblStepCard1Desc.Text = "• เลือกรุ่น: DEF-03N-A หรือ DEF-03N-A-B\n• เลือกแรงดัน Supply: 220 Volt หรือ 24 Volt";
+
+                    _lblStepCard2Title.Text = "4. เลือกโหมดการทดสอบและกด Run";
+                    _lblStepCard2Desc.Text = "• ติ๊กเลือกโหมด Calibration และ/หรือ Test For All\n• กดปุ่ม Run เพื่อเริ่มกระบวนการทดสอบอัตโนมัติ";
+                    break;
+
+                case 2: // Steps 5 & 6
+                    _lblStepCard1Title.Text = "5. ล็อกอินเชื่อมต่อ Server (Login Primus)";
+                    _lblStepCard1Desc.Text = "• คลิกปุ่ม 'Login...' มุมขวาบน กรอก IP, Port, Token, User/Pass\n• *สำหรับกรณีต้องการส่งผลเข้าฐานข้อมูลกลาง (ไม่ส่งสามารถข้ามได้)";
+
+                    _lblStepCard2Title.Text = "6. ตรวจสอบสถานะ & ติ๊กเปิดส่งผล (Auto Upload)";
+                    _lblStepCard2Desc.Text = "• สังเกตปุ่มมุมขวาบนเปลี่ยนเป็น 'Login OK'\n• ติ๊กถูกช่อง [✓] Server และดูสถานะส่งผลที่กล่อง MASSANGER";
+                    break;
+            }
+
+            // Update Navigation state
+            _lblPageIndicator.Text = $"หน้า {_currentWorkflowSlide + 1} / 3";
+            _btnPrev.Enabled = _currentWorkflowSlide > 0;
+            _btnPrev.ForeColor = _btnPrev.Enabled ? Color.White : Color.FromArgb(100, 120, 135);
+            _btnNext.Enabled = _currentWorkflowSlide < 2;
+            _btnNext.ForeColor = _btnNext.Enabled ? Color.White : Color.FromArgb(100, 120, 135);
         }
 
         private void Form_KeyDown(object? sender, KeyEventArgs e)
@@ -620,11 +686,17 @@ namespace TEST_DEF_03N
             }
             else if (e.KeyCode == Keys.Left)
             {
-                ShowPage(_currentPage - 1);
+                if (_currentTab == 0 && _currentWorkflowSlide > 0)
+                {
+                    UpdateWorkflowSlide(_currentWorkflowSlide - 1);
+                }
             }
             else if (e.KeyCode == Keys.Right)
             {
-                ShowPage(_currentPage + 1);
+                if (_currentTab == 0 && _currentWorkflowSlide < 2)
+                {
+                    UpdateWorkflowSlide(_currentWorkflowSlide + 1);
+                }
             }
         }
 

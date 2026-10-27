@@ -1315,7 +1315,7 @@ namespace TEST_DEF_03N
             Regis26.BackColor = Color.FromArgb(24, 32, 43);
             Regis26.Font = new Font("Leelawadee UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             Regis26.ForeColor = Color.FromArgb(124, 200, 224);
-            Regis26.Location = new Point(357, 46);
+            Regis26.Location = new Point(357, 45);
             Regis26.Name = "Regis26";
             Regis26.Size = new Size(128, 56);
             Regis26.TabIndex = 14;
@@ -2346,8 +2346,10 @@ namespace TEST_DEF_03N
             Controls.Add(label15);
             Controls.Add(myRoundedPanel1);
             Controls.Add(myRoundedPanel3);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 4, 3, 4);
+            MaximizeBox = false;
             Name = "Form1";
             Text = "Calibrate and Test DEF-03N Series";
             Load += Form1_Load;

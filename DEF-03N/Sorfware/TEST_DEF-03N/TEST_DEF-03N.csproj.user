@@ -1,25 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Compile Update="CustomCheckBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="CustomComboBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="CustomLine.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="CustomRoundedButton.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="CustomTextBox.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="DescriptionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="EquipmentPopupForm.cs">
+    <Compile Update="Form1.Barcode.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form1.cs">
@@ -46,16 +28,37 @@
     <Compile Update="Form1.ServerAddress.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="HelpPopupForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="LoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="MyRoundedPanel.cs">
+    <Compile Update="UI\Controls\CustomCheckBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="ParameterPopupController.cs">
+    <Compile Update="UI\Controls\CustomComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomLine.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomRoundedButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\MyRoundedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\DescriptionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\EquipmentPopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\HelpPopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\ParameterPopupController.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

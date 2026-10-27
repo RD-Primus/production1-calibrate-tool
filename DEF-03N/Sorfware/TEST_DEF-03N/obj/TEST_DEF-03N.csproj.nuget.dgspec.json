@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Primus\\do by mine\\CMA-003\\production1-calibrate-tool\\DEF-03N\\Sorfware\\TEST_DEF-03N\\TEST_DEF-03N.csproj": {}
+    "C:\\Primus\\do by mine\\DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N.csproj": {}
   },
   "projects": {
-    "C:\\Primus\\do by mine\\CMA-003\\production1-calibrate-tool\\DEF-03N\\Sorfware\\TEST_DEF-03N\\TEST_DEF-03N.csproj": {
+    "C:\\Primus\\do by mine\\DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Primus\\do by mine\\CMA-003\\production1-calibrate-tool\\DEF-03N\\Sorfware\\TEST_DEF-03N\\TEST_DEF-03N.csproj",
+        "projectUniqueName": "C:\\Primus\\do by mine\\DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N.csproj",
         "projectName": "TEST_DEF-03N",
-        "projectPath": "C:\\Primus\\do by mine\\CMA-003\\production1-calibrate-tool\\DEF-03N\\Sorfware\\TEST_DEF-03N\\TEST_DEF-03N.csproj",
+        "projectPath": "C:\\Primus\\do by mine\\DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Primus\\do by mine\\CMA-003\\production1-calibrate-tool\\DEF-03N\\Sorfware\\TEST_DEF-03N\\obj\\",
+        "outputPath": "C:\\Primus\\do by mine\\DEF-03N\\TEST_DEF-03N\\TEST_DEF-03N\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

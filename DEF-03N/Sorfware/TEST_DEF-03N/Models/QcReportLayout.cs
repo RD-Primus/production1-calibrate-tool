@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using ClosedXML.Excel;
 
 namespace TEST_DEF_03N
@@ -13,6 +15,52 @@ namespace TEST_DEF_03N
         internal const int OkColumn = 22;           // Column V = ปกติ
         internal const int NgColumn = 23;           // Column W = ไม่ปกติ
         internal const string DefaultTemplateFileName = "DEF-03N QC Inspection.xlsx";
+
+        internal static string GetSafeLotFileName(string lotName)
+        {
+            if (string.IsNullOrWhiteSpace(lotName)) return string.Empty;
+            string safe = lotName.Replace("/", "-").Trim();
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                if (c != '-') safe = safe.Replace(c, '-');
+            }
+            return safe;
+        }
+
+        internal static string NormalizeReportFolder(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+            string trimmed = path.Trim().Trim('"', '\'');
+            if (File.Exists(trimmed) || trimmed.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                string? dir = Path.GetDirectoryName(trimmed);
+                if (!string.IsNullOrEmpty(dir)) return dir;
+            }
+            return trimmed;
+        }
+
+        internal static string GetReportFilePath(string outputFolder, string lotName)
+        {
+            string folder = NormalizeReportFolder(outputFolder);
+            string safeDash = GetSafeLotFileName(lotName);
+
+            if (string.IsNullOrWhiteSpace(folder))
+                folder = AppDomain.CurrentDomain.BaseDirectory;
+
+            // 1. ตรวจสอบชื่อไฟล์แบบขีดกลาง (Dash - มาตรฐานเหมือน CMA เช่น Assy-2608-1663.xlsx)
+            string dashPath = Path.Combine(folder, $"{safeDash}.xlsx");
+            if (File.Exists(dashPath))
+                return dashPath;
+
+            // 2. ตรวจสอบเผื่อมีไฟล์เก่าที่เคยเซฟแบบขีดล่าง (Underscore _ เช่น Assy_2608_1663.xlsx)
+            string safeUnderscore = string.Join("_", lotName.Split(Path.GetInvalidFileNameChars()));
+            string underscorePath = Path.Combine(folder, $"{safeUnderscore}.xlsx");
+            if (File.Exists(underscorePath))
+                return underscorePath;
+
+            // 3. ถ้ายังไม่มีไฟล์ ให้ใช้แบบขีดกลาง (-) เป็นค่าเริ่มต้นเหมือน CMA
+            return dashPath;
+        }
 
         internal static bool IsQcLayout(IXLWorksheet sheet)
         {
@@ -129,6 +177,9 @@ namespace TEST_DEF_03N
             {
                 if (!IsDataRow(sheet, row)) continue;
                 string current = sheet.Cell(row, SerialColumn).GetString().Trim();
+                if (string.IsNullOrEmpty(current))
+                    current = sheet.Cell(row, SerialColumn).GetFormattedString().Trim();
+
                 if (current.Equals(sn.Trim(), StringComparison.OrdinalIgnoreCase)) return row;
                 if (empty < 0 && current.Length == 0) empty = row;
             }

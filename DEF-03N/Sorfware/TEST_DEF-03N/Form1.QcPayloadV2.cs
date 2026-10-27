@@ -1,3 +1,12 @@
+// =========================================================================================
+// [DEVELOPER GUIDE]
+// Form1.QcPayloadV2.cs: "การสร้างและแปลงข้อมูลผลการทดสอบเป็น JSON Payload Schema V2"
+// - อ่านผลการทดสอบจากรายงาน Excel และสถานะบนหน้าจอ มาแปลงเป็น QcPayload V2
+// - รองรับการแปลงผลทั้งโหมด Model A และ Model AB (รวมถึงการเช็ค Contact, Voltage, Sensor Items)
+// - สร้างฟิลด์ Approve, Firmware, PowerSupply, EquipmentCodes ให้ครบถ้วนตามข้อกำหนด QC API
+// รายละเอียดเชิงลึกดูได้ที่ README_DEVELOPER.md
+// =========================================================================================
+
 using ClosedXML.Excel;
 using System.Globalization;
 

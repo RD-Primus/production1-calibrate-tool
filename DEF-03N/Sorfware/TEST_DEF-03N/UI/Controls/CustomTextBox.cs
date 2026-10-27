@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,7 +57,7 @@ namespace TEST_DEF_03N
 
         // ---------- Properties ----------
         [Browsable(true), DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-        public override string Text { get { return _tb.Text; } set { _tb.Text = value; } }
+        public override string? Text { get { return _tb.Text; } set { _tb.Text = value; } }
 
         [Category("Modern"), DefaultValue("")]
         public string PlaceholderText
@@ -116,10 +117,10 @@ namespace TEST_DEF_03N
             set { base.ForeColor = value; _tb.ForeColor = value; }
         }
 
-        public override Font Font
+        public override Font? Font
         {
             get { return base.Font; }
-            set { base.Font = value; _tb.Font = value; LayoutInner(); }
+            set { base.Font = value; _tb.Font = value!; LayoutInner(); }
         }
 
         public void SelectAll() { _tb.SelectAll(); }
