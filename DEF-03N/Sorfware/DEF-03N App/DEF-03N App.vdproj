@@ -27,7 +27,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C02D63C166F445379FF6F1A644CAE97E"
+        "MsmKey" = "8:_E912FAE061CA4EC88C2EB7A0D300E506"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -88,6 +88,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -140,10 +148,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C02D63C166F445379FF6F1A644CAE97E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E912FAE061CA4EC88C2EB7A0D300E506"
             {
-            "SourcePath" = "8:..\\TEST_DEF-03N\\bin\\Debug\\net8.0-windows\\TempleteQC.xlsx"
-            "TargetName" = "8:TempleteQC.xlsx"
+            "SourcePath" = "8:..\\TEST_DEF-03N\\bin\\Debug\\net8.0-windows\\DEF-03N QC Inspection.xlsx"
+            "TargetName" = "8:DEF-03N QC Inspection.xlsx"
             "Tag" = "8:"
             "Folder" = "8:_967A9992FB9247638CC550D8A0DA274C"
             "Condition" = "8:"
@@ -217,7 +225,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DEF-03N App"
         "ProductCode" = "8:{2A63EC01-3721-4821-8264-82C84AE87019}"
-        "PackageCode" = "8:{72C2DF79-9B10-4BD3-84EA-BD71DA619B27}"
+        "PackageCode" = "8:{7098B6E4-A0E5-4656-84AA-7C3287536E39}"
         "UpgradeCode" = "8:{0409961B-D1BC-4189-8DF5-EE9BD5334B0F}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

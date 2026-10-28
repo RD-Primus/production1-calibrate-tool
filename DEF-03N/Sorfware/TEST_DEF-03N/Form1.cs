@@ -178,9 +178,11 @@ namespace TEST_DEF_03N
             InitializeModelSelection();
             InitializeBarcodeScannerFeature();
 
-            // ทำงานเฉพาะเมื่อผู้ใช้เลือก Model จาก ComboBox
+            // ทำงานเมื่อผู้ใช้เลือก Model หรือ Supply จาก ComboBox
             txt_model.SelectionChangeCommitted +=
                 txt_model_SelectionChangeCommitted;
+            txt_supply.SelectionChangeCommitted +=
+                txt_supply_SelectionChangeCommitted;
 
             _snCheckTimer.Interval = 400;
 
@@ -271,6 +273,7 @@ namespace TEST_DEF_03N
         private string _currentRevision = DefaultRev;
         private string _currentInstrument = DefaultInstrument;
         private string _currentFirmware = DefaultFirmware;
+        private bool _isLoadingConfig = false;
 
         private string GetOhmSourceInstrumentText()
         {
@@ -287,18 +290,74 @@ namespace TEST_DEF_03N
 
         private void SaveConfig()
         {
+            if (_isLoadingConfig) return;
+
             try
             {
                 string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "path_config.txt");
+
+                // อ่านค่าเดิมเพื่อเป็น fallback ป้องกันไม่ให้เขียนทับด้วยค่าว่างโดยไม่ตั้งใจ
+                string oldPath = "";
+                string oldLot = "";
+                string oldEcn = "";
+                string oldRev = "";
+                string oldInst = "";
+                string oldFw = "";
+                string oldName = "";
+
+                if (File.Exists(configPath))
+                {
+                    try
+                    {
+                        string[] existing = File.ReadAllLines(configPath);
+                        if (existing.Length > 0) oldPath = existing[0].Trim();
+                        if (existing.Length > 1) oldLot = existing[1].Trim();
+                        if (existing.Length > 2) oldEcn = existing[2].Trim();
+                        if (existing.Length > 3) oldRev = existing[3].Trim();
+                        if (existing.Length > 4) oldInst = existing[4].Trim();
+                        if (existing.Length > 5) oldFw = existing[5].Trim();
+                        if (existing.Length > 6) oldName = existing[6].Trim();
+                    }
+                    catch { }
+                }
+
+                string savePath = !string.IsNullOrWhiteSpace(txt_templatePath.Text)
+                    ? txt_templatePath.Text.Trim()
+                    : oldPath;
+
+                string saveLot = !string.IsNullOrWhiteSpace(txt_Lot.Text)
+                    ? txt_Lot.Text.Trim()
+                    : oldLot;
+
+                string saveEcn = !string.IsNullOrWhiteSpace(txt_ECN.Text)
+                    ? txt_ECN.Text.Trim()
+                    : (!string.IsNullOrWhiteSpace(oldEcn) ? oldEcn : DefaultECN);
+
+                string saveRev = !string.IsNullOrWhiteSpace(_currentRevision)
+                    ? _currentRevision.Trim()
+                    : (!string.IsNullOrWhiteSpace(oldRev) ? oldRev : DefaultRev);
+
+                string saveInst = !string.IsNullOrWhiteSpace(GetOhmSourceInstrumentText())
+                    ? GetOhmSourceInstrumentText().Trim()
+                    : (!string.IsNullOrWhiteSpace(oldInst) ? oldInst : DefaultInstrument);
+
+                string saveFw = !string.IsNullOrWhiteSpace(_currentFirmware)
+                    ? _currentFirmware.Trim()
+                    : (!string.IsNullOrWhiteSpace(oldFw) ? oldFw : DefaultFirmware);
+
+                string saveName = !string.IsNullOrWhiteSpace(txt_name.Text)
+                    ? txt_name.Text.Trim()
+                    : oldName;
+
                 string[] lines = new string[]
                 {
-                    txt_templatePath.Text.Trim(),
-                    txt_Lot.Text.Trim(),
-                    txt_ECN.Text.Trim(),
-                    _currentRevision.Trim(),
-                    GetOhmSourceInstrumentText().Trim(),
-                    _currentFirmware.Trim(),
-                    txt_name.Text.Trim()
+                    savePath,
+                    saveLot,
+                    saveEcn,
+                    saveRev,
+                    saveInst,
+                    saveFw,
+                    saveName
                 };
                 File.WriteAllLines(configPath, lines);
             }
@@ -306,16 +365,40 @@ namespace TEST_DEF_03N
         }
         private void LoadConfig()
         {
-            txt_name.PlaceholderText = "กรุณาลงชื่อ";
-            txt_name.TextChanged += (s, e) => SaveConfig();
-
+            _isLoadingConfig = true;
             try
             {
+                txt_name.PlaceholderText = "กรุณาลงชื่อ";
+
                 string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "path_config.txt");
 
                 if (File.Exists(configPath))
                 {
                     string[] lines = File.ReadAllLines(configPath);
+
+                    if (lines.Length > 0 && !string.IsNullOrWhiteSpace(lines[0]))
+                    {
+                        string savedPath = lines[0].Trim();
+                        txt_templatePath.Text = savedPath;
+
+                        if (Directory.Exists(savedPath))
+                            txt_templatePath.ForeColor = _defaultTemplatePathForeColor;
+                        else
+                        {
+                            txt_templatePath.ForeColor = Color.Red;
+                            LogToRx($"⚠️ ไม่พบโฟลเดอร์ที่เคยบันทึกไว้: {savedPath} กรุณาเลือกโฟลเดอร์ใหม่", Color.Orange);
+                        }
+                    }
+
+                    if (lines.Length > 1 && !string.IsNullOrWhiteSpace(lines[1]))
+                    {
+                        txt_Lot.Text = lines[1].Trim();
+                    }
+
+                    // 🟢 บรรทัดที่ 3: ECN — ถ้ามีค่าที่เคย save ให้ใช้ค่านั้น ถ้าไม่มีใช้ default
+                    txt_ECN.Text = (lines.Length > 2 && !string.IsNullOrWhiteSpace(lines[2]))
+                        ? lines[2].Trim()
+                        : DefaultECN;
 
                     _currentRevision = (lines.Length > 3 && !string.IsNullOrWhiteSpace(lines[3]))
                                      ? lines[3].Trim()
@@ -333,30 +416,6 @@ namespace TEST_DEF_03N
                     {
                         txt_name.Text = lines[6].Trim();
                     }
-
-                    if (lines.Length > 0 && !string.IsNullOrWhiteSpace(lines[0]))
-                    {
-                        string savedPath = lines[0].Trim();
-                        txt_templatePath.Text = savedPath;
-
-                        if (Directory.Exists(savedPath))
-                            txt_templatePath.ForeColor = _defaultTemplatePathForeColor;
-                        else
-                        {
-                            txt_templatePath.ForeColor = Color.Red;
-                            LogToRx($"⚠️ ไม่พบโฟลเดอร์ที่เคยบันทึกไว้: {savedPath} กรุณาเลือกโฟลเดอร์ใหม่", Color.Orange);
-                        }
-                    }
-
-                    if (lines.Length > 1)
-                    {
-                        txt_Lot.Text = lines[1].Trim();
-                    }
-
-                    // 🟢 บรรทัดที่ 3: ECN — ถ้ามีค่าที่เคย save ให้ใช้ค่านั้น ถ้าไม่มีใช้ default
-                    txt_ECN.Text = (lines.Length > 2 && !string.IsNullOrWhiteSpace(lines[2]))
-                        ? lines[2].Trim()
-                        : DefaultECN;
                 }
                 else
                 {
@@ -375,6 +434,10 @@ namespace TEST_DEF_03N
                 _currentFirmware = DefaultFirmware;
                 LogToRx($"⚠️ อ่านไฟล์ Config ไม่สำเร็จ: {ex.Message}", Color.Orange);
             }
+            finally
+            {
+                _isLoadingConfig = false;
+            }
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -391,8 +454,30 @@ namespace TEST_DEF_03N
             for (int i = 0; i < 3; i++) SetStepLight(i, Color.LightGray, false);
             ResetRunStepLights();
 
+            // ติ๊ก Calibrate และ Test เป็นค่าเริ่มต้นเมื่อเปิดโปรแกรม
+            chkCalibration.Checked = true;
+            chkTestForAll.Checked = true;
+
+            // บันทึก config อัตโนมัติเมื่อปิดฟอร์ม
+            this.FormClosing += Form1_FormClosing;
+
+            // ผูก Event ให้บันทึก Config ทันทีเมื่อผู้ใช้พิมพ์หรือแก้ไข (หลังจาก LoadConfig เสร็จสิ้นแล้ว)
+            txt_name.TextChanged += (s, e) => { if (!_isLoadingConfig) SaveConfig(); };
+            txt_Lot.TextChanged += (s, e) => { if (!_isLoadingConfig) SaveConfig(); };
+            txt_ECN.TextChanged += (s, e) => { if (!_isLoadingConfig) SaveConfig(); };
+            txt_templatePath.TextChanged += (s, e) => { if (!_isLoadingConfig) SaveConfig(); };
+
             // เก็บสีหลังโหลด Config และตั้งค่าหน้าแรกครบแล้ว เพื่อใช้ตอน Refresh
             CaptureInitialTextColors();
+        }
+
+        private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                SaveConfig();
+            }
+            catch { }
         }
 
         private void CaptureInitialTextColors()
@@ -2929,6 +3014,12 @@ namespace TEST_DEF_03N
                 return false;
             }
 
+            if (!sn.All(char.IsDigit))
+            {
+                MessageBox.Show("Serial Number (S/N) ต้องเป็นตัวเลขเท่านั้น (ห้ามมีตัวหนังสือหรือช่องว่าง) ครับ!", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
             if (string.IsNullOrEmpty(lot))
             {
                 MessageBox.Show("กรุณากรอก LOT ก่อนเริ่มการทดสอบครับ!", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -3634,7 +3725,8 @@ namespace TEST_DEF_03N
             _cts?.Dispose();
             _cts = new System.Threading.CancellationTokenSource();
 
-            if (richTextBoxRx != null) richTextBoxRx.Clear();
+            // ไม่ clear richTextBoxRx เพื่อให้ log การทดสอบแต่ละ type แสดงต่อเนื่องกัน
+            // if (richTextBoxRx != null) richTextBoxRx.Clear();
 
             System.Windows.Forms.Control[] foundRegis0 = this.Controls.Find("Regis0", true);
             if (foundRegis0.Length > 0 && foundRegis0[0] is System.Windows.Forms.Label lblRegis0)
@@ -4174,10 +4266,11 @@ namespace TEST_DEF_03N
                     SetReportCell(sheet.Cell("T2"), testedSNCount, alignment: XLAlignmentHorizontalValues.Center);
 
                 var dateCell = FindHeaderCell(sheet, "Date:");
+                string dateStr = DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"));
                 if (dateCell != null)
-                    SetReportCell(dateCell, $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
+                    sheet.Cell(dateCell.Address.RowNumber, dateCell.Address.ColumnNumber + 1).Value = dateStr;
                 else
-                    SetReportCell(sheet.Cell("X2"), $"Date: {DateTime.Now.ToString("dd/MM/yy", System.Globalization.CultureInfo.GetCultureInfo("th-TH"))}");
+                    sheet.Cell("X2").Value = dateStr;
             }
         }
 
@@ -4342,6 +4435,14 @@ namespace TEST_DEF_03N
             if (string.IsNullOrWhiteSpace(sn))
             {
                 ResetSnColorsToDefault();
+                return;
+            }
+
+            // S/N ต้องเป็นตัวเลขเท่านั้น (ห้ามมีตัวหนังสือหรือช่องว่าง)
+            if (!sn.All(char.IsDigit))
+            {
+                txt_SN.ForeColor = Color.White;
+                txt_SN.BackColor = Color.Firebrick;
                 return;
             }
 
@@ -4534,6 +4635,19 @@ namespace TEST_DEF_03N
                         MessageBoxIcon.Warning);
 
                     txt_SN.Focus();
+                    return;
+                }
+
+                if (!currentSN.All(char.IsDigit))
+                {
+                    MessageBox.Show(
+                        "Serial Number (S/N) ต้องเป็นตัวเลขเท่านั้น (ห้ามมีตัวหนังสือหรือช่องว่าง) ครับ",
+                        "แจ้งเตือน",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    txt_SN.Focus();
+                    txt_SN.SelectAll();
                     return;
                 }
 
@@ -6610,16 +6724,118 @@ namespace TEST_DEF_03N
             LogToRx(message, color);
         }
 
+        private bool _isManualRelayOn = false;
+
         private async void btnCheckRelay_Click(object sender, EventArgs e)
         {
-            if (!CheckManualConnections(false, false, true)) return;
-            if (_modelTestAllActive || _buttonTestActive) return;
+            if (!CheckManualConnections(true, true, true)) return;
+            if (_modelTestAllActive || _buttonTestActive || _isCalibrating)
+            {
+                MessageBox.Show("โปรแกรมกำลังทำงานอยู่ กรุณารอให้เสร็จก่อนครับ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string model = txt_model.Text.Trim();
+            if (!ModelTestResults.IsValidModel(model))
+            {
+                MessageBox.Show("กรุณาเลือก Model: DEF-03N-A หรือ DEF-03N-A-B ก่อนทดสอบ Relay/Alarm",
+                    "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txt_model.Focus();
+                return;
+            }
+
             var btn = sender as System.Windows.Forms.Button;
             try
             {
                 if (btn != null) btn.Enabled = false;
-                await CheckRelayOutputAsync(); // ID 3, Register 2
-                await CheckAlarmAsync();       // ID 3, Register 7
+
+                if (!_isManualRelayOn)
+                {
+                    // ==========================================
+                    // 🟢 สั่งเปิด (ติด - ON)
+                    // ==========================================
+                    LogToRx($"[MANUAL RELAY] 🟢 เริ่มตั้งค่าเปิด (ON) สำหรับ {model}:", Color.Blue);
+
+                    // 1. ปรับ Input = PTC 2K (Reg 2 = 0)
+                    LogToRx("   ⚙️ กำลังตั้งค่า Input = PTC 2K (Register 2 = 0)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(2, 0, "MANUAL SET INPUT PTC 2K");
+
+                    // 2. ปรับ SV = 50 (Reg 1 = 50)
+                    LogToRx("   ⚙️ กำลังตั้งค่า Setpoint: SV = 50°C (Register 1 = 50)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(SvRegister, 50, "MANUAL SET SV = 50");
+
+                    // 3. ปรับ Con = 10 (Heating) (Reg 10 = 10)
+                    LogToRx("   ⚙️ กำลังตั้งค่า Control Mode: Con = 10 (โหมด Heating)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(10, 10, "MANUAL SET CONTROL MODE HEATING (Con = 10)");
+
+                    // 4. ถ้าเป็น Model A-B: ตั้งค่า Alarm rL = 21 (Reg 9) และ FU2 = 1 (Reg 19)
+                    if (model == ModelAB)
+                    {
+                        LogToRx("   ⚙️ กำลังตั้งค่า Alarm: rL = 21 (Register 9 = 21)...", Color.DarkCyan);
+                        await WriteAndVerifyModelRegisterAsync(9, 21, "MANUAL A-B ALARM SETUP (rL = 21)");
+                        LogToRx("   ⚙️ กำลังเปิด Alarm: FU2 = 1 (Register 19 = 1)...", Color.DarkCyan);
+                        await WriteAndVerifyModelRegisterAsync(19, 1, "MANUAL A-B ALARM ENABLE (FU2 = 1)");
+                    }
+
+                    // 5. จ่าย Ohm = 2,283 Ω (Temp = 40°C) และรอให้อุณหภูมิคงที่
+                    LogToRx("   🌡️ กำลังจ่ายความต้านทาน 2,283 Ω (จำลองอุณหภูมิ 40.0°C เพื่อให้ต่ำกว่า SV)...", Color.DarkCyan);
+                    SendOhm(2283);
+                    LogToRx("   ⏳ รออุณหภูมิ 40.0°C คงที่เพื่อเช็คสถานะ Relay ติด...", Color.Blue);
+                    await WaitForTemperatureAsync(40.0, tolerance: 1.0, maxLoops: 15);
+
+                    // 6. ตรวจสอบสถานะจริงจากบอร์ด ID 3
+                    await CheckRelayOutputAsync();
+                    if (model == ModelAB)
+                    {
+                        await CheckAlarmAsync();
+                    }
+
+                    _isManualRelayOn = true;
+                }
+                else
+                {
+                    // ==========================================
+                    // 🔴 สั่งปิด (ดับ - OFF)
+                    // ==========================================
+                    LogToRx($"[MANUAL RELAY] 🔴 เริ่มตั้งค่าปิด (OFF) สำหรับ {model}:", Color.Blue);
+
+                    // 1. ปรับ Input = PTC 2K (Reg 2 = 0)
+                    LogToRx("   ⚙️ กำลังตั้งค่า Input = PTC 2K (Register 2 = 0)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(2, 0, "MANUAL SET INPUT PTC 2K");
+
+                    // 2. ปรับ SV = 50 (Reg 1 = 50)
+                    LogToRx("   ⚙️ กำลังตั้งค่า Setpoint: SV = 50°C (Register 1 = 50)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(SvRegister, 50, "MANUAL SET SV = 50");
+
+                    // 3. ปรับ Con = 00 (Cooling) (Reg 10 = 0) -> Relay ดับทันที
+                    LogToRx("   ⚙️ กำลังเปลี่ยน Control Mode: Con = 00 (โหมด Cooling -> สั่ง Relay ดับ)...", Color.DarkCyan);
+                    await WriteAndVerifyModelRegisterAsync(10, 0, "MANUAL SET CONTROL MODE COOLING (Con = 00)");
+
+                    // 4. ถ้าเป็น Model A-B: ปิด Alarm FU2 = 0 (Reg 19 = 0) -> Alarm ดับทันที
+                    if (model == ModelAB)
+                    {
+                        LogToRx("   ⚙️ กำลังปิด Alarm: FU2 = 0 (สั่ง Alarm ดับ)...", Color.DarkCyan);
+                        await WriteAndVerifyModelRegisterAsync(19, 0, "MANUAL A-B ALARM DISABLE (FU2 = 0)");
+                    }
+
+                    // 5. จ่าย Ohm = 2,283 Ω (Temp = 40°C) เหมือนเดิม
+                    LogToRx("   🌡️ จ่ายความต้านทาน 2,283 Ω (40.0°C)...", Color.DarkCyan);
+                    SendOhm(2283);
+                    await Task.Delay(500);
+
+                    // 6. ตรวจสอบสถานะจริงจากบอร์ด ID 3
+                    await CheckRelayOutputAsync();
+                    if (model == ModelAB)
+                    {
+                        await CheckAlarmAsync();
+                    }
+
+                    _isManualRelayOn = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogToRx($"[MANUAL RELAY ERROR] {ex.Message}", Color.Red);
             }
             finally
             {
@@ -6695,11 +6911,33 @@ namespace TEST_DEF_03N
 
         private async void txt_model_SelectionChangeCommitted(object? sender, EventArgs e)
         {
+            await ProcessModelOrSupplyChangeAsync();
+        }
+
+        private async void txt_supply_SelectionChangeCommitted(object? sender, EventArgs e)
+        {
+            await ProcessModelOrSupplyChangeAsync();
+        }
+
+        private async Task ProcessModelOrSupplyChangeAsync()
+        {
             // ป้องกันการทำงานซ้ำ
             if (_isChangingModelRegister)
                 return;
 
             string selectedModel = txt_model.Text.Trim();
+
+            // ต้องเป็น Model ที่ถูกต้อง
+            if (!ModelTestResults.IsValidModel(selectedModel))
+                return;
+
+            // ⚠️ ยังไม่เปลี่ยนบนบอร์ดจนกว่าจะเลือก supply ให้เสร็จด้วย
+            if (txt_supply.SelectedIndex < 0)
+            {
+                LogToRx($"[MODEL] เลือก {selectedModel} แล้ว -> กรุณาเลือก Supply เพื่อยืนยันการตั้งค่า", Color.DarkCyan);
+                txt_supply.Focus();
+                return;
+            }
 
             // ถ้าที่หน้าจอเลือก Type เดิมซ้ำอยู่แล้ว ไม่ต้องทำอะไรเลย (ข้ามทันที)
             if (!string.IsNullOrEmpty(_lastConfirmedModel) &&
@@ -6731,7 +6969,7 @@ namespace TEST_DEF_03N
             if (_serialPort == null || !_serialPort.IsOpen)
             {
                 MessageBox.Show(
-                    "เลือก Model แล้ว แต่ยังไม่ได้เชื่อมต่อ DEF-03N\n" +
+                    "เลือก Model และ Supply แล้ว แต่ยังไม่ได้เชื่อมต่อ DEF-03N\n" +
                     "จึงไม่สามารถตรวจสอบหรือเขียน Register 23 ได้",
                     "Model Option",
                     MessageBoxButtons.OK,
@@ -7292,7 +7530,10 @@ namespace TEST_DEF_03N
 
                     try
                     {
+                        LogToRx($"[RELAY SETUP] ⚙️ เริ่มต้นตั้งค่าพารามิเตอร์สำหรับทดสอบ Relay & Alarm ({model}):", Color.Blue);
+
                         // 1. ปรับ Input (Register 2) เป็น 0 (PTC 2K) เสมอ ทั้ง Type A และ Type A-B
+                        LogToRx("   ⚙️ กำลังตั้งค่า Input = PTC 2K (Register 2 = 0)...", Color.DarkCyan);
                         contactSetupOk = await WriteAndVerifyModelRegisterAsync(
                             address: 2,
                             value: 0,
@@ -7304,9 +7545,42 @@ namespace TEST_DEF_03N
                             RecordRunFailure(contactFailureDetail);
                         }
 
-                        // 2. ถ้าเป็น Type A-B ให้ตั้งค่า rL (Reg 9) = 21 และ FU2 (Reg 19) = 1
+                        // 2. ปรับ Control Mode (Register 10) เป็น 10 (HEATING_HYSTERESIS) เสมอ ทั้ง Type A และ Type A-B
+                        if (contactSetupOk && !_userRequestedStop)
+                        {
+                            LogToRx("   ⚙️ กำลังตั้งค่า Control Mode: Con = 10 (โหมด Heating)...", Color.DarkCyan);
+                            contactSetupOk = await WriteAndVerifyModelRegisterAsync(
+                                address: 10,
+                                value: 10,
+                                description: "SET CONTROL MODE HEATING (Con = 10)");
+
+                            if (!contactSetupOk)
+                            {
+                                contactFailureDetail = "ตั้งค่า Control Mode: Register 10 = 10 ไม่สำเร็จ";
+                                RecordRunFailure(contactFailureDetail);
+                            }
+                        }
+
+                        // 3. ปรับ SV (Register 1) เป็น 50 (°C) เสมอ ทั้ง Type A และ Type A-B
+                        if (contactSetupOk && !_userRequestedStop)
+                        {
+                            LogToRx("   ⚙️ กำลังตั้งค่า Setpoint: SV = 50°C (Register 1 = 50)...", Color.DarkCyan);
+                            contactSetupOk = await WriteAndVerifyModelRegisterAsync(
+                                address: SvRegister,
+                                value: 50,
+                                description: "SET SV = 50 (SV = 50)");
+
+                            if (!contactSetupOk)
+                            {
+                                contactFailureDetail = "ตั้งค่า SV: Register 1 = 50 ไม่สำเร็จ";
+                                RecordRunFailure(contactFailureDetail);
+                            }
+                        }
+
+                        // 4. ถ้าเป็น Type A-B ให้ตั้งค่า rL (Reg 9) = 21 และ FU2 (Reg 19) = 1
                         if (contactSetupOk && model == ModelAB && !_userRequestedStop)
                         {
+                            LogToRx("   ⚙️ กำลังตั้งค่า Alarm: rL = 21 (Register 9 = 21)...", Color.DarkCyan);
                             contactSetupOk = await WriteAndVerifyModelRegisterAsync(
                                 address: 9,
                                 value: 21,
@@ -7321,6 +7595,7 @@ namespace TEST_DEF_03N
                             if (contactSetupOk && !_userRequestedStop)
                             {
                                 alarmRegisterTouched = true;
+                                LogToRx("   ⚙️ กำลังเปิด Alarm: FU2 = 1 (Register 19 = 1)...", Color.DarkCyan);
                                 contactSetupOk = await WriteAndVerifyModelRegisterAsync(
                                     address: 19,
                                     value: 1,
@@ -7334,14 +7609,15 @@ namespace TEST_DEF_03N
                             }
                         }
 
-                        // 3. จ่าย Ohm ให้เป็นอุณหภูมิ 40 องศา (PTC 2K คือ 2283 โอห์ม) และรอให้อุณหภูมิใกล้เคียง 40°C
+                        // 5. จ่าย Ohm ให้เป็นอุณหภูมิ 40 องศา (PTC 2K คือ 2283 โอห์ม) และรอให้อุณหภูมิใกล้เคียง 40°C
                         if (contactSetupOk && !_userRequestedStop)
                         {
                             const int ohm40C = 2283;
                             const double targetTemp = 40.0;
-                            LogToRx($"[RELAY SETUP] กำลังจ่าย Ohm = {ohm40C}Ω (เป้าหมาย 40°C สำหรับทดสอบ Relay)...", Color.Blue);
+                            LogToRx($"   🌡️ กำลังจ่ายความต้านทาน {ohm40C}Ω (จำลองอุณหภูมิ 40.0°C เพื่อให้ต่ำกว่า SV 50°C)...", Color.DarkCyan);
                             SendOhm(ohm40C);
 
+                            LogToRx("   ⏳ กำลังรออุณหภูมิ 40.0°C คงที่ก่อนตรวจจับสถานะ Relay...", Color.Blue);
                             // รอให้อุณหภูมิเข้าใกล้ 40°C เหมือนตอนทดสอบอุณหภูมิ
                             await WaitForTemperatureAsync(targetTemp, tolerance: 1.0, maxLoops: 20, cancellationToken: _modelContactsCts.Token);
                         }
@@ -7481,35 +7757,63 @@ namespace TEST_DEF_03N
             }
             finally
             {
-                // A-B: คืนค่า Register 19 = 0 เฉพาะเมื่อผลการทดสอบทั้งหมดผ่าน (PASS)
+                // คืนค่า Register เฉพาะเมื่อผลการทดสอบทั้งหมดผ่าน (PASS)
                 // ถ้าไม่ผ่าน (FAIL / ERROR / Stop): ไม่ต้องคืนค่าใดๆ ทั้งสิ้น ตามคำสั่งของผู้ใช้งาน เพื่อให้ตรวจเช็คหน้างานได้
                 bool testFullyPassed = pass && inspection == true && !_userRequestedStop;
 
-                if (testFullyPassed && model == ModelAB && alarmRegisterTouched)
+                if (testFullyPassed)
                 {
+                    // 1. คืนค่า SV = 50 (°C) เสมอ ทั้ง Type A และ Type A-B
                     try
                     {
-                        bool resetAlarmOk = await WriteAndVerifyModelRegisterAsync(
-                            address: 19,
-                            value: 0,
-                            description: "A-B ALARM RESET AFTER BUTTON TEST");
+                        bool resetSvOk = await WriteAndVerifyModelRegisterAsync(
+                            address: SvRegister,
+                            value: 50,
+                            description: "RESET SV TO FACTORY DEFAULT (50)");
 
-                        if (!resetAlarmOk)
+                        if (!resetSvOk)
                         {
-                            alarm = "ERROR";
                             cleanupOk = false;
-                            string failText = "คืนค่า Register 19 = 0 ไม่สำเร็จ";
+                            string failText = "คืนค่า Register 1 (SV) = 50 ไม่สำเร็จ";
                             RecordRunFailure(failText);
                             cleanupFailures.Add(failText);
                         }
                     }
                     catch (Exception ex)
                     {
-                        alarm = "ERROR";
                         cleanupOk = false;
-                        string failText = $"คืนค่า Register 19 = 0 ไม่สำเร็จ: {ex.Message}";
+                        string failText = $"คืนค่า Register 1 (SV) = 50 ไม่สำเร็จ: {ex.Message}";
                         RecordRunFailure(failText);
                         cleanupFailures.Add(failText);
+                    }
+
+                    // 2. A-B: คืนค่า Register 19 = 0
+                    if (model == ModelAB && alarmRegisterTouched)
+                    {
+                        try
+                        {
+                            bool resetAlarmOk = await WriteAndVerifyModelRegisterAsync(
+                                address: 19,
+                                value: 0,
+                                description: "A-B ALARM RESET AFTER BUTTON TEST");
+
+                            if (!resetAlarmOk)
+                            {
+                                alarm = "ERROR";
+                                cleanupOk = false;
+                                string failText = "คืนค่า Register 19 = 0 ไม่สำเร็จ";
+                                RecordRunFailure(failText);
+                                cleanupFailures.Add(failText);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            alarm = "ERROR";
+                            cleanupOk = false;
+                            string failText = $"คืนค่า Register 19 = 0 ไม่สำเร็จ: {ex.Message}";
+                            RecordRunFailure(failText);
+                            cleanupFailures.Add(failText);
+                        }
                     }
                 }
 

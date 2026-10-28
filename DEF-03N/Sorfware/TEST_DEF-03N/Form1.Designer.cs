@@ -1585,7 +1585,7 @@ namespace TEST_DEF_03N
             progressBarRun.Location = new Point(27, 289);
             progressBarRun.Margin = new Padding(3, 4, 3, 4);
             progressBarRun.Name = "progressBarRun";
-            progressBarRun.Size = new Size(372, 17);
+            progressBarRun.Size = new Size(374, 17);
             progressBarRun.TabIndex = 57;
             // 
             // txt_supply
@@ -1737,6 +1737,7 @@ namespace TEST_DEF_03N
             chkCalibration.TabIndex = 48;
             chkCalibration.Text = "Calibration";
             chkCalibration.UseVisualStyleBackColor = true;
+            chkCalibration.Checked = true;
             // 
             // chkTestForAll
             // 
@@ -1750,6 +1751,7 @@ namespace TEST_DEF_03N
             chkTestForAll.TabIndex = 49;
             chkTestForAll.Text = "Test";
             chkTestForAll.UseVisualStyleBackColor = true;
+            chkTestForAll.Checked = true;
             // 
             // sent_server
             // 

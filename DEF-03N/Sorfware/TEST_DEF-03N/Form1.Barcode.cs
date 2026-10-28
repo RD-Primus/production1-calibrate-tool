@@ -76,6 +76,11 @@ namespace TEST_DEF_03N
                 _snCheckTimer?.Stop();
                 CheckSNWhileTyping();
 
+                if (!string.IsNullOrWhiteSpace(txt_SN.Text) && !txt_SN.Text.Trim().All(char.IsDigit))
+                {
+                    LogToRx($"⚠️ S/N '{txt_SN.Text.Trim()}' มีตัวหนังสือ ไม่ใช่ตัวเลข!", Color.OrangeRed);
+                }
+
                 txt_SN.SelectAll();
             }
         }

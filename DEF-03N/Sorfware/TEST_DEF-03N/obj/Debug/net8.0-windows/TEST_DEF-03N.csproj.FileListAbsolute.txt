@@ -280,7 +280,7 @@ C:\Users\ASUS\Documents\ChatGPT\DEF-03N\build-check-qc-pagination\TEST_DEF-03N.r
 C:\Users\ASUS\Documents\ChatGPT\DEF-03N\build-check-qc-pagination\TEST_DEF-03N.dll
 C:\Users\ASUS\Documents\ChatGPT\DEF-03N\build-check-qc-pagination\TEST_DEF-03N.pdb
 C:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\Resources\help_workflow.png
-c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\DEF-03N QC Inspection.xlsx
 c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\Resources\help_step1_2.png
 c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\Resources\help_step3_4.png
 c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\Resources\help_step5_6.png
+c:\Primus\do by mine\DEF-03N\TEST_DEF-03N\TEST_DEF-03N\bin\Debug\net8.0-windows\DEF-03N QC Inspection.xlsx

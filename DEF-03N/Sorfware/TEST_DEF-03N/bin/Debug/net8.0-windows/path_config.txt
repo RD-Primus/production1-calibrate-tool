@@ -1,5 +1,5 @@
-C:\Users\ASUS\Desktop\def-03N Test
-hello1
+C:\Primus\do by mine\templete for Excel
+test_excel
 RD-CN-24-6-0121
 F-RD-07 Rev.6
 OS-274 หมดอายุ 3/2/27
