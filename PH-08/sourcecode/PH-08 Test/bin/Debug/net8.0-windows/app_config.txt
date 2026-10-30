@@ -1,0 +1,6 @@
+Folder=C:\Users\ASUS\Desktop\Ph-08
+ECN=ECN-RD-CN-26-10-115
+FW=Primus-PH08v300.hex
+Rev=F-PD-07 Rev.6
+Lot=TEST2
+Name=พรรรณโสภา

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PH-08 Test App/PH-08 Test App.vdproj" Type="Installer">
+    <Build />
+  </Project>
+  <Project Path="PH-08 Test/PH-08 Test.csproj" />
+</Solution>

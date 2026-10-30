@@ -1,0 +1,6 @@
+{
+  "ServerIp": "192.168.109.86",
+  "ServerPort": "5088",
+  "TokenKey": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJfaWQiOjEsInJvbGUiOiJBRE1JTiIsInN0YXRpb25fc2NvcGUiOm51bGwsImV4cCI6MTc5MTI1NTE1MX0.mTKoxymvlEaPOS6b0Y11yf0XM-vzwfpGAkAG0kybr3U",
+  "Email": "admin"
+}

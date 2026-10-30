@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="Form1.AutoScale.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Barcode.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.DebugShortcut.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Device.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Excel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Login.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ManualPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.PH08.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.ServerApi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Form1.Test.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\AvatarPillButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\ConnectionStatusBadge.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomLine.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomRichTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomRoundedButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomRoundedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\CustomTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\FormLEDTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\FormParameter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\FormSerialSettingsPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Forms\FormSwitchIDTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
